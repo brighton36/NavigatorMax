@@ -1,0 +1,44 @@
+.page-header
+  %h1 
+    Phidget Spacial 3/3/3 Dashboard
+    %small
+      Last updated:
+      %span#last_update
+  %h4#spatial_attributes_summary
+
+.row
+  .span4
+    %h3 Current Sensor Value
+    %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
+      %thead
+        %tr
+          %th Sensor
+          %th X-coord
+          %th Y-coord
+          %th Z-coord
+      %tbody
+        - %w(Acceleration Compass Gyroscope).each do |sensor|
+          %tr
+            %th=sensor
+            %td{:id => '%s_data_x' % sensor.downcase}
+            %td{:id => '%s_data_y' % sensor.downcase}
+            %td{:id => '%s_data_z' % sensor.downcase}
+
+    %h3 Sensor Min/Max
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr 
+          %th Sensor
+          %th Min
+          %th Max
+      %tbody
+        - %w(Acceleration Compass Gyroscope).each do |sensor|
+          %tr
+            %th=sensor
+            %td{:id => '%s_extent_min' % sensor.downcase}
+            %td{:id => '%s_extent_max' % sensor.downcase}
+
+  .span4
+    %h3 Gyroscope Visualized
+    %canvas#gyroscope_vis(width = '600' height = '400')
+
