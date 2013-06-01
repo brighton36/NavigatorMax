@@ -62,6 +62,24 @@ $(document).ready ->
         $(['x', 'y', 'z']).each (i,coord) ->
           $("##{sensor}_data_#{coord}").html data.spatial_data[sensor][i].toFixed(2)
 
+      # Let's try out our rotation matrix:
+      if data.spatial_data['orientation']
+        orient = data.spatial_data['orientation']
+        for i in [0,1,2]
+          for j in [0,1,2]
+            $("#orientation_#{i}_#{j}").html( orient[i][j].toFixed(2) )
+
+        orientation = new THREE.Matrix4( 
+          orient[0][0], orient[0][1], orient[0][2], 0, 
+          orient[1][0], orient[1][1], orient[1][2], 0, 
+          orient[2][0], orient[2][1], orient[2][2], 0, 
+          0, 0, 0, 1 
+        )
+        window.mesh.matrix = new THREE.Matrix4()
+        window.mesh.useQuaternion = true
+        window.mesh.setGeometry = new THREE.CubeGeometry( 200, 200, 200 )
+        window.mesh.applyMatrix(orientation)
+      
       # window.mesh.rotation.x = 
       # console.log "huh"+data.spatial_data['gyroscope'][0]
     if data.spatial_attributes
@@ -110,9 +128,9 @@ $(document).ready ->
     requestAnimationFrame window.animate 
    
     # 0-6 is the range?
-    window.mesh.rotation.x = 1.5
-    window.mesh.rotation.x += 0.01
-    window.mesh.rotation.y += 0.02
+    #window.mesh.rotation.x = 1.5
+    #window.mesh.rotation.x += 0.01
+    #window.mesh.rotation.y += 0.02
 
     renderer.render scene, camera
 

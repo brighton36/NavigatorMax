@@ -8,6 +8,21 @@
 
 .row
   .span4
+    %h3 Orientation/Rotation Matrix
+    %table.table.table-striped.table-bordered.table-condensed#phidget_orientation
+      %thead
+        %tr
+          %th
+          %th 0
+          %th 1
+          %th 2
+      %tbody
+        - 0.upto(2) do |y|
+          %tr
+            %th=y
+            - 0.upto(2) do |x|
+              %td{:id => ['orientation',x, y].join('_')}
+
     %h3 Current Sensor Value
     %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
       %thead
