@@ -471,8 +471,6 @@ spatial.on_detach &ON_DETACH
 
 sleep 2
 
-#spatial.data_rate = 1000
-
 # This might belong in attach
 usable_spatial = SpatialSensor.new
 usable_spatial.zeroGyro spatial
@@ -481,17 +479,18 @@ i = 0
 ON_SPATIAL_DATA = Proc.new do |device, acceleration, magnetic_field, angular_rate, obj|
   begin
 
-  ev_spatial_extents ||= {
-    :acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
-    :acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
-    :acceleration_min => spatial.accelerometer_axes[0].acceleration_min,
-    :gyroscope_max => spatial.gyro_axes[0].angular_rate_max,
-    :gyroscope_min => spatial.gyro_axes[0].angular_rate_min,
-    :compass_max => spatial.compass_axes[0].magnetic_field_max,
-    :compass_min => spatial.compass_axes[0].magnetic_field_min
-  }
+    ev_spatial_extents ||= {
+      :acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
+      :acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
+      :acceleration_min => spatial.accelerometer_axes[0].acceleration_min,
+      :gyroscope_max => spatial.gyro_axes[0].angular_rate_max,
+      :gyroscope_min => spatial.gyro_axes[0].angular_rate_min,
+      :compass_max => spatial.compass_axes[0].magnetic_field_max,
+      :compass_min => spatial.compass_axes[0].magnetic_field_min
+    }
 
-  ev_spatial_attributes ||= spatial.attributes.to_hash.dup
+    ev_spatial_attributes ||= spatial.attributes.to_hash.dup
+
     i+=1
     puts "#{i} Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}" if i % 20 == 0
 
