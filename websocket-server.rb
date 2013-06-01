@@ -76,71 +76,115 @@ def m3x3
 end
 
 class OrientationSensor
-  ON_ATTACH = Proc.new do |device, obj|
+  # This is kind of silly, but, since we can only pass a 32 bit number to an
+  # on_spatial_data, it'll suffice. Basically, this is a counter to all the 
+  # initialized sensors. Each sensor is guaranteed a unique entry in this table
+  # which is used by the update proc
+  @@instances = []
+
+  def self.instance(id)
+    @@instances[id]
+  end
+
+  ON_ATTACH = Proc.new do |device, instance_id|
+    begin
+
     puts "Device attributes: #{device.attributes} attached"
+    puts "Device: #{device.inspect}"
+
+    orientation = OrientationSensor.instance instance_id
+    orientation.on_attach device
+
+    rescue Exception => e
+      puts "ERROR" + e.inspect
+    end
   end
 
   ON_ERROR = Proc.new do |device, obj, code, description|
     puts "Error #{code}: #{description}"
   end
 
-  ON_DETACH = Proc.new do |device, obj|
-    puts "#{device.attributes.inspect} detached"
+  ON_DETACH = Proc.new do |device, instance_id|
+    begin
+      orientation = OrientationSensor.instance instance_id
+      orientation.on_detach device
+    rescue Exception => e
+      puts "ERROR" + e.inspect
+    end
   end
 
-  ON_SPATIAL_DATA = Proc.new do |device, acceleration, magnetic_field, angular_rate, obj|
+  ON_SPATIAL_DATA = Proc.new do |device, acceleration, magnetic_field, angular_rate, instance_id|
     begin
+      puts " Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}"
 
-      #ev_spatial_extents ||= {
-        #:acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
-        #:acceleration_max => spatial.accelerometer_axes[0].acceleration_max, 
-        #:acceleration_min => spatial.accelerometer_axes[0].acceleration_min,
-        #:gyroscope_max => spatial.gyro_axes[0].angular_rate_max,
-        #:gyroscope_min => spatial.gyro_axes[0].angular_rate_min,
-        #:compass_max => spatial.compass_axes[0].magnetic_field_max,
-        #:compass_min => spatial.compass_axes[0].magnetic_field_min
-      #}
+      orientation = OrientationSensor.instance instance_id
+      orientation.on_data device, acceleration, magnetic_field, angular_rate
 
-      #ev_spatial_attributes ||= spatial.attributes.to_hash.dup
-
-      puts "Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}" if i % 20 == 0
-
-      #usable_spatial.phid_tick(spatial)
-
-      #ev_spatial = {
-        #:acceleration => acceleration, 
-        #:gyroscope    => angular_rate,
-        #:compass      => magnetic_field ,
-        #:orientation  => usable_spatial.rotMatrix.to_a
-      #}
-      #sleep 0.005 # Seems like omiting this might crash ruby. Might be an OSX thing...  (Might need tuning...)
+      sleep 0.005 # Seems like omiting this might crash ruby. Might be an OSX thing...  (Might need tuning...)
     rescue Phidgets::Error::UnknownVal
     rescue Exception => e
       puts "ERROR" + e.inspect
     end
   end
 
+  attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
+    :gyroscope_max, :compass_min, :compass_max
+
   def initialize(serial_number)
+    @@instances << self
+    instances_id = @@instances.index self
+
+    @is_connected = false
     @phidget = Phidgets::Spatial.new :serial_number => @serial_number
-    @phidget.on_attach &ON_ATTACH
-    @phidget.on_error  &ON_ERROR
-    @phidget.on_detach &ON_DETACH 
-    @phidget.on_spatial_data &ON_SPATIAL_DATA 
+    @phidget.on_attach instances_id, &ON_ATTACH
+    @phidget.on_error  instances_id, &ON_ERROR
+    @phidget.on_detach instances_id, &ON_DETACH 
+    @phidget.on_spatial_data instances_id, &ON_SPATIAL_DATA 
+  end
+
+  def on_attach(spatial)
+    @is_connected = true
+
+    @acceleration_max = spatial.accelerometer_axes[0].acceleration_max
+    @acceleration_min = spatial.accelerometer_axes[0].acceleration_min
+    @gyroscope_max = spatial.gyro_axes[0].angular_rate_max
+    @gyroscope_min = spatial.gyro_axes[0].angular_rate_min
+    @compass_max = spatial.compass_axes[0].magnetic_field_max
+    @compass_min = spatial.compass_axes[0].magnetic_field_min
+  end
+
+  def on_detach(spatial)
+    @is_connected = false
+  end
+
+  def device_attributes
+    @phidget.attributes if @is_connected
+  end
+
+  def on_data(spatial, acceleration, magnetic_field, angular_rate)
+    @last_data = {
+      :acceleration => acceleration, 
+      :gyroscope    => angular_rate,
+      :compass      => magnetic_field
+    }
+  end
+
+  def last_data
+    @last_data
+  end
+
+  def connected?
+    @is_connected
   end
 end
 
-ev_spatial = {}
-ev_spatial_extents = {}
-ev_spatial_attributes = {}
 
 puts "Library Version: #{Phidgets::FFI.library_version}"
 Phidgets::Log.enable :verbose
 
-sleep 2
-
 # This might belong in attach
-orientation = OrientationSensor.new 302012 
-# TODO: orientation.zeroGyro spatial
+orientation = OrientationSensor.new 302012
+# TODO: orientation.zero_gyro!
 
 # We'll use this to block the execution. Phidget seems to run as an 'interrupt' 
 # to this proc:
@@ -152,12 +196,21 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
 
     case req.downcase
       when 'get spatial_attributes'
-        ret[:spatial_attributes] = ev_spatial_attributes
+        ret[:spatial_attributes] = orientation.device_attributes
       when 'get spatial_extents'
-        ret[:spatial_extents] = ev_spatial_extents
+        ret[:spatial_extents] = {
+          :acceleration_max => orientation.acceleration_max, 
+          :acceleration_max => orientation.acceleration_max, 
+          :acceleration_min => orientation.acceleration_min,
+          :gyroscope_max => orientation.gyroscope_max,
+          :gyroscope_min => orientation.gyroscope_min,
+          :compass_max => orientation.compass_max,
+          :compass_min => orientation.compass_min
+        }
       when 'get spatial_data'
-        ret[:spatial_data] = ev_spatial.dup
-    end
+        ret[:spatial_data] = orientation.last_data
+    end if orientation.connected?
+
     ws.send ret.to_json
   end
 end
