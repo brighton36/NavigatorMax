@@ -17,26 +17,43 @@ rotate_around_world_axis = (object, axis, radians) ->
   object.matrix = rotWorldMatrix.multiply(object.matrix)
   object.rotation.setEulerFromRotationMatrix(object.matrix)
 
-create_axis = (scene, p1, p2, cap_rotation, color) ->
-  line = new THREE.Geometry()
+add_axis = (scene, position, length, cap_rotation, color) ->
   lineGeometry = new THREE.Geometry()
   lineMat = new THREE.LineBasicMaterial({color: color, linewidth: 3})
-  lineGeometry.vertices.push(p1, p2)
+  lineGeometry.vertices.push(v(0,0,0), length)
   cap = new THREE.Mesh( 
     new THREE.CylinderGeometry(1, 20, 50, 10, 10)
     new THREE.MeshBasicMaterial( { color: color } )
   )
+
   scene.add cap
   rotate_around_world_axis(cap, cap_rotation, Math.PI)
-  cap.position = p2
+  cap_position = position.clone()
+  cap_position.add(length)
 
-  scene.add new THREE.Line(lineGeometry, lineMat)
-    
-debug_axis = (scene, axisLength) ->
-  origin = v(0,0,0)
-  create_axis(scene, origin, v(axisLength, 0, 0), v(1,1,0), 0xFF0000)
-  create_axis(scene, origin, v(0, axisLength, 0), v(0,1,0), 0x00FF00)
-  create_axis(scene, origin, v(0, 0, axisLength), v(0,1,1), 0x0000FF)
+  cap.position = cap_position
+
+  axis_line = new THREE.Line(lineGeometry, lineMat)
+  axis_line.position = position
+  scene.add axis_line
+
+arrow_geometry = (length) ->
+  lineGeometry = new THREE.CubeGeometry( 10, length, 10 )
+  cylGeometry = new THREE.CylinderGeometry(1, 20, 50, 10, 10)
+ 
+  # Move the arrow head down a bit:
+  cylGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, length, 0))
+  lineGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, length/2, 0))
+  
+  THREE.GeometryUtils.merge(lineGeometry, cylGeometry)
+
+  lineGeometry
+
+
+debug_axis = (scene, position, axisLength) ->
+  add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), 0xFF0000)
+  add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), 0x00FF00)
+  add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), 0x0000FF)
 
 debug_plane = (planeW, planeH, numW, numH) -> 
   new THREE.Mesh( 
@@ -65,23 +82,16 @@ $(document).ready ->
       # Let's try out our rotation matrix:
       if data.spatial_data['orientation']
         orient = data.spatial_data['orientation']
-        for i in [0,1,2]
-          for j in [0,1,2]
-            $("#orientation_#{i}_#{j}").html( orient[i][j].toFixed(2) )
+        $(['x','y','z']).each (i,coord) ->
+          $("#orientation_#{coord}").html( orient[i].toFixed(2) )
 
-        orientation = new THREE.Matrix4( 
-          orient[0][0], orient[0][1], orient[0][2], 0, 
-          orient[1][0], orient[1][1], orient[1][2], 0, 
-          orient[2][0], orient[2][1], orient[2][2], 0, 
-          0, 0, 0, 1 
-        )
-        window.mesh.matrix = new THREE.Matrix4()
-        window.mesh.useQuaternion = true
-        window.mesh.setGeometry = new THREE.CubeGeometry( 200, 200, 200 )
-        window.mesh.applyMatrix(orientation)
+        window.mesh.rotation.x = orient[2]
+        window.mesh.rotation.y = orient[0]
+        window.mesh.rotation.z = orient[1]
+        window.accelerometer_arrow.rotation.x = orient[2]
+        window.accelerometer_arrow.rotation.y = orient[0]
+        window.accelerometer_arrow.rotation.z = orient[1]
       
-      # window.mesh.rotation.x = 
-      # console.log "huh"+data.spatial_data['gyroscope'][0]
     if data.spatial_attributes
       $('#spatial_attributes_summary').html(["Version (#{data.spatial_attributes.version})",
         "Serial (#{data.spatial_attributes.serial_number})"].join(' '))
@@ -96,7 +106,7 @@ $(document).ready ->
   ws.onopen = ->
     ws.send 'get spatial_attributes'
     ws.send 'get spatial_extents'
-    setInterval ( -> ws.send "get spatial_data" ), 100
+    setInterval ( -> ws.send "get spatial_data" ), 50
 
   gyro_cxt = $('#gyroscope_vis')[0].getContext( '2d' )
 
@@ -111,15 +121,24 @@ $(document).ready ->
   scene = new THREE.Scene()
 
   # Debug elements:
-  debug_axis_length = 200
-  debug_axis(scene, debug_axis_length)
+  debug_axis_length = 150
+  debug_axis_position = v(-50,-600,0)
+  debug_axis(scene, debug_axis_position, debug_axis_length)
   scene.add(debug_plane(50,50,50,50))
+
+  # Accelerometer Arrow:
+  window.accelerometer_arrow = new THREE.Mesh( 
+    arrow_geometry(250),
+    new THREE.MeshBasicMaterial( { color: 0xcc00ff } )
+  )
+  scene.add(window.accelerometer_arrow)
+  
 
   # The actual model
   window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 200, 200, 200 ), 
     new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) )
 
-  scene.add( mesh )
+  scene.add( window.mesh )
 
   renderer = new THREE.CanvasRenderer(canvas: gyro_cxt.canvas)
   renderer.setSize gyro_cxt.canvas.width, gyro_cxt.canvas.height
@@ -135,8 +154,8 @@ $(document).ready ->
     renderer.render scene, camera
 
     # Draw Debug axis labels
-    draw_text(gyro_cxt, camera, '+x', v(debug_axis_length*1.2, 0, 0), 0xff0000)
-    draw_text(gyro_cxt, camera, '+y', v(0, debug_axis_length*1.2, 0), 0x00ff00)
-    draw_text(gyro_cxt, camera, '+z', v(0, 0, debug_axis_length*1.2), 0x0000ff)
+    draw_text(gyro_cxt, camera, '+x', debug_axis_position.clone().add(v(debug_axis_length*1.2, 0, 0)), 0xff0000)
+    draw_text(gyro_cxt, camera, '+y', debug_axis_position.clone().add(v(0, debug_axis_length*1.2, 0)), 0x00ff00)
+    draw_text(gyro_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), 0x0000ff)
     
   window.animate()

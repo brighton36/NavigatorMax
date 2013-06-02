@@ -50,10 +50,6 @@ class Vector
   def y=(v); self.send :[]=, 1, v; end
   def z=(v); self.send :[]=, 2, v; end
 
-  def v3_length
-    Math.sqrt(x * x + y * y + z * z)
-  end
-
   def v3_crossproduct(vB)
     cross = v3(0,0,0)
     cross.x = y * vB.z - z * vB.y
@@ -115,7 +111,7 @@ class OrientationSensor
 
   ON_SPATIAL_DATA = Proc.new do |device, acceleration, magnetic_field, angular_rate, instance_id|
     begin
-      puts " Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}"
+      #puts " Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}"
 
       orientation = OrientationSensor.instance instance_id
       orientation.on_data device, acceleration, magnetic_field, angular_rate
@@ -128,7 +124,8 @@ class OrientationSensor
   end
 
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
-    :gyroscope_max, :compass_min, :compass_max
+    :gyroscope_max, :compass_min, :compass_max, 
+    :acceleration, :compass, :gyroscope
 
   def initialize(serial_number)
     @@instances << self
@@ -162,20 +159,54 @@ class OrientationSensor
   end
 
   def on_data(spatial, acceleration, magnetic_field, angular_rate)
-    @last_data = {
-      :acceleration => acceleration, 
-      :gyroscope    => angular_rate,
-      :compass      => magnetic_field
-    }
+    @acceleration = v3 *acceleration
+    @gyroscope = v3 *angular_rate
+    @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
   end
 
+  def acceleration_direction_cosine
+    acceleration.normalize.collect{|n| Math.acos(n)*-1}
+  end
+   
+  def acceleration_direction_cosine_matrix 
+    accel_dcv = acceleration_direction_cosine
+
+    [
+      # X-rotation:
+      Matrix.rows([
+        [1, 0, 0],
+        [0, Math.cos(accel_dcv.x), Math.sin(accel_dcv.z) * (-1.0)],
+        [0, Math.sin(accel_dcv.z), Math.cos(accel_dcv.z)]
+      ]), 
+      # Y-rotation:
+      Matrix.rows([
+        [Math.cos(accel_dcv.x), 0, Math.sin(accel_dcv.x)],
+        [0, 1, 0],
+        [Math.sin(accel_dcv.x) * (-1.0), 0, Math.cos(accel_dcv.x)]
+      ]), 
+      # Z-rotation:
+      Matrix.rows([ 
+        [Math.cos(accel_dcv.y), Math.sin(accel_dcv.y) * (-1.0), 0],
+        [Math.sin(accel_dcv.y), Math.cos(accel_dcv.y), 0],
+        [0, 0, 1]
+      ]) 
+    ].reduce(:*)
+  end
+
+  def acceleration_direction_to_euler
+    accel_dcm = acceleration_direction_cosine_matrix
+
+    [ Math.asin(accel_dcm[0,2]) * (-1.0), 
+      Math.atan2(accel_dcm[1,2],accel_dcm[2,2]),
+      Math.atan2(accel_dcm[0,1],accel_dcm[0,0]) ]
+  end
+
+  # TODO: this should likely be nixed
   def last_data
-    @last_data
+    { :acceleration => @acceleration.to_a,  :gyroscope => @gyroscope.to_a, :compass => @compass.to_a }
   end
 
-  def connected?
-    @is_connected
-  end
+  def connected?; @is_connected; end
 end
 
 
@@ -208,7 +239,10 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :compass_min => orientation.compass_min
         }
       when 'get spatial_data'
-        ret[:spatial_data] = orientation.last_data
+        ret[:spatial_data] = { :acceleration => orientation.acceleration.to_a,  
+          :gyroscope => orientation.gyroscope.to_a, 
+          :compass => orientation.compass.to_a }
+        ret[:spatial_data][:orientation] = orientation.acceleration_direction_to_euler.to_a
     end if orientation.connected?
 
     ws.send ret.to_json

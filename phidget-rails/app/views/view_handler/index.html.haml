@@ -8,22 +8,21 @@
 
 .row
   .span4
-    %h3 Orientation/Rotation Matrix
+    %h3 Direction Cosine Vectors
     %table.table.table-striped.table-bordered.table-condensed#phidget_orientation
       %thead
         %tr
           %th
-          %th 0
-          %th 1
-          %th 2
+          %th X-coord
+          %th Y-coord
+          %th Z-coord
       %tbody
-        - 0.upto(2) do |y|
-          %tr
-            %th=y
-            - 0.upto(2) do |x|
-              %td{:id => ['orientation',x, y].join('_')}
+        %tr
+          %th Acceleration
+          - %w(x y z).each do |axis|
+            %td{:id => ['orientation',axis].join('_')}
 
-    %h3 Current Sensor Value
+    %h3 Sensor Values
     %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
       %thead
         %tr
