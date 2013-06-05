@@ -85,12 +85,30 @@ $(document).ready ->
         $(['x','y','z']).each (i,coord) ->
           $("#orientation_#{coord}").html( orient[i].toFixed(2) )
 
-        window.mesh.rotation.x = orient[2]
-        window.mesh.rotation.y = orient[0]
-        window.mesh.rotation.z = orient[1]
-        window.accelerometer_arrow.rotation.x = orient[2]
-        window.accelerometer_arrow.rotation.y = orient[0]
-        window.accelerometer_arrow.rotation.z = orient[1]
+        orientation = new THREE.Matrix4().setRotationFromEuler( v(orient[0],orient[1],orient[2]), 'XYZ' )
+        #window.mesh.rotation.x = orient[2]
+        #window.mesh.rotation.y = orient[0]
+        #window.mesh.rotation.z = orient[1]
+        #window.accelerometer_arrow.rotation.x = orient[0]
+        #window.accelerometer_arrow.rotation.y = orient[1]
+        #window.accelerometer_arrow.rotation.z = orient[2]
+
+        window.accelerometer_arrow.matrix = new THREE.Matrix4()
+        window.accelerometer_arrow.applyMatrix(orientation)
+
+        orient = data.spatial_data['orientation_matrix']
+        #for i in [0,1,2]
+          #for j in [0,1,2]
+            #$("#orientation_#{i}_#{j}").html( orient[i][j].toFixed(2) )
+
+        orientation = new THREE.Matrix4( 
+          orient[0][0], orient[0][1], orient[0][2], 0, 
+          orient[1][0], orient[1][1], orient[1][2], 0, 
+          orient[2][0], orient[2][1], orient[2][2], 0, 
+          0, 0, 0, 1 
+        )
+        window.mesh.matrix = new THREE.Matrix4()
+        window.mesh.applyMatrix(orientation)
       
     if data.spatial_attributes
       $('#spatial_attributes_summary').html(["Version (#{data.spatial_attributes.version})",
@@ -135,7 +153,7 @@ $(document).ready ->
   
 
   # The actual model
-  window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 200, 200, 200 ), 
+  window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 200, 30, 200 ), 
     new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) )
 
   scene.add( window.mesh )
