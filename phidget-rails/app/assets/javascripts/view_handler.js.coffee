@@ -56,6 +56,13 @@ arrow_geometry = (length) ->
 
   lineGeometry
 
+# beam is width, carlin is length, height is 
+phidget_geometry = (beam, carlin, height) ->
+  extents = new THREE.CubeGeometry( beam, carlin, height )
+  usb_jack = new THREE.CubeGeometry( beam / 3, carlin/4, height/2 )
+  usb_jack.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0-carlin*0.50, 0))
+  THREE.GeometryUtils.merge(extents, usb_jack)
+  extents
 
 debug_axis = (scene, position, axisLength) ->
   add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), 0xFF0000)
@@ -153,8 +160,8 @@ $(document).ready ->
           orient[2][0], orient[2][1], orient[2][2], 0, 
           0, 0, 0, 1 
         )
-        window.mesh.matrix = new THREE.Matrix4()
-        window.mesh.applyMatrix(orientation)
+        #window.mesh.matrix = new THREE.Matrix4()
+        #window.mesh.applyMatrix(orientation)
       
         window.accelerometer_arrow.matrix = new THREE.Matrix4()
         window.accelerometer_arrow.applyMatrix(orientation)
@@ -202,7 +209,7 @@ $(document).ready ->
   
 
   # The actual model
-  window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 30, 200, 200 ), 
+  window.mesh = new THREE.Mesh( phidget_geometry( 200, 200, 50 ), 
     new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) )
 
   scene.add( window.mesh )

@@ -168,16 +168,15 @@ class OrientationSensor
     ret = acceleration.normalize.collect{|n| Math.acos(n) }
 
     ret.y = 2 * Math::PI - ret.y if acceleration.z < 0
+    # TODO: Work through the Z adjustment!
+    ret.x = ret.x-Math::PI/2
+    # ret.x = 2 * Math::PI - ret.x if acceleration.y < 0
     ret
   end
   
   def acceleration_direction_cosine_matrix 
     accel_dcv = acceleration_direction_cosine
 
-
-    # TODO: I think the accel_dcv need to be normalized
-    # TODO: Maybe we should use the wiki for this:
-    # http://en.wikipedia.org/wiki/Rotation_matrix (Rotation matrix from axis and angle)
     [
       # X-rotation: (Good)
       Matrix.rows([
@@ -187,10 +186,10 @@ class OrientationSensor
       ]), 
       # Y-rotation:
       #Matrix.rows([
-        #[Math.cos(accel_dcv.z), 0, Math.sin(accel_dcv.z)],
+        #[Math.cos(accel_dcv.x), 0, Math.sin(accel_dcv.x)],
         #[0, 1.0, 0],
-        #[Math.sin(accel_dcv.z) * (-1.0), 0, Math.cos(accel_dcv.z)]
-      #]), 
+        #[Math.sin(accel_dcv.x) * (-1.0), 0, Math.cos(accel_dcv.x)]
+      #]) #, 
       # Z-rotation:
       Matrix.rows([ 
         [Math.cos(accel_dcv.x), Math.sin(accel_dcv.x) * (-1.0), 0],
