@@ -34,7 +34,7 @@
           %th Y-coord
           %th Z-coord
       %tbody
-        - %w(Acceleration Compass Gyroscope).each do |sensor|
+        - %w(Acceleration Gyroscope Compass).each do |sensor|
           %tr
             %th
               %div{:class => [ sensor.downcase, 'legend_indicator'] }

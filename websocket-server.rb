@@ -165,13 +165,10 @@ class OrientationSensor
   end
 
   def acceleration_direction_cosine
-    ret = acceleration.normalize.collect{|n| Math.acos(n) }
+    acos_accel = acceleration.normalize.collect{|n| Math.acos(n) }
 
-    ret.y = 2 * Math::PI - ret.y if acceleration.z < 0
-    # TODO: Work through the Z adjustment!
-    ret.x = ret.x-Math::PI/2
-    # ret.x = 2 * Math::PI - ret.x if acceleration.y < 0
-    ret
+    v3 acos_accel.x-Math::PI/2, 
+      (acceleration.z < 0) ? (2 * Math::PI - acos_accel.y) : acos_accel.y, 0
   end
   
   def acceleration_direction_cosine_matrix 
@@ -199,34 +196,9 @@ class OrientationSensor
     ].reduce(:*)
   end
 
-  def acceleration_direction_to_euler
-    accel_dcm = acceleration_direction_cosine_matrix
-
-    if accel_dcm[0,2].abs == 1
-      phi = 0.0
-      if accel_dcm[0,2] < 0
-        theta = Math::PI / 2.0
-        # psi = phi + atan2(R12, R13)
-        psi = phi + Math.atan2(accel_dcm[1,0], accel_dcm[2,0])
-      else
-        theta = Math::PI / 2.0 * (-1.0)
-        # psi = -phi + atan2(-R12, -R13)
-        psi = phi * (-1.0) + Math.atan2( accel_dcm[1,0] * (-1.0), accel_dcm[2,0] * (-1.0))
-      end
-    else
-      # -1* sin( R[3,1] )^-1
-      theta = Math.asin(accel_dcm[0,2]) * (-1.0)
-
-      cos_theta = Math.cos(theta)
-
-      # atan2(R[3,2]/cos(theta), R[3,3]/cos(theta)),
-      psi = Math.atan2(accel_dcm[1,2] / cos_theta, accel_dcm[2,2] / cos_theta) 
-      
-      #atan2(R[2,1] /cos(theta), R[1,1] /cos(theta))
-      phi = Math.atan2(accel_dcm[0,1] / cos_theta, accel_dcm[0,0] / cos_theta) 
-    end
-
-    [theta, psi, phi]
+  def acceleration_to_euler
+    accel_dcv = acceleration_direction_cosine
+    [accel_dcv.y, 0, accel_dcv.x]
   end
 
   # TODO: this should likely be nixed
@@ -235,6 +207,7 @@ class OrientationSensor
   end
 
   def connected?; @is_connected; end
+  
 end
 
 
@@ -273,7 +246,7 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
             :gyroscope => orientation.gyroscope.to_a, 
             :compass => orientation.compass.to_a },
           :euler_angles => {
-            :acceleration => orientation.acceleration_direction_cosine.to_a },
+            :acceleration => orientation.acceleration_to_euler.to_a },
           :direction_cosine_matrix => {
             :acceleration => orientation.acceleration_direction_cosine_matrix.to_a }
         }

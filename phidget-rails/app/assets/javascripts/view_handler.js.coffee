@@ -144,15 +144,11 @@ draw_text = (cxt, camera, text, v, color) ->
   cxt.fillText(text,coords2d.x, coords2d.y)
 
 $(document).ready ->
-  COLOR_ACCELERATION = 0xcc00ff
-  COLOR_GYROSCOPE = 0xd2691e
-  COLOR_COMPASS = 0x20b2aa
+  VECTOR_COLORS = { acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e}
 
-  VECTOR_COLORS = { acceleration: COLOR_ACCELERATION, compass: COLOR_COMPASS, gyroscope: COLOR_GYROSCOPE}
-
-  $('.acceleration').css('background-color', '#'+decimal_to_hex_string(COLOR_ACCELERATION) )
-  $('.gyroscope').css('background-color', '#'+decimal_to_hex_string(COLOR_GYROSCOPE) )
-  $('.compass').css('background-color', '#'+decimal_to_hex_string(COLOR_COMPASS) )
+  # Decorate our html a bit (mostly the legends):
+  for label, color of VECTOR_COLORS
+    $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
 
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
   ws = new Socket "ws://localhost:8080/"
@@ -174,35 +170,27 @@ $(document).ready ->
 
       # Let's try out our rotation matrix:
       if data.spatial_data.euler_angles
-        orient = data.spatial_data.euler_angles['acceleration']
+        euler_accel = data.spatial_data.euler_angles['acceleration']
+        dcm_accel = data.spatial_data.direction_cosine_matrix['acceleration']
+
         $(['heading','pitch','bank']).each (i,coord) ->
-          $("#euler_acceleration_#{coord}").html( orient[i].toFixed(2) )
+          $("#euler_acceleration_#{coord}").html( euler_accel[i].toFixed(2) )
 
-        orientation = new THREE.Matrix4().makeRotationFromEuler( v(orient[0],orient[1],orient[2]), 'ZYX' )
-        #window.mesh.rotation.x = orient[2]
-        #window.mesh.rotation.y = orient[0]
-        #window.mesh.rotation.z = orient[1]
-        #window.accelerometer_arrow.rotation.x = orient[0]
-        #window.accelerometer_arrow.rotation.y = orient[1]
-        #window.accelerometer_arrow.rotation.z = orient[2]
+        # We can take the rotation from the eular 
+        #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
 
-
-        orient = data.spatial_data.direction_cosine_matrix['acceleration']
-        #for i in [0,1,2]
-          #for j in [0,1,2]
-            #$("#orientation_#{i}_#{j}").html( orient[i][j].toFixed(2) )
-
-        orientation = new THREE.Matrix4( 
-          orient[0][0], orient[0][1], orient[0][2], 0, 
-          orient[1][0], orient[1][1], orient[1][2], 0, 
-          orient[2][0], orient[2][1], orient[2][2], 0, 
-          0, 0, 0, 1 
-        )
+        # Or, we can take the rotation from the direction cosine:
+        accel_rot = new THREE.Matrix4( 
+          dcm_accel[0][0], dcm_accel[0][1], dcm_accel[0][2], 0, 
+          dcm_accel[1][0], dcm_accel[1][1], dcm_accel[1][2], 0, 
+          dcm_accel[2][0], dcm_accel[2][1], dcm_accel[2][2], 0, 
+          0, 0, 0, 1 )
+        
         #window.mesh.matrix = new THREE.Matrix4()
         #window.mesh.applyMatrix(orientation)
       
         window.accelerometer_arrow.matrix = new THREE.Matrix4()
-        window.accelerometer_arrow.applyMatrix(orientation)
+        window.accelerometer_arrow.applyMatrix(accel_rot)
 
     if data.spatial_extents
       for sensor in ['acceleration', 'gyroscope', 'compass']
@@ -236,7 +224,7 @@ $(document).ready ->
   # Accelerometer Arrow:
   window.accelerometer_arrow = new THREE.Mesh( 
     arrow_geometry(250),
-    new THREE.MeshBasicMaterial( { color: COLOR_ACCELERATION } )
+    new THREE.MeshBasicMaterial( { color: VECTOR_COLORS.acceleration } )
   )
   scene.add(window.accelerometer_arrow)
   
