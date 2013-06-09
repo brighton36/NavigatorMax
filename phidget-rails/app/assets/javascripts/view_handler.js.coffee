@@ -1,3 +1,10 @@
+CanvasRenderingContext2D.prototype.clear = (preserveTransform) ->
+  if (preserveTransform)
+    @save()
+    @setTransform(1, 0, 0, 1, 0, 0)
+  @clearRect(0, 0, @canvas.width, @canvas.height)
+  @restore() if (preserveTransform)
+
 decimal_to_hex_string = (d) ->
   hex = Number(d).toString(16)
   "000000".substr(0, 6 - hex.length) + hex
@@ -66,6 +73,27 @@ draw_text = (cxt, camera, text, v, color) ->
   cxt.font = '10pt Arial'
   cxt.fillText(text,coords2d.x, coords2d.y)
 
+draw_line_2d = (cxt, a_x, a_y, b_x, b_y, color, line_width = 1) ->
+  cxt.strokeStyle = color
+  cxt.lineWidth = line_width
+  cxt.beginPath()
+  cxt.moveTo(a_x, a_y)
+  cxt.lineTo(b_x, b_y)
+  cxt.stroke()
+
+draw_2d_plane_grid = (cxt) -> 
+  # Let's draw the basis vectors around the origin:
+  for i in [1..10] by 1
+    color = if i==5 then "000000" else cxt.strokeStyle = "aaaaaa"
+
+    # Horizontal Lines:
+    horiz_line = Math.floor( cxt.canvas.height / 10 )*i + 0.5
+    draw_line_2d(cxt, 0, horiz_line, cxt.canvas.width, horiz_line, color)
+
+    # Vertical Axis
+    vert_line = Math.floor( cxt.canvas.width / 10 )*i + 0.5
+    draw_line_2d(cxt, vert_line, 0, vert_line, cxt.canvas.height, color)
+
 $(document).ready ->
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
   ws = new Socket "ws://localhost:8080/"
@@ -79,13 +107,33 @@ $(document).ready ->
         $(['x', 'y', 'z']).each (i,coord) ->
           $("##{sensor}_data_#{coord}").html data.spatial_data[sensor][i].toFixed(2)
 
+      # Update the 2d planes:
+      norm_accel = new THREE.Vector3().fromArray( data.spatial_data['acceleration'] ).normalize()
+      window.xy_plane_cxt.clear()
+      draw_2d_plane_grid(window.xy_plane_cxt)
+      draw_line_2d( window.xy_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
+        window.twod_plane_origin.x+norm_accel.x*70, window.twod_plane_origin.y+norm_accel.y*-70, 
+        'cc00ff', 3 )
+
+      window.yz_plane_cxt.clear()
+      draw_2d_plane_grid(window.yz_plane_cxt)
+      draw_line_2d( window.yz_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
+        window.twod_plane_origin.x+norm_accel.y*70, window.twod_plane_origin.y+norm_accel.z*-70, 
+        'cc00ff', 3 )
+
+      window.xz_plane_cxt.clear()
+      draw_2d_plane_grid(window.xz_plane_cxt)
+      draw_line_2d( window.xz_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
+        window.twod_plane_origin.x+norm_accel.x*70, window.twod_plane_origin.y+norm_accel.z*-70, 
+        'cc00ff', 3 )
+
       # Let's try out our rotation matrix:
       if data.spatial_data['orientation']
         orient = data.spatial_data['orientation']
         $(['x','y','z']).each (i,coord) ->
           $("#orientation_#{coord}").html( orient[i].toFixed(2) )
 
-        orientation = new THREE.Matrix4().setRotationFromEuler( v(orient[0],orient[1],orient[2]), 'XYZ' )
+        orientation = new THREE.Matrix4().makeRotationFromEuler( v(orient[0],orient[1],orient[2]), 'ZYX' )
         #window.mesh.rotation.x = orient[2]
         #window.mesh.rotation.y = orient[0]
         #window.mesh.rotation.z = orient[1]
@@ -93,8 +141,6 @@ $(document).ready ->
         #window.accelerometer_arrow.rotation.y = orient[1]
         #window.accelerometer_arrow.rotation.z = orient[2]
 
-        window.accelerometer_arrow.matrix = new THREE.Matrix4()
-        window.accelerometer_arrow.applyMatrix(orientation)
 
         orient = data.spatial_data['orientation_matrix']
         #for i in [0,1,2]
@@ -110,6 +156,9 @@ $(document).ready ->
         window.mesh.matrix = new THREE.Matrix4()
         window.mesh.applyMatrix(orientation)
       
+        window.accelerometer_arrow.matrix = new THREE.Matrix4()
+        window.accelerometer_arrow.applyMatrix(orientation)
+
     if data.spatial_attributes
       $('#spatial_attributes_summary').html(["Version (#{data.spatial_attributes.version})",
         "Serial (#{data.spatial_attributes.serial_number})"].join(' '))
@@ -153,7 +202,7 @@ $(document).ready ->
   
 
   # The actual model
-  window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 200, 30, 200 ), 
+  window.mesh = new THREE.Mesh( new THREE.CubeGeometry( 30, 200, 200 ), 
     new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) )
 
   scene.add( window.mesh )
@@ -161,13 +210,20 @@ $(document).ready ->
   renderer = new THREE.CanvasRenderer(canvas: gyro_cxt.canvas)
   renderer.setSize gyro_cxt.canvas.width, gyro_cxt.canvas.height
 
+  window.xy_plane_cxt = $('#xy_plane')[0].getContext( '2d' )
+  window.yz_plane_cxt = $('#yz_plane')[0].getContext( '2d' )
+  window.xz_plane_cxt = $('#xz_plane')[0].getContext( '2d' )
+
+  # This will come in handy later:
+  window.twod_plane_origin = new THREE.Vector2().fromArray(
+    $([ window.xy_plane_cxt.canvas.width, window.xy_plane_cxt.canvas.height ]).map( (i,n) -> Math.floor(n) / 2 + 0.5  ) )
+
+  $([window.xy_plane_cxt, window.yz_plane_cxt, window.xz_plane_cxt]).each (i,cxt) ->
+    draw_2d_plane_grid(cxt)
+
   window.animate = ->
+    # 3D Visualization
     requestAnimationFrame window.animate 
-   
-    # 0-6 is the range?
-    #window.mesh.rotation.x = 1.5
-    #window.mesh.rotation.x += 0.01
-    #window.mesh.rotation.y += 0.02
 
     renderer.render scene, camera
 
@@ -175,5 +231,6 @@ $(document).ready ->
     draw_text(gyro_cxt, camera, '+x', debug_axis_position.clone().add(v(debug_axis_length*1.2, 0, 0)), 0xff0000)
     draw_text(gyro_cxt, camera, '+y', debug_axis_position.clone().add(v(0, debug_axis_length*1.2, 0)), 0x00ff00)
     draw_text(gyro_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), 0x0000ff)
+    
     
   window.animate()

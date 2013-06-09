@@ -165,32 +165,36 @@ class OrientationSensor
   end
 
   def acceleration_direction_cosine
-    acceleration.normalize.collect{|n| Math.acos(n)}
+    ret = acceleration.normalize.collect{|n| Math.acos(n) }
+
+    ret.y = 2 * Math::PI - ret.y if acceleration.z < 0
+    ret
   end
-   
+  
   def acceleration_direction_cosine_matrix 
     accel_dcv = acceleration_direction_cosine
+
 
     # TODO: I think the accel_dcv need to be normalized
     # TODO: Maybe we should use the wiki for this:
     # http://en.wikipedia.org/wiki/Rotation_matrix (Rotation matrix from axis and angle)
     [
-      # X-rotation:
+      # X-rotation: (Good)
       Matrix.rows([
         [1.0, 0, 0],
         [0, Math.cos(accel_dcv.y), Math.sin(accel_dcv.y) * (-1.0)],
         [0, Math.sin(accel_dcv.y), Math.cos(accel_dcv.y)]
       ]), 
       # Y-rotation:
-      Matrix.rows([
-        [Math.cos(accel_dcv.x), 0, Math.sin(accel_dcv.x)],
-        [0, 1.0, 0],
-        [Math.sin(accel_dcv.x) * (-1.0), 0, Math.cos(accel_dcv.x)]
-      ]), 
+      #Matrix.rows([
+        #[Math.cos(accel_dcv.z), 0, Math.sin(accel_dcv.z)],
+        #[0, 1.0, 0],
+        #[Math.sin(accel_dcv.z) * (-1.0), 0, Math.cos(accel_dcv.z)]
+      #]), 
       # Z-rotation:
       Matrix.rows([ 
-        [Math.cos(accel_dcv.z), Math.sin(accel_dcv.z) * (-1.0), 0],
-        [Math.sin(accel_dcv.z), Math.cos(accel_dcv.z), 0],
+        [Math.cos(accel_dcv.x), Math.sin(accel_dcv.x) * (-1.0), 0],
+        [Math.sin(accel_dcv.x), Math.cos(accel_dcv.x), 0],
         [0, 0, 1.0]
       ]) 
     ].reduce(:*)
@@ -202,13 +206,13 @@ class OrientationSensor
     if accel_dcm[0,2].abs == 1
       phi = 0.0
       if accel_dcm[0,2] < 0
-        theta = Math.PI / 2.0
+        theta = Math::PI / 2.0
         # psi = phi + atan2(R12, R13)
         psi = phi + Math.atan2(accel_dcm[1,0], accel_dcm[2,0])
       else
-        theta = Math.PI / 2.0 * (-1.0)
+        theta = Math::PI / 2.0 * (-1.0)
         # psi = -phi + atan2(-R12, -R13)
-        psi = phi * (−1) + Math.atan2( accel_dcm[1,0] * (−1), accel_dcm[2,0] * (−1))
+        psi = phi * (-1.0) + Math.atan2( accel_dcm[1,0] * (-1.0), accel_dcm[2,0] * (-1.0))
       end
     else
       # -1* sin( R[3,1] )^-1
@@ -223,7 +227,7 @@ class OrientationSensor
       phi = Math.atan2(accel_dcm[0,1] / cos_theta, accel_dcm[0,0] / cos_theta) 
     end
 
-    [theta, phi, psi]
+    [theta, psi, phi]
   end
 
   # TODO: this should likely be nixed
@@ -267,7 +271,7 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
         ret[:spatial_data] = { :acceleration => orientation.acceleration.to_a,  
           :gyroscope => orientation.gyroscope.to_a, 
           :compass => orientation.compass.to_a }
-        ret[:spatial_data][:orientation] = orientation.acceleration_direction_to_euler.to_a
+        ret[:spatial_data][:orientation] = orientation.acceleration_direction_cosine.to_a
         ret[:spatial_data][:orientation_matrix] = orientation.acceleration_direction_cosine_matrix.to_a
     end if orientation.connected?
 
