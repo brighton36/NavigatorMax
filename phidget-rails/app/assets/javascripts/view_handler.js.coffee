@@ -1,3 +1,66 @@
+class VectorPlot2D
+  constructor: (canvas, title, x_label, y_label, x_color, y_color, vector_colors) ->
+    @title = title
+    @x_label = x_label
+    @y_label = y_label
+    @vector_colors = vector_colors
+    @x_axis_color = decimal_to_hex_string(x_color)
+    @y_axis_color = decimal_to_hex_string(y_color)
+    @vectors = {}
+    @cxt = canvas.getContext( '2d' )
+    @origin = new THREE.Vector2().fromArray( 
+      $([ @cxt.canvas.width, @cxt.canvas.height ]).map( 
+        (i,n) -> Math.floor(n) / 2 + 0.5  ) )
+    @vector_scale = 0.75 * canvas.width / 2
+    @render()
+
+  plot: (label, v) -> 
+    @vectors[label] = v
+
+  render: ->
+    @cxt.clear()
+    @_draw_grid()
+    for label, vector of @vectors
+      @_draw_vector @vectors[label], decimal_to_hex_string( @vector_colors[label] )
+    @cxt.fillStyle = '000000'
+    @cxt.font = '10pt Arial'
+    @cxt.fillText(@title, 5,14)
+    @cxt.fillStyle = @y_axis_color
+    @cxt.fillText(@y_label, @origin.x+5,14)
+    @cxt.fillStyle = @x_axis_color
+    @cxt.fillText(@x_label, @cxt.canvas.width-18,@origin.y+14)
+
+  _draw_grid: -> 
+    # Let's draw the basis vectors around the origin:
+    for i in [1..10] by 1
+      color = if i==5 then 0x000000 else @cxt.strokeStyle = 0xaaaaaa
+      
+      # Horizontal Lines:
+      horiz_line = Math.floor( @cxt.canvas.height / 10 )*i + 0.5
+      @_draw_line(0, horiz_line, @cxt.canvas.width, horiz_line, 
+        (if i == 5 then @x_axis_color else 'aaaaaa')
+        (if i == 5 then 2 else 1) )
+
+      # Vertical Axis
+      vert_line = Math.floor( @cxt.canvas.width / 10 )*i + 0.5
+      @_draw_line(vert_line, 0, vert_line, @cxt.canvas.height, 
+        (if i == 5 then @y_axis_color else 'aaaaaa'), 
+        (if i == 5 then 2 else 1) )
+
+  _draw_line: (a_x, a_y, b_x, b_y, color, line_width = 1) ->
+    @cxt.strokeStyle = color
+    @cxt.lineWidth = line_width
+    @cxt.beginPath()
+    @cxt.moveTo(a_x, a_y)
+    @cxt.lineTo(b_x, b_y)
+    @cxt.stroke()
+
+  _draw_vector: (vector, color) ->
+    @_draw_line( @origin.x, @origin.y, 
+      @origin.x+vector.x*@vector_scale, @origin.y+vector.y*-@vector_scale, 
+      color, 3 )
+
+
 CanvasRenderingContext2D.prototype.clear = (preserveTransform) ->
   if (preserveTransform)
     @save()
@@ -80,28 +143,17 @@ draw_text = (cxt, camera, text, v, color) ->
   cxt.font = '10pt Arial'
   cxt.fillText(text,coords2d.x, coords2d.y)
 
-draw_line_2d = (cxt, a_x, a_y, b_x, b_y, color, line_width = 1) ->
-  cxt.strokeStyle = color
-  cxt.lineWidth = line_width
-  cxt.beginPath()
-  cxt.moveTo(a_x, a_y)
-  cxt.lineTo(b_x, b_y)
-  cxt.stroke()
-
-draw_2d_plane_grid = (cxt) -> 
-  # Let's draw the basis vectors around the origin:
-  for i in [1..10] by 1
-    color = if i==5 then "000000" else cxt.strokeStyle = "aaaaaa"
-
-    # Horizontal Lines:
-    horiz_line = Math.floor( cxt.canvas.height / 10 )*i + 0.5
-    draw_line_2d(cxt, 0, horiz_line, cxt.canvas.width, horiz_line, color)
-
-    # Vertical Axis
-    vert_line = Math.floor( cxt.canvas.width / 10 )*i + 0.5
-    draw_line_2d(cxt, vert_line, 0, vert_line, cxt.canvas.height, color)
-
 $(document).ready ->
+  COLOR_ACCELERATION = 0xcc00ff
+  COLOR_GYROSCOPE = 0xd2691e
+  COLOR_COMPASS = 0x20b2aa
+
+  VECTOR_COLORS = { acceleration: COLOR_ACCELERATION, compass: COLOR_COMPASS, gyroscope: COLOR_GYROSCOPE}
+
+  $('.acceleration').css('background-color', '#'+decimal_to_hex_string(COLOR_ACCELERATION) )
+  $('.gyroscope').css('background-color', '#'+decimal_to_hex_string(COLOR_GYROSCOPE) )
+  $('.compass').css('background-color', '#'+decimal_to_hex_string(COLOR_COMPASS) )
+
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
   ws = new Socket "ws://localhost:8080/"
   ws.onmessage = (evt) ->
@@ -112,33 +164,19 @@ $(document).ready ->
       $('#last_update').html(data.ts)
       for sensor in ['acceleration', 'gyroscope', 'compass']
         $(['x', 'y', 'z']).each (i,coord) ->
-          $("##{sensor}_data_#{coord}").html data.spatial_data[sensor][i].toFixed(2)
+          $("##{sensor}_data_#{coord}").html data.spatial_data.raw[sensor][i].toFixed(2)
 
       # Update the 2d planes:
-      norm_accel = new THREE.Vector3().fromArray( data.spatial_data['acceleration'] ).normalize()
-      window.xy_plane_cxt.clear()
-      draw_2d_plane_grid(window.xy_plane_cxt)
-      draw_line_2d( window.xy_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
-        window.twod_plane_origin.x+norm_accel.x*70, window.twod_plane_origin.y+norm_accel.y*-70, 
-        'cc00ff', 3 )
-
-      window.yz_plane_cxt.clear()
-      draw_2d_plane_grid(window.yz_plane_cxt)
-      draw_line_2d( window.yz_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
-        window.twod_plane_origin.x+norm_accel.y*70, window.twod_plane_origin.y+norm_accel.z*-70, 
-        'cc00ff', 3 )
-
-      window.xz_plane_cxt.clear()
-      draw_2d_plane_grid(window.xz_plane_cxt)
-      draw_line_2d( window.xz_plane_cxt, window.twod_plane_origin.x, window.twod_plane_origin.y, 
-        window.twod_plane_origin.x+norm_accel.x*70, window.twod_plane_origin.y+norm_accel.z*-70, 
-        'cc00ff', 3 )
+      norm_accel = new THREE.Vector3().fromArray( data.spatial_data.raw['acceleration'] ).normalize()
+      window.xy_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
+      window.yz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
+      window.xz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
 
       # Let's try out our rotation matrix:
-      if data.spatial_data['orientation']
-        orient = data.spatial_data['orientation']
-        $(['x','y','z']).each (i,coord) ->
-          $("#orientation_#{coord}").html( orient[i].toFixed(2) )
+      if data.spatial_data.euler_angles
+        orient = data.spatial_data.euler_angles['acceleration']
+        $(['heading','pitch','bank']).each (i,coord) ->
+          $("#euler_acceleration_#{coord}").html( orient[i].toFixed(2) )
 
         orientation = new THREE.Matrix4().makeRotationFromEuler( v(orient[0],orient[1],orient[2]), 'ZYX' )
         #window.mesh.rotation.x = orient[2]
@@ -149,7 +187,7 @@ $(document).ready ->
         #window.accelerometer_arrow.rotation.z = orient[2]
 
 
-        orient = data.spatial_data['orientation_matrix']
+        orient = data.spatial_data.direction_cosine_matrix['acceleration']
         #for i in [0,1,2]
           #for j in [0,1,2]
             #$("#orientation_#{i}_#{j}").html( orient[i][j].toFixed(2) )
@@ -166,10 +204,6 @@ $(document).ready ->
         window.accelerometer_arrow.matrix = new THREE.Matrix4()
         window.accelerometer_arrow.applyMatrix(orientation)
 
-    if data.spatial_attributes
-      $('#spatial_attributes_summary').html(["Version (#{data.spatial_attributes.version})",
-        "Serial (#{data.spatial_attributes.serial_number})"].join(' '))
-
     if data.spatial_extents
       for sensor in ['acceleration', 'gyroscope', 'compass']
         $(['min', 'max']).each (i,ext) ->
@@ -178,9 +212,8 @@ $(document).ready ->
   ws.onclose = -> 
     console.log "socket closed"
   ws.onopen = ->
-    ws.send 'get spatial_attributes'
     ws.send 'get spatial_extents'
-    setInterval ( -> ws.send "get spatial_data" ), 50
+    setInterval ( -> ws.send "get spatial_data" ), 25
 
   gyro_cxt = $('#gyroscope_vis')[0].getContext( '2d' )
 
@@ -203,7 +236,7 @@ $(document).ready ->
   # Accelerometer Arrow:
   window.accelerometer_arrow = new THREE.Mesh( 
     arrow_geometry(250),
-    new THREE.MeshBasicMaterial( { color: 0xcc00ff } )
+    new THREE.MeshBasicMaterial( { color: COLOR_ACCELERATION } )
   )
   scene.add(window.accelerometer_arrow)
   
@@ -217,16 +250,12 @@ $(document).ready ->
   renderer = new THREE.CanvasRenderer(canvas: gyro_cxt.canvas)
   renderer.setSize gyro_cxt.canvas.width, gyro_cxt.canvas.height
 
-  window.xy_plane_cxt = $('#xy_plane')[0].getContext( '2d' )
-  window.yz_plane_cxt = $('#yz_plane')[0].getContext( '2d' )
-  window.xz_plane_cxt = $('#xz_plane')[0].getContext( '2d' )
-
-  # This will come in handy later:
-  window.twod_plane_origin = new THREE.Vector2().fromArray(
-    $([ window.xy_plane_cxt.canvas.width, window.xy_plane_cxt.canvas.height ]).map( (i,n) -> Math.floor(n) / 2 + 0.5  ) )
-
-  $([window.xy_plane_cxt, window.yz_plane_cxt, window.xz_plane_cxt]).each (i,cxt) ->
-    draw_2d_plane_grid(cxt)
+  window.xy_plane_vectors = new VectorPlot2D $('#xy_plane')[0], 'X/Y Plane', 
+    '+x', '+y', 0xff0000, 0x00ff00, VECTOR_COLORS
+  window.yz_plane_vectors = new VectorPlot2D $('#yz_plane')[0], 'Y/Z Plane', 
+    '+y', '+z', 0x00ff00, 0x0000ff, VECTOR_COLORS
+  window.xz_plane_vectors = new VectorPlot2D $('#xz_plane')[0], 'X/Z Plane', 
+    '+x', '+z', 0xff0000, 0x0000ff, VECTOR_COLORS
 
   window.animate = ->
     # 3D Visualization
@@ -238,6 +267,9 @@ $(document).ready ->
     draw_text(gyro_cxt, camera, '+x', debug_axis_position.clone().add(v(debug_axis_length*1.2, 0, 0)), 0xff0000)
     draw_text(gyro_cxt, camera, '+y', debug_axis_position.clone().add(v(0, debug_axis_length*1.2, 0)), 0x00ff00)
     draw_text(gyro_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), 0x0000ff)
-    
+
+    # 2D Visualizations:
+    $([window.xy_plane_vectors, window.yz_plane_vectors, window.xz_plane_vectors]).each (i,vp) ->
+      vp.render()
     
   window.animate()

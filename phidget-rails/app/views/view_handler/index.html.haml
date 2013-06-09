@@ -1,26 +1,29 @@
-.page-header
-  %h1 
-    Phidget Spacial 3/3/3 Dashboard
-    %small
-      Last updated:
-      %span#last_update
-  %h4#spatial_attributes_summary
-
+.row
+  .span12.page_header
+    %h1 
+      Accelerometer, Gyro, & Compass Dashboard
+      %small
+        Last updated:
+        %span#last_update
 .row
   .span4
-    %h3 Direction Cosine Angles
+    %h3 Euler Rotations
     %table.table.table-striped.table-bordered.table-condensed#phidget_orientation
       %thead
         %tr
           %th
-          %th Rot-θ
-          %th Rot-φ
-          %th Rot-ψ
+          %th Heading (θ)
+          %th Pitch (φ)
+          %th Bank (ψ)
       %tbody
         %tr
-          %th Acceleration
-          - %w(x y z).each do |axis|
-            %td{:id => ['orientation',axis].join('_')}
+        - %w(Acceleration Gyroscope Compass).each do |label|
+          %tr
+            %th
+              %div{:class => [ label.downcase, 'legend_indicator'] }
+              =label
+            - %w(heading pitch bank).each do |axis|
+              %td{:id => ['euler',label.downcase,axis].join('_')}
 
     %h3 Sensor Values
     %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
@@ -33,7 +36,9 @@
       %tbody
         - %w(Acceleration Compass Gyroscope).each do |sensor|
           %tr
-            %th=sensor
+            %th
+              %div{:class => [ sensor.downcase, 'legend_indicator'] }
+              =sensor
             %td{:id => '%s_data_x' % sensor.downcase}
             %td{:id => '%s_data_y' % sensor.downcase}
             %td{:id => '%s_data_z' % sensor.downcase}
@@ -52,20 +57,11 @@
             %td{:id => '%s_extent_min' % sensor.downcase}
             %td{:id => '%s_extent_max' % sensor.downcase}
 
-  .span4
-    %h3 Gyroscope Visualized
-    %canvas#gyroscope_vis(width = '600' height = '400')
-
-.row
-  .span4.offset4
-    %h3 Cross Section Visualizations
-.row
-  .span2.offset4
-    XY Plane
-    %canvas#xy_plane(width = '170' height = '170')
+  .span6
+    %h3 Orientation Visualized
+    %canvas#gyroscope_vis(width = '570' height = '354')
   .span2
-    YZ Plane
-    %canvas#yz_plane(width = '170' height = '170')
-  .span2
-    XZ Plane
-    %canvas#xz_plane(width = '170' height = '170')
+    %h3 Vector Breakdown
+    %canvas.small_plane#xy_plane(width = '170' height = '170')
+    %canvas.small_plane#yz_plane(width = '170' height = '170')
+    %canvas.small_plane#xz_plane(width = '170' height = '170')

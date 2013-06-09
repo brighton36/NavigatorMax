@@ -267,11 +267,16 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :compass_min => orientation.compass_min
         }
       when 'get spatial_data'
-        ret[:spatial_data] = { :acceleration => orientation.acceleration.to_a,  
-          :gyroscope => orientation.gyroscope.to_a, 
-          :compass => orientation.compass.to_a }
-        ret[:spatial_data][:orientation] = orientation.acceleration_direction_cosine.to_a
-        ret[:spatial_data][:orientation_matrix] = orientation.acceleration_direction_cosine_matrix.to_a
+        ret[:spatial_data] = {
+          :raw => { 
+            :acceleration => orientation.acceleration.to_a,  
+            :gyroscope => orientation.gyroscope.to_a, 
+            :compass => orientation.compass.to_a },
+          :euler_angles => {
+            :acceleration => orientation.acceleration_direction_cosine.to_a },
+          :direction_cosine_matrix => {
+            :acceleration => orientation.acceleration_direction_cosine_matrix.to_a }
+        }
     end if orientation.connected?
 
     ws.send ret.to_json
