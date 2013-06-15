@@ -4,6 +4,7 @@
 * Get the other sensors showing?
 * Compass TODO: 
   * Figure out how to display when the phiget is perpendicular to the ground
+    * Look through the compass.m implementation?
 
 * GPS TODO:
   * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml

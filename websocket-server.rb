@@ -50,6 +50,8 @@ class Vector
   def y=(v); self.send :[]=, 1, v; end
   def z=(v); self.send :[]=, 2, v; end
 
+  def []=(i,n); @elements[i] = n; end
+
   def v3_crossproduct(vB)
     cross = v3(0,0,0)
     cross.x = y * vB.z - z * vB.y
@@ -133,6 +135,7 @@ class OrientationSensor
 
     @compass_correction_params = compass_correction_params
     @is_connected = false
+
     @phidget = Phidgets::Spatial.new :serial_number => @serial_number
     @phidget.on_attach instances_id, &ON_ATTACH
     @phidget.on_error  instances_id, &ON_ERROR
@@ -162,8 +165,22 @@ class OrientationSensor
 
   def on_data(spatial, acceleration, magnetic_field, angular_rate)
     @acceleration = v3 *acceleration
-    @gyroscope = v3 *angular_rate
     @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
+
+    now = Time.now.to_f
+    if @last_data_at.nil?
+      @gyroscope = v3(0,0,0)
+    else
+      timestamp_delta = now - @last_data_at
+
+      0.upto(2) do |i|
+        @gyroscope[i] = (@gyroscope[i] + timestamp_delta * angular_rate[i]) % 360
+      end
+    end
+
+    @last_data_at = now
+
+    # TODO : We should probably calculate our dcm's here.
   end
 
   # TODO: This should be based on gravity, not acceleration
@@ -198,15 +215,23 @@ class OrientationSensor
     [0, 0, compass_bearing_mag ]
   end
 
+  def gyroscope_to_euler
+    [@gyroscope.x, @gyroscope.y, @gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
+  end
+
+  def gyroscope_dcm
+    direction_cosine_matrix *gyroscope_to_euler
+  end
+
   # TODO: Are we doing this right? Should we be handling the dcm calcs in here?
   def acceleration_direction_cosine
     # Roll Angle - about axis 0
-    #   tan(roll angle) = gy/gz
+    #   tan(roll) = gy/gz
     #   Use Atan2 so we have an output os (-180 - 180) degrees
 	  roll = Math.atan2 @acceleration.y, @acceleration.z
  
     # Pitch Angle - about axis 1
-    #   tan(pitch angle) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
+    #   tan(pitch) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
     #   Pitch angle range is (-90 - 90) degrees
 	  pitch = Math.atan -@acceleration.x / ((@acceleration.y * Math.sin(roll)) + (@acceleration.z * Math.cos(roll)))
  
@@ -291,9 +316,11 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
             :compass      => orientation.compass.to_a },
           :euler_angles => {
             :acceleration => orientation.acceleration_to_euler.to_a,
+            :gyroscope    => orientation.gyroscope_to_euler.to_a,
             :compass      => orientation.compass_bearing_to_euler.to_a},
           :direction_cosine_matrix => {
             :acceleration => orientation.acceleration_dcm.to_a,
+            :gyroscope    => orientation.gyroscope_dcm.to_a,
             :compass      => orientation.compass_bearing_dcm.to_a }
         }
     end if orientation.connected?
