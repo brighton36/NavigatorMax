@@ -168,14 +168,23 @@ $(document).ready ->
       window.yz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
       window.xz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
 
+      # Update the 2d planes:
+      norm_compass = new THREE.Vector3().fromArray( data.spatial_data.raw['compass'] ).normalize()
+      window.xy_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
+      window.yz_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
+      window.xz_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
+
       # Let's try out our rotation matrix:
       if data.spatial_data.euler_angles
         euler_accel = data.spatial_data.euler_angles['acceleration']
         dcm_accel = data.spatial_data.direction_cosine_matrix['acceleration']
+        euler_compass = data.spatial_data.euler_angles['compass']
+        dcm_compass = data.spatial_data.direction_cosine_matrix['compass']
 
-        $(['heading','pitch','bank']).each (i,coord) ->
-          $("#euler_acceleration_#{coord}").html( euler_accel[i].toFixed(2) )
-
+        $(['acceleration','compass']).each (i, sensor) ->
+          $(['heading','pitch','bank']).each (j,coord) ->
+            $("#euler_#{sensor}_#{coord}").html( data.spatial_data.euler_angles[sensor][j].toFixed(2) )
+        
         # We can take the rotation from the eular 
         #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
 
@@ -186,11 +195,20 @@ $(document).ready ->
           dcm_accel[2][0], dcm_accel[2][1], dcm_accel[2][2], 0, 
           0, 0, 0, 1 )
         
+        compass_rot = new THREE.Matrix4( 
+          dcm_compass[0][0], dcm_compass[0][1], dcm_compass[0][2], 0, 
+          dcm_compass[1][0], dcm_compass[1][1], dcm_compass[1][2], 0, 
+          dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
+          0, 0, 0, 1 )
+
         #window.mesh.matrix = new THREE.Matrix4()
         #window.mesh.applyMatrix(orientation)
       
-        window.accelerometer_arrow.matrix = new THREE.Matrix4()
-        window.accelerometer_arrow.applyMatrix(accel_rot)
+        window.vector_arrows['acceleration'].matrix = new THREE.Matrix4()
+        window.vector_arrows['acceleration'].applyMatrix(accel_rot)
+
+        window.vector_arrows['compass'].matrix = new THREE.Matrix4()
+        window.vector_arrows['compass'].applyMatrix(compass_rot)
 
     if data.spatial_extents
       for sensor in ['acceleration', 'gyroscope', 'compass']
@@ -222,11 +240,12 @@ $(document).ready ->
   scene.add(debug_plane(50,50,50,50))
 
   # Accelerometer Arrow:
-  window.accelerometer_arrow = new THREE.Mesh( 
-    arrow_geometry(250),
-    new THREE.MeshBasicMaterial( { color: VECTOR_COLORS.acceleration } )
-  )
-  scene.add(window.accelerometer_arrow)
+  window.vector_arrows = {}
+ 
+  $(['acceleration','compass']).each (i,sensor) ->
+    window.vector_arrows[sensor] = new THREE.Mesh( arrow_geometry(250),
+      new THREE.MeshBasicMaterial( { color: VECTOR_COLORS[sensor]} ) )
+    scene.add(window.vector_arrows[sensor])
   
 
   # The actual model

@@ -127,10 +127,11 @@ class OrientationSensor
     :gyroscope_max, :compass_min, :compass_max, 
     :acceleration, :compass, :gyroscope
 
-  def initialize(serial_number)
+  def initialize(serial_number, compass_correction_params)
     @@instances << self
     instances_id = @@instances.index self
 
+    @compass_correction_params = compass_correction_params
     @is_connected = false
     @phidget = Phidgets::Spatial.new :serial_number => @serial_number
     @phidget.on_attach instances_id, &ON_ATTACH
@@ -142,6 +143,7 @@ class OrientationSensor
   def on_attach(spatial)
     @is_connected = true
 
+    spatial.set_compass_correction_parameters *@compass_correction_params
     @acceleration_max = spatial.accelerometer_axes[0].acceleration_max
     @acceleration_min = spatial.accelerometer_axes[0].acceleration_min
     @gyroscope_max = spatial.gyro_axes[0].angular_rate_max
@@ -164,36 +166,59 @@ class OrientationSensor
     @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
   end
 
-  def acceleration_direction_cosine
-    acos_accel = acceleration.normalize.collect{|n| Math.acos(n) }
+  # TODO: DRY this out?
+  def compass_direction_cosine
+    v3 0,0,0 
+  end
 
-    v3 acos_accel.x-Math::PI/2, 
-      (acceleration.z < 0) ? (2 * Math::PI - acos_accel.y) : acos_accel.y, 0
+  # TODO: DRY this out?
+  def compass_direction_cosine_matrix
+    compass_dcv = compass_direction_cosine
+
+    direction_cosine_matrix compass_dcv.y, 0, compass_dcv.x
+  end
+
+  def acceleration_direction_cosine
+    #acos_accel = acceleration.normalize.collect{|n| Math.acos(n) }
+
+    #v3 acos_accel.x-Math::PI/2, 
+      #(acceleration.z < 0) ? (2 * Math::PI - acos_accel.y) : acos_accel.y, 0
+
+    #acos_compass = compass.normalize.collect{|n| Math.acos(n) }
+
+    #v3 acos_compass.x-Math::PI/2, 
+      #(compass.z < 0) ? (2 * Math::PI - acos_compass.y) : acos_compass.y, 0
+
+    # Roll Angle - about axis 0
+    #   tan(roll angle) = gy/gz
+    #   Use Atan2 so we have an output os (-180 - 180) degrees
+	  rollAngle = Math.atan2 @acceleration.y, @acceleration.z
+ 
+    # Pitch Angle - about axis 1
+    #   tan(pitch angle) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
+    #   Pitch angle range is (-90 - 90) degrees
+	  pitchAngle = Math.atan -@acceleration.x / ((@acceleration.y * Math.sin(rollAngle)) + (@acceleration.z * Math.cos(rollAngle)))
+ 
+    # Yaw Angle - about axis 2
+    #   tan(yaw angle) = (mz * sin(roll) – my * cos(roll)) / 
+    #                    (mx * cos(pitch) + my * sin(pitch) * sin(roll) + mz * sin(pitch) * cos(roll))
+    #   Use Atan2 to get our range in (-180 - 180)
+    #
+    #   Yaw angle == 0 degrees when axis 0 is pointing at magnetic north
+	  yawAngle = Math.atan2(
+		   (@acceleration.z * Math.sin(rollAngle)) - 
+       (@acceleration.y * Math.cos(rollAngle)),
+		   (@acceleration.x * Math.cos(pitchAngle)) + 
+       (@acceleration.y * Math.sin(pitchAngle) * Math.sin(rollAngle)) + 
+       (@acceleration.z * Math.sin(pitchAngle) * Math.cos(rollAngle)) )
+
+    v3 rollAngle, pitchAngle, yawAngle
   end
   
   def acceleration_direction_cosine_matrix 
     accel_dcv = acceleration_direction_cosine
 
-    [
-      # X-rotation: (Good)
-      Matrix.rows([
-        [1.0, 0, 0],
-        [0, Math.cos(accel_dcv.y), Math.sin(accel_dcv.y) * (-1.0)],
-        [0, Math.sin(accel_dcv.y), Math.cos(accel_dcv.y)]
-      ]), 
-      # Y-rotation:
-      #Matrix.rows([
-        #[Math.cos(accel_dcv.x), 0, Math.sin(accel_dcv.x)],
-        #[0, 1.0, 0],
-        #[Math.sin(accel_dcv.x) * (-1.0), 0, Math.cos(accel_dcv.x)]
-      #]) #, 
-      # Z-rotation:
-      Matrix.rows([ 
-        [Math.cos(accel_dcv.x), Math.sin(accel_dcv.x) * (-1.0), 0],
-        [Math.sin(accel_dcv.x), Math.cos(accel_dcv.x), 0],
-        [0, 0, 1.0]
-      ]) 
-    ].reduce(:*)
+    direction_cosine_matrix -1.00 * accel_dcv.x + Math::PI * 0.5, 0, accel_dcv.y
   end
 
   def acceleration_to_euler
@@ -201,13 +226,38 @@ class OrientationSensor
     [accel_dcv.y, 0, accel_dcv.x]
   end
 
-  # TODO: this should likely be nixed
-  def last_data
-    { :acceleration => @acceleration.to_a,  :gyroscope => @gyroscope.to_a, :compass => @compass.to_a }
+  # TODO: DRY this out
+  def compass_to_euler
+    compass_dcv = compass_direction_cosine
+    [compass_dcv.y, 0, compass_dcv.x]
   end
 
   def connected?; @is_connected; end
-  
+ 
+  private
+
+  def direction_cosine_matrix(around_x, around_y, around_z)
+    [
+      # X-rotation:
+      Matrix.rows([
+        [1.0, 0, 0],
+        [0, Math.cos(around_x), Math.sin(around_x) * (-1.0)],
+        [0, Math.sin(around_x), Math.cos(around_x)]
+      ]), 
+      # Y-rotation:
+      Matrix.rows([
+        [Math.cos(around_y), 0, Math.sin(around_y)],
+        [0, 1.0, 0],
+        [Math.sin(around_y) * (-1.0), 0, Math.cos(around_y)]
+      ]), 
+      # Z-rotation:
+      Matrix.rows([ 
+        [Math.cos(around_z), Math.sin(around_z) * (-1.0), 0],
+        [Math.sin(around_z), Math.cos(around_z), 0],
+        [0, 0, 1.0]
+      ]) 
+    ].reduce(:*)
+  end 
 end
 
 
@@ -215,7 +265,8 @@ puts "Library Version: #{Phidgets::FFI.library_version}"
 Phidgets::Log.enable :verbose
 
 # This might belong in attach
-orientation = OrientationSensor.new 302012
+orientation = OrientationSensor.new 302012, 
+  [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
 # TODO: orientation.zero_gyro!
 
 # We'll use this to block the execution. Phidget seems to run as an 'interrupt' 
@@ -243,12 +294,14 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
         ret[:spatial_data] = {
           :raw => { 
             :acceleration => orientation.acceleration.to_a,  
-            :gyroscope => orientation.gyroscope.to_a, 
-            :compass => orientation.compass.to_a },
+            :gyroscope    => orientation.gyroscope.to_a, 
+            :compass      => orientation.compass.to_a },
           :euler_angles => {
-            :acceleration => orientation.acceleration_to_euler.to_a },
+            :acceleration => orientation.acceleration_to_euler.to_a,
+            :compass      => orientation.compass_to_euler.to_a},
           :direction_cosine_matrix => {
-            :acceleration => orientation.acceleration_direction_cosine_matrix.to_a }
+            :acceleration => orientation.acceleration_direction_cosine_matrix.to_a,
+            :compass      => orientation.compass_direction_cosine_matrix.to_a }
         }
     end if orientation.connected?
 
