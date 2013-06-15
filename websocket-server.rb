@@ -166,70 +166,63 @@ class OrientationSensor
     @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
   end
 
-  # TODO: DRY this out?
-  def compass_direction_cosine
-    v3 0,0,0 
+  # TODO: This should be based on gravity, not acceleration
+  # NOTE: 
+  #  * This bearing is in radians, not angles. 1 radian is where the usb cable
+  #    plugs in, 0 radians is the front of the device
+  #  * This registers the magnetic north, and not true north
+  def compass_bearing_mag
+    roll, pitch = acceleration_direction_cosine.to_a # TODO: We're calculating this too much, cache somehow?
+
+    # Yaw Angle - about axis 2
+    #   tan(yaw) = (mz * sin(roll) – my * cos(roll)) / 
+    #              (mx * cos(pitch) + my * sin(pitch) * sin(roll) + mz * sin(pitch) * cos(roll))
+    #   Use Atan2 to get our range in (-180 - 180)
+    #
+    #   Yaw angle == 0 degrees when axis 0 is pointing at magnetic north
+	  yaw = Math.atan2(
+		   (@compass.z * Math.sin(roll)) - 
+       (@compass.y * Math.cos(roll)),
+		   (@compass.x * Math.cos(pitch)) + 
+       (@compass.y * Math.sin(pitch) * Math.sin(roll)) + 
+       (@compass.z * Math.sin(pitch) * Math.cos(roll)) )
+
+    (@acceleration.z < 0) ? ( yaw - Math::PI / 2 ) : ( yaw - Math::PI * 1.5 )
   end
 
-  # TODO: DRY this out?
-  def compass_direction_cosine_matrix
-    compass_dcv = compass_direction_cosine
-
-    direction_cosine_matrix compass_dcv.y, 0, compass_dcv.x
+  def compass_bearing_dcm
+    direction_cosine_matrix *compass_bearing_to_euler
   end
 
+  def compass_bearing_to_euler
+    [0, 0, compass_bearing_mag ]
+  end
+
+  # TODO: Are we doing this right? Should we be handling the dcm calcs in here?
   def acceleration_direction_cosine
-    #acos_accel = acceleration.normalize.collect{|n| Math.acos(n) }
-
-    #v3 acos_accel.x-Math::PI/2, 
-      #(acceleration.z < 0) ? (2 * Math::PI - acos_accel.y) : acos_accel.y, 0
-
-    #acos_compass = compass.normalize.collect{|n| Math.acos(n) }
-
-    #v3 acos_compass.x-Math::PI/2, 
-      #(compass.z < 0) ? (2 * Math::PI - acos_compass.y) : acos_compass.y, 0
-
     # Roll Angle - about axis 0
     #   tan(roll angle) = gy/gz
     #   Use Atan2 so we have an output os (-180 - 180) degrees
-	  rollAngle = Math.atan2 @acceleration.y, @acceleration.z
+	  roll = Math.atan2 @acceleration.y, @acceleration.z
  
     # Pitch Angle - about axis 1
     #   tan(pitch angle) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
     #   Pitch angle range is (-90 - 90) degrees
-	  pitchAngle = Math.atan -@acceleration.x / ((@acceleration.y * Math.sin(rollAngle)) + (@acceleration.z * Math.cos(rollAngle)))
+	  pitch = Math.atan -@acceleration.x / ((@acceleration.y * Math.sin(roll)) + (@acceleration.z * Math.cos(roll)))
  
-    # Yaw Angle - about axis 2
-    #   tan(yaw angle) = (mz * sin(roll) – my * cos(roll)) / 
-    #                    (mx * cos(pitch) + my * sin(pitch) * sin(roll) + mz * sin(pitch) * cos(roll))
-    #   Use Atan2 to get our range in (-180 - 180)
-    #
-    #   Yaw angle == 0 degrees when axis 0 is pointing at magnetic north
-	  yawAngle = Math.atan2(
-		   (@acceleration.z * Math.sin(rollAngle)) - 
-       (@acceleration.y * Math.cos(rollAngle)),
-		   (@acceleration.x * Math.cos(pitchAngle)) + 
-       (@acceleration.y * Math.sin(pitchAngle) * Math.sin(rollAngle)) + 
-       (@acceleration.z * Math.sin(pitchAngle) * Math.cos(rollAngle)) )
-
-    v3 rollAngle, pitchAngle, yawAngle
+    v3 roll, pitch, 0
   end
   
-  def acceleration_direction_cosine_matrix 
+  def acceleration_dcm 
     accel_dcv = acceleration_direction_cosine
 
-    direction_cosine_matrix -1.00 * accel_dcv.x + Math::PI * 0.5, 0, accel_dcv.y
+    direction_cosine_matrix accel_dcv.x * -1.00 + Math::PI / 2, 0, accel_dcv.y
   end
 
+  # TODO: We broke this - fix
   def acceleration_to_euler
     accel_dcv = acceleration_direction_cosine
     [accel_dcv.y, 0, accel_dcv.x]
-  end
-
-  # TODO: DRY this out
-  def compass_to_euler
-    compass_dcv = compass_direction_cosine
-    [compass_dcv.y, 0, compass_dcv.x]
   end
 
   def connected?; @is_connected; end
@@ -298,10 +291,10 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
             :compass      => orientation.compass.to_a },
           :euler_angles => {
             :acceleration => orientation.acceleration_to_euler.to_a,
-            :compass      => orientation.compass_to_euler.to_a},
+            :compass      => orientation.compass_bearing_to_euler.to_a},
           :direction_cosine_matrix => {
-            :acceleration => orientation.acceleration_direction_cosine_matrix.to_a,
-            :compass      => orientation.compass_direction_cosine_matrix.to_a }
+            :acceleration => orientation.acceleration_dcm.to_a,
+            :compass      => orientation.compass_bearing_dcm.to_a }
         }
     end if orientation.connected?
 
