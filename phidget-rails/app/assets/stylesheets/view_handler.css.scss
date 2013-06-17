@@ -10,8 +10,14 @@ canvas {
   border-radius: 4px;
 
 }
-.small_plane {
-  margin-bottom: 8px;
+.vertical_planes {
+  canvas:first-child { margin-top:0 ;}
+  canvas{ margin-bottom: 16px; }
+}
+
+.horizontal_planes {
+  canvas:first-child { margin-left:0 ;}
+  canvas{ margin-left: 22px; }
 }
 
 .page_header{

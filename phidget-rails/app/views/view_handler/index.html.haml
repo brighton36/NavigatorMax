@@ -1,7 +1,7 @@
 .row
   .span12.page_header
     %h1 
-      Spatial Data (Raw Data)
+      Spatial Data (Raw)
       %small
         Last updated:
         %span#last_update
@@ -58,10 +58,16 @@
             %td{:id => '%s_extent_max' % sensor.downcase}
 
   .span6
-    %h3 Orientation Visualized
-    %canvas#gyroscope_vis(width = '570' height = '354')
+    %h3 Spatial Vectors (3D)
+    %canvas#spatial_vectors_threed(width = '570' height = '354')
+    %h3 Gyroscope Breakout
+    .horizontal_planes
+      %canvas#xy_spatial_gyro(width = '170' height = '170')
+      %canvas#yz_spatial_gyro(width = '170' height = '170')
+      %canvas#xz_spatial_gyro(width = '170' height = '170')
   .span2
-    %h3 Sensor Vectors
-    %canvas.small_plane#xy_plane(width = '170' height = '170')
-    %canvas.small_plane#yz_plane(width = '170' height = '170')
-    %canvas.small_plane#xz_plane(width = '170' height = '170')
+    %h3 Spatial Sensors
+    .vertical_planes
+      %canvas#xy_spatial_vectors(width = '170' height = '170')
+      %canvas#yz_spatial_vectors(width = '170' height = '170')
+      %canvas#xz_spatial_vectors(width = '170' height = '170')

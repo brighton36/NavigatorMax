@@ -7,8 +7,50 @@ require 'json'
 require 'matrix'
 require 'phidgets-ffi'
 
-# Seems like this fixes our ffi crash issues. Huh.
-GC.disable
+# This was hacked up slightly so that we don't segfault with GC running
+class Phidgets::Spatial
+  
+  # NOTE: 
+  #   * I changed the event handler from a Proc to an FFI::Function\
+  #   * I wrapped the code in an exception handler
+  #   * Rather than pass an obj pointer, I set the @on_spatial_data_obj
+  def on_spatial_data(obj)
+    @on_spatial_data_obj = obj
+
+    @on_spatial_data = FFI::Function.new(:void, [:pointer, :long, :uint8], 
+      :blocking => true) do |device, obj_ptr, data, data_count|
+      begin
+        # Dist-Code
+        acceleration = []
+        if accelerometer_axes.size > 0
+          acceleration = [accelerometer_axes[0].acceleration, accelerometer_axes[1].acceleration, accelerometer_axes[2].acceleration]
+        end
+
+        magnetic_field= []
+        if compass_axes.size > 0 
+          #Even when there is a compass chip, sometimes there won't be valid data in the event.
+          begin
+            magnetic_field = [compass_axes[0].magnetic_field, compass_axes[1].magnetic_field, compass_axes[2].magnetic_field]
+          rescue Phidgets::Error::UnknownVal => e
+            magnetic_field = ['Unknown', 'Unknown', 'Unknown']
+          end
+        end
+
+        angular_rate = []
+        if gyro_axes.size > 0
+          angular_rate = [gyro_axes[0].angular_rate, gyro_axes[1].angular_rate, gyro_axes[2].angular_rate]
+        end
+        # /Dist-Code
+        @on_spatial_data_obj.on_data acceleration.dup, magnetic_field.dup, angular_rate.dup
+      rescue Phidgets::Error::UnknownVal
+      rescue Exception => e
+        puts "ERROR" + e.inspect
+      end
+    end
+
+    Klass.set_OnSpatialData_Handler(@handle, @on_spatial_data, nil)
+  end
+end
 
 class Time
   def to_ms
@@ -77,7 +119,8 @@ class OrientationSensor
   # This is kind of silly, but, since we can only pass a 32 bit number to an
   # on_spatial_data, it'll suffice. Basically, this is a counter to all the 
   # initialized sensors. Each sensor is guaranteed a unique entry in this table
-  # which is used by the update proc
+  # which is used by the update proc. Possibly a better solution is to re-write
+  # the event handlers to work the way they do with the on_data
   @@instances = []
 
   def self.instance(id)
@@ -111,20 +154,6 @@ class OrientationSensor
     end
   end
 
-  ON_SPATIAL_DATA = Proc.new do |device, acceleration, magnetic_field, angular_rate, instance_id|
-    begin
-      #puts " Accel: #{acceleration.inspect} Mag: #{magnetic_field.inspect} Ang: #{angular_rate.inspect}"
-
-      orientation = OrientationSensor.instance instance_id
-      orientation.on_data device, acceleration, magnetic_field, angular_rate
-
-      sleep 0.005 # Seems like omiting this might crash ruby. Might be an OSX thing...  (Might need tuning...)
-    rescue Phidgets::Error::UnknownVal
-    rescue Exception => e
-      puts "ERROR" + e.inspect
-    end
-  end
-
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
     :acceleration, :compass, :gyroscope
@@ -140,7 +169,7 @@ class OrientationSensor
     @phidget.on_attach instances_id, &ON_ATTACH
     @phidget.on_error  instances_id, &ON_ERROR
     @phidget.on_detach instances_id, &ON_DETACH 
-    @phidget.on_spatial_data instances_id, &ON_SPATIAL_DATA 
+    @phidget.on_spatial_data self 
   end
 
   def on_attach(spatial)
@@ -163,7 +192,7 @@ class OrientationSensor
     @phidget.attributes if @is_connected
   end
 
-  def on_data(spatial, acceleration, magnetic_field, angular_rate)
+  def on_data(acceleration, magnetic_field, angular_rate)
     @acceleration = v3 *acceleration
     @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
 

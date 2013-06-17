@@ -1,11 +1,16 @@
+VECTOR_COLORS = { 
+  x_axis: 0xff0000, y_axis: 0x00ff00, z_axis: 0x0000ff,
+  acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e
+}
+
 class VectorPlot2D
-  constructor: (canvas, title, x_label, y_label, x_color, y_color, vector_colors) ->
+  constructor: (canvas, title, x_label, y_label, vector_colors) ->
     @title = title
     @x_label = x_label
     @y_label = y_label
     @vector_colors = vector_colors
-    @x_axis_color = decimal_to_hex_string(x_color)
-    @y_axis_color = decimal_to_hex_string(y_color)
+    @x_axis_color = decimal_to_hex_string(vector_colors["#{x_label}_axis"])
+    @y_axis_color = decimal_to_hex_string(vector_colors["#{y_label}_axis"])
     @vectors = {}
     @cxt = canvas.getContext( '2d' )
     @origin = new THREE.Vector2().fromArray( 
@@ -26,9 +31,9 @@ class VectorPlot2D
     @cxt.font = '10pt Arial'
     @cxt.fillText(@title, 5,14)
     @cxt.fillStyle = @y_axis_color
-    @cxt.fillText(@y_label, @origin.x+5,14)
+    @cxt.fillText("+#{@y_label}", @origin.x+5,14)
     @cxt.fillStyle = @x_axis_color
-    @cxt.fillText(@x_label, @cxt.canvas.width-18,@origin.y+14)
+    @cxt.fillText("+#{@x_label}", @cxt.canvas.width-18,@origin.y+14)
 
   _draw_grid: -> 
     # Let's draw the basis vectors around the origin:
@@ -128,9 +133,9 @@ phidget_geometry = (beam, carlin, height) ->
   extents
 
 debug_axis = (scene, position, axisLength) ->
-  add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), 0xFF0000)
-  add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), 0x00FF00)
-  add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), 0x0000FF)
+  add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), VECTOR_COLORS.x_axis)
+  add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), VECTOR_COLORS.y_axis)
+  add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), VECTOR_COLORS.z_axis)
 
 debug_plane = (planeW, planeH, numW, numH) -> 
   new THREE.Mesh( 
@@ -144,8 +149,6 @@ draw_text = (cxt, camera, text, v, color) ->
   cxt.fillText(text,coords2d.x, coords2d.y)
 
 $(document).ready ->
-  VECTOR_COLORS = { acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e}
-
   # Decorate our html a bit (mostly the legends):
   for label, color of VECTOR_COLORS
     $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
@@ -209,12 +212,6 @@ $(document).ready ->
           dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
           0, 0, 0, 1 )
 
-        gyroscope_rot = new THREE.Matrix4( 
-          dcm_gyro[0][0], dcm_gyro[0][1], dcm_gyro[0][2], 0, 
-          dcm_gyro[1][0], dcm_gyro[1][1], dcm_gyro[1][2], 0, 
-          dcm_gyro[2][0], dcm_gyro[2][1], dcm_gyro[2][2], 0, 
-          0, 0, 0, 1 )
-
         #window.mesh.matrix = new THREE.Matrix4()
         #window.mesh.applyMatrix(orientation)
       
@@ -223,9 +220,6 @@ $(document).ready ->
 
         window.vector_arrows['compass'].matrix = new THREE.Matrix4()
         window.vector_arrows['compass'].applyMatrix(compass_rot)
-
-        window.vector_arrows['gyroscope'].matrix = new THREE.Matrix4()
-        window.vector_arrows['gyroscope'].applyMatrix(gyroscope_rot)
 
     if data.spatial_extents
       for sensor in ['acceleration', 'gyroscope', 'compass']
@@ -238,9 +232,9 @@ $(document).ready ->
     ws.send 'get spatial_extents'
     setInterval ( -> ws.send "get spatial_data" ), 25
 
-  gyro_cxt = $('#gyroscope_vis')[0].getContext( '2d' )
+  spatial_cxt = $('#spatial_vectors_threed')[0].getContext( '2d' )
 
-  camera = new THREE.PerspectiveCamera( 30, gyro_cxt.canvas.width / gyro_cxt.canvas.height , 1, 10000 )
+  camera = new THREE.PerspectiveCamera( 30, spatial_cxt.canvas.width / spatial_cxt.canvas.height , 1, 10000 )
   camera.position.z = 1000
   camera.position.y = -1000
   camera.position.x = 1000
@@ -259,7 +253,7 @@ $(document).ready ->
   # Accelerometer Arrow:
   window.vector_arrows = {}
  
-  $(['acceleration','gyroscope', 'compass']).each (i,sensor) ->
+  $(['acceleration', 'compass']).each (i,sensor) ->
     window.vector_arrows[sensor] = new THREE.Mesh( arrow_geometry(250),
       new THREE.MeshBasicMaterial( { color: VECTOR_COLORS[sensor]} ) )
     scene.add(window.vector_arrows[sensor])
@@ -271,15 +265,15 @@ $(document).ready ->
 
   scene.add( window.mesh )
 
-  renderer = new THREE.CanvasRenderer(canvas: gyro_cxt.canvas)
-  renderer.setSize gyro_cxt.canvas.width, gyro_cxt.canvas.height
+  renderer = new THREE.CanvasRenderer(canvas: spatial_cxt.canvas)
+  renderer.setSize spatial_cxt.canvas.width, spatial_cxt.canvas.height
 
-  window.xy_plane_vectors = new VectorPlot2D $('#xy_plane')[0], 'X/Y Plane', 
-    '+x', '+y', 0xff0000, 0x00ff00, VECTOR_COLORS
-  window.yz_plane_vectors = new VectorPlot2D $('#yz_plane')[0], 'Y/Z Plane', 
-    '+y', '+z', 0x00ff00, 0x0000ff, VECTOR_COLORS
-  window.xz_plane_vectors = new VectorPlot2D $('#xz_plane')[0], 'X/Z Plane', 
-    '+x', '+z', 0xff0000, 0x0000ff, VECTOR_COLORS
+  window.xy_plane_vectors = new VectorPlot2D $('#xy_spatial_vectors')[0], 'X/Y Vectors', 
+    'x', 'y', VECTOR_COLORS
+  window.yz_plane_vectors = new VectorPlot2D $('#yz_spatial_vectors')[0], 'Y/Z Vectors', 
+    'y', 'z', VECTOR_COLORS
+  window.xz_plane_vectors = new VectorPlot2D $('#xz_spatial_vectors')[0], 'X/Z Vectors', 
+    'x', 'z', VECTOR_COLORS
 
   window.animate = ->
     # 3D Visualization
@@ -288,9 +282,9 @@ $(document).ready ->
     renderer.render scene, camera
 
     # Draw Debug axis labels
-    draw_text(gyro_cxt, camera, '+x', debug_axis_position.clone().add(v(debug_axis_length*1.2, 0, 0)), 0xff0000)
-    draw_text(gyro_cxt, camera, '+y', debug_axis_position.clone().add(v(0, debug_axis_length*1.2, 0)), 0x00ff00)
-    draw_text(gyro_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), 0x0000ff)
+    draw_text(spatial_cxt, camera, '+x', debug_axis_position.clone().add(v(debug_axis_length*1.2, 0, 0)), VECTOR_COLORS.x_axis)
+    draw_text(spatial_cxt, camera, '+y', debug_axis_position.clone().add(v(0, debug_axis_length*1.2, 0)), VECTOR_COLORS.y_axis)
+    draw_text(spatial_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), VECTOR_COLORS.z_axis)
 
     # 2D Visualizations:
     $([window.xy_plane_vectors, window.yz_plane_vectors, window.xz_plane_vectors]).each (i,vp) ->

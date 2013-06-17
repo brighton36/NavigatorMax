@@ -1,10 +1,19 @@
-* Then work on the compass output
-  * TODO: This should be relative to the ground
+* I think we're going to need gc...
+  * Seems like we have it mostly working. Clean it up?
+    * Add error handling
+  * I think the problem is that the proc used by the the phidget lib isn't a constant
+  * Try the GC.disable/enable and stress = on
 
-* Get the other sensors showing?
-* Compass TODO: 
-  * Figure out how to display when the phiget is perpendicular to the ground
-    * Look through the compass.m implementation?
+* Get the gyro display working
+
+* Then work on the compass output
+  * TODO: This should be relative to the ground. Maybe...
+  * Look through the compass.m implementation, and see what you think....
+
+* Samples/sec would be nice to show. Maybe move that and a draws/sec to the left col
 
 * GPS TODO:
   * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
+
+* Under a general tab
+  * Maybe a system load memory consumption gc stats, etc
