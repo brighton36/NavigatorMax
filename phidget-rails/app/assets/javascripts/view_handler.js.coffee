@@ -160,29 +160,32 @@ $(document).ready ->
 
     # Update the coords:
     if data.spatial_data
-      $('#last_update').html(data.ts)
+      $('#last_gui_poll_value').html(data.ts)
+      $('#device_comm_rate_value').html("#{data.updates_per_second}  hz")
+      $('#gui_refresh_rate_value').html("#{window.frames_per_second} fps")
+
       for sensor in ['acceleration', 'gyroscope', 'compass']
         $(['x', 'y', 'z']).each (i,coord) ->
           $("##{sensor}_data_#{coord}").html data.spatial_data.raw[sensor][i].toFixed(2)
 
       # Update the 2d planes:
       norm_accel = new THREE.Vector3().fromArray( data.spatial_data.raw['acceleration'] ).normalize()
-      window.xy_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
-      window.yz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
-      window.xz_plane_vectors.plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
+      window.plane_vectors['xy_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
+      window.plane_vectors['yz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
+      window.plane_vectors['xz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
 
       # Update the 2d planes:
       norm_compass = new THREE.Vector3().fromArray( data.spatial_data.raw['compass'] ).normalize()
-      window.xy_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
-      window.yz_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
-      window.xz_plane_vectors.plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
+      window.plane_vectors['xy_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
+      window.plane_vectors['yz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
+      window.plane_vectors['xz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
 
       # Update the 2d planes:
       gyroscope = new THREE.Vector3().fromArray( 
         $(data.spatial_data.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
-      window.xy_plane_vectors.plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
-      window.yz_plane_vectors.plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
-      window.xz_plane_vectors.plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
+      window.plane_vectors['xy_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
+      window.plane_vectors['yz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
+      window.plane_vectors['xz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
 
       # Let's try out our rotation matrix:
       if data.spatial_data.euler_angles
@@ -225,12 +228,16 @@ $(document).ready ->
       for sensor in ['acceleration', 'gyroscope', 'compass']
         $(['min', 'max']).each (i,ext) ->
           $("##{sensor}_extent_#{ext}").html data.spatial_extents["#{sensor}_#{ext}"]
+    if data.spatial_attributes
+      attribs = data.spatial_attributes
+      $('#raw_spatial_attributes').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
         
   ws.onclose = -> 
     console.log "socket closed"
   ws.onopen = ->
     ws.send 'get spatial_extents'
-    setInterval ( -> ws.send "get spatial_data" ), 25
+    ws.send 'get spatial_attributes'
+    setInterval ( -> ws.send "get spatial_data" ), 1000/30
 
   spatial_cxt = $('#spatial_vectors_threed')[0].getContext( '2d' )
 
@@ -268,14 +275,30 @@ $(document).ready ->
   renderer = new THREE.CanvasRenderer(canvas: spatial_cxt.canvas)
   renderer.setSize spatial_cxt.canvas.width, spatial_cxt.canvas.height
 
-  window.xy_plane_vectors = new VectorPlot2D $('#xy_spatial_vectors')[0], 'X/Y Vectors', 
-    'x', 'y', VECTOR_COLORS
-  window.yz_plane_vectors = new VectorPlot2D $('#yz_spatial_vectors')[0], 'Y/Z Vectors', 
-    'y', 'z', VECTOR_COLORS
-  window.xz_plane_vectors = new VectorPlot2D $('#xz_spatial_vectors')[0], 'X/Z Vectors', 
-    'x', 'z', VECTOR_COLORS
+  window.plane_vectors = {}
+  for plane in [ 'xy', 'yz', 'xz' ]
+    for type in ['vectors', 'gyro']
+      label = "#{plane}_spatial_#{type}"
+      window.plane_vectors[label]= new VectorPlot2D $("##{label}")[0], 
+        plane.toUpperCase().match(/./g).join('/')+" #{type}", plane[0], plane[1], 
+        VECTOR_COLORS
+
+  # We use these to calculate the fps count
+  window.frames_since_last_fps = 0
+  window.frames_per_second = 0
+  window.last_fps_update_at = new Date().getTime()
 
   window.animate = ->
+    # FPS Calc
+    now = new Date().getTime()
+
+    if (now - window.last_fps_update_at) > 1000
+      window.frames_per_second = window.frames_since_last_fps
+      window.frames_since_last_fps = 1
+      window.last_fps_update_at = now
+    else
+      window.frames_since_last_fps++
+
     # 3D Visualization
     requestAnimationFrame window.animate 
 
@@ -287,7 +310,6 @@ $(document).ready ->
     draw_text(spatial_cxt, camera, '+z', debug_axis_position.clone().add(v(0, 0, debug_axis_length*1.2)), VECTOR_COLORS.z_axis)
 
     # 2D Visualizations:
-    $([window.xy_plane_vectors, window.yz_plane_vectors, window.xz_plane_vectors]).each (i,vp) ->
-      vp.render()
+    plane.render() for label, plane of window.plane_vectors
     
   window.animate()

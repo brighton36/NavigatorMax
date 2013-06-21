@@ -1,16 +1,11 @@
-* I think we're going to need gc...
-  * Seems like we have it mostly working. Clean it up?
-    * Add error handling
-  * I think the problem is that the proc used by the the phidget lib isn't a constant
-  * Try the GC.disable/enable and stress = on
+* GUI : On commloss should retry connection
+  * We should indicate comm status in upper right, along with FPS
 
-* Get the gyro display working
 
 * Then work on the compass output
   * TODO: This should be relative to the ground. Maybe...
   * Look through the compass.m implementation, and see what you think....
 
-* Samples/sec would be nice to show. Maybe move that and a draws/sec to the left col
 
 * GPS TODO:
   * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml

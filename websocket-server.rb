@@ -156,11 +156,15 @@ class OrientationSensor
 
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
-    :acceleration, :compass, :gyroscope
+    :acceleration, :compass, :gyroscope, :updates_per_second
 
   def initialize(serial_number, compass_correction_params)
     @@instances << self
     instances_id = @@instances.index self
+
+    @updates_this_interval = 0
+    @updates_per_second = 0
+    @last_update_interval_at = Time.now.to_f
 
     @compass_correction_params = compass_correction_params
     @is_connected = false
@@ -207,7 +211,17 @@ class OrientationSensor
       end
     end
 
+    # Has it been more than a second since we last counted?
+    if now > @last_update_interval_at + 1.0
+      @last_update_interval_at = now
+      @updates_per_second = @updates_this_interval
+      @updates_this_interval = 1
+    else
+      @updates_this_interval += 1
+    end
+
     @last_data_at = now
+
 
     # TODO : We should probably calculate our dcm's here.
   end
@@ -338,20 +352,22 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :compass_min => orientation.compass_min
         }
       when 'get spatial_data'
-        ret[:spatial_data] = {
-          :raw => { 
-            :acceleration => orientation.acceleration.to_a,  
-            :gyroscope    => orientation.gyroscope.to_a, 
-            :compass      => orientation.compass.to_a },
-          :euler_angles => {
-            :acceleration => orientation.acceleration_to_euler.to_a,
-            :gyroscope    => orientation.gyroscope_to_euler.to_a,
-            :compass      => orientation.compass_bearing_to_euler.to_a},
-          :direction_cosine_matrix => {
-            :acceleration => orientation.acceleration_dcm.to_a,
-            :gyroscope    => orientation.gyroscope_dcm.to_a,
-            :compass      => orientation.compass_bearing_dcm.to_a }
-        }
+        ret.merge!({ 
+          :updates_per_second => orientation.updates_per_second,
+          :spatial_data => {
+            :raw => { 
+              :acceleration => orientation.acceleration.to_a,  
+              :gyroscope    => orientation.gyroscope.to_a, 
+              :compass      => orientation.compass.to_a },
+            :euler_angles => {
+              :acceleration => orientation.acceleration_to_euler.to_a,
+              :gyroscope    => orientation.gyroscope_to_euler.to_a,
+              :compass      => orientation.compass_bearing_to_euler.to_a},
+            :direction_cosine_matrix => {
+              :acceleration => orientation.acceleration_dcm.to_a,
+              :gyroscope    => orientation.gyroscope_dcm.to_a,
+              :compass      => orientation.compass_bearing_dcm.to_a } }
+        } )
     end if orientation.connected?
 
     ws.send ret.to_json

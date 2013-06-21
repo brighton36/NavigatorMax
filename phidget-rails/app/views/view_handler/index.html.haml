@@ -3,8 +3,7 @@
     %h1 
       Spatial Data (Raw)
       %small
-        Last updated:
-        %span#last_update
+        %span#raw_spatial_attributes
 .row
   .span4
     %h3 Euler Rotations
@@ -29,7 +28,7 @@
     %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
       %thead
         %tr
-          %th Sensor
+          %th
           %th X-coord
           %th Y-coord
           %th Z-coord
@@ -47,7 +46,7 @@
     %table.table.table-striped.table-bordered.table-condensed
       %thead
         %tr 
-          %th Sensor
+          %th
           %th Min
           %th Max
       %tbody
@@ -56,6 +55,18 @@
             %th=sensor
             %td{:id => '%s_extent_min' % sensor.downcase}
             %td{:id => '%s_extent_max' % sensor.downcase}
+
+    %h3 Runtime Stats
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr 
+          %th
+          %th Value
+      %tbody
+        - ['Last GUI Poll','GUI Refresh Rate','Device Comm Rate'].each do |stat|
+          %tr
+            %th=stat
+            %td{:id => '%s_value' % stat.downcase.tr(' ','_')}
 
   .span6
     %h3 Spatial Vectors (3D)
