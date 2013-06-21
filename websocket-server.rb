@@ -263,7 +263,8 @@ class OrientationSensor
   end
 
   def gyroscope_dcm
-    direction_cosine_matrix *gyroscope_to_euler
+    direction_cosine_matrix( (gyroscope_to_euler[0]-Math::PI * 0.5) * -1.0, 
+      gyroscope_to_euler[1], gyroscope_to_euler[2] * -1.0, 'YZX' )
   end
 
   # TODO: Are we doing this right? Should we be handling the dcm calcs in here?
@@ -297,27 +298,31 @@ class OrientationSensor
  
   private
 
-  def direction_cosine_matrix(around_x, around_y, around_z)
-    [
+  def direction_cosine_matrix(around_x, around_y, around_z, in_order = 'XYZ')
+    rotations = {
       # X-rotation:
-      Matrix.rows([
+      :x => Matrix.rows([
         [1.0, 0, 0],
         [0, Math.cos(around_x), Math.sin(around_x) * (-1.0)],
         [0, Math.sin(around_x), Math.cos(around_x)]
       ]), 
+
       # Y-rotation:
-      Matrix.rows([
+      :y => Matrix.rows([
         [Math.cos(around_y), 0, Math.sin(around_y)],
         [0, 1.0, 0],
         [Math.sin(around_y) * (-1.0), 0, Math.cos(around_y)]
       ]), 
+
       # Z-rotation:
-      Matrix.rows([ 
+      :z => Matrix.rows([ 
         [Math.cos(around_z), Math.sin(around_z) * (-1.0), 0],
         [Math.sin(around_z), Math.cos(around_z), 0],
         [0, 0, 1.0]
       ]) 
-    ].reduce(:*)
+    }
+
+    in_order.chars.collect{ |axis| rotations[axis.downcase.to_sym] }.reduce(:*)
   end 
 end
 

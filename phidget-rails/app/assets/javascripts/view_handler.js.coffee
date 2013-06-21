@@ -215,6 +215,11 @@ $(document).ready ->
           dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
           0, 0, 0, 1 )
 
+        gyro_rot = new THREE.Matrix4( 
+          dcm_gyro[0][0], dcm_gyro[0][1], dcm_gyro[0][2], 0, 
+          dcm_gyro[1][0], dcm_gyro[1][1], dcm_gyro[1][2], 0, 
+          dcm_gyro[2][0], dcm_gyro[2][1], dcm_gyro[2][2], 0, 
+          0, 0, 0, 1 )
         #window.mesh.matrix = new THREE.Matrix4()
         #window.mesh.applyMatrix(orientation)
       
@@ -223,6 +228,9 @@ $(document).ready ->
 
         window.vector_arrows['compass'].matrix = new THREE.Matrix4()
         window.vector_arrows['compass'].applyMatrix(compass_rot)
+
+        window.vector_arrows['gyroscope'].matrix = new THREE.Matrix4()
+        window.vector_arrows['gyroscope'].applyMatrix(gyro_rot)
 
     if data.spatial_extents
       for sensor in ['acceleration', 'gyroscope', 'compass']
@@ -260,7 +268,7 @@ $(document).ready ->
   # Accelerometer Arrow:
   window.vector_arrows = {}
  
-  $(['acceleration', 'compass']).each (i,sensor) ->
+  $(['acceleration', 'compass', 'gyroscope']).each (i,sensor) ->
     window.vector_arrows[sensor] = new THREE.Mesh( arrow_geometry(250),
       new THREE.MeshBasicMaterial( { color: VECTOR_COLORS[sensor]} ) )
     scene.add(window.vector_arrows[sensor])
