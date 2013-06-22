@@ -2,8 +2,8 @@ class ViewHandlerController < ApplicationController
 
   CATCHALL_REQUESTURI_PARTS = /\A[\/]?(.*)[\/]?\Z/
 
-  SITE_NAVIGATION = [ '/spatial-data-raw', '/orientation-kalman', '/gps-location',
-    '/system' ]
+  SITE_NAVIGATION = [ 'home', 'orientation-kalman', 'spatial-data-raw',
+    'gps-location', 'system' ]
 
   def catchall
     raise StandardError if /\.\./.match(request.fullpath)
@@ -23,7 +23,7 @@ class ViewHandlerController < ApplicationController
       # of the requested resource, and if so, we'll pull the index action out of 
       # there ...
       if File::directory? action_as_path
-        @requested_action += "/index" 
+        @requested_action += "index" 
         retry
       end
 

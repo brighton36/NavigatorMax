@@ -1,5 +1,11 @@
-= link_to "Home", root_path, :class => 'brand'
-%ul.nav
-  - navigation.each do |nav_item|
-    %li{:class => ( (nav_item.tr('/','') == @requested_action) ? 'active' : nil) }
-      %a{:href => nav_item}=title_from_url nav_item
+.nav-collapse.collapse
+  %ul.nav
+    - navigation.each do |nav_item|
+      %li{:class => ( (nav_item == @requested_action) ? 'active' : nil) }
+        %a{:href => '#%s' % nav_item}=page_title_for nav_item
+    %li.divider-vertical
+    
+  %ul.nav.pull-right
+    %li.divider-vertical
+    %li 
+      %a Connected (todo fps)

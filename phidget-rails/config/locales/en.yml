@@ -4,6 +4,8 @@
 en:
   hello: "Hello world"
   pages:
+    home:
+      title: "Home"
     system:
       title: "System"
     spatial_data_raw:

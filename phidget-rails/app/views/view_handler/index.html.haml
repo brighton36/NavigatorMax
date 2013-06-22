@@ -1,0 +1,9 @@
+-@site_navigation.each do |nav_item|
+  %div{:id => nav_item, :class => 'nav_pane'}
+    .row
+      .span12.page_header
+        %h1
+          = page_title_for nav_item 
+          %small
+            %span.title_annotation
+    =render nav_item

@@ -1,5 +1,5 @@
 module ApplicationHelper
-  def title_from_url(url)
-    t ['pages',url.tr('/','').tr('-','_'),'title'].join('.')
+  def page_title_for(fragment)
+    t ['pages',fragment.tr(*%w(- _)),'title'].join('.')
   end
 end

@@ -3,13 +3,10 @@
   %head
     %meta{:charset => "utf-8"}
     %meta{:name => "viewport", :content => "width=device-width, initial-scale=1, maximum-scale=1"}
-    %title= title_from_url(@requested_action) || "Phidget Test"
-    %meta{:content => "", :name => "description"}
-    %meta{:content => "", :name => "author"}
+    %title= "Phidget Test"
     = stylesheet_link_tag "application", :media => "all"
     = javascript_include_tag "application"
     = csrf_meta_tags
-    = yield(:head)
   %body
     %header.navbar.navbar-fixed-top
       %nav.navbar-inner
@@ -21,11 +18,5 @@
           .row
             .span12
               = render 'layouts/messages'
-          .row
-            .span12.page_header
-              %h1
-                =title_from_url @requested_action
-                %small
-                  %span#title_annotation
           = yield
           %footer
