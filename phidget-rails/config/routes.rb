@@ -1,6 +1,8 @@
 PhidgetRails::Application.routes.draw do
   match '/' => 'view_handler#index'
 
+  match '*anything' => 'ViewHandler#catchall', :as => :catchall
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

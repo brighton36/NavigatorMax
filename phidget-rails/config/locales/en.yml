@@ -3,3 +3,12 @@
 
 en:
   hello: "Hello world"
+  pages:
+    system:
+      title: "System"
+    spatial_data_raw:
+      title: 'Spatial Data (Raw)'
+    orientation_kalman: 
+      title: 'Orientation (Kalman)'
+    gps_location: 
+      title: 'GPS (Location)'

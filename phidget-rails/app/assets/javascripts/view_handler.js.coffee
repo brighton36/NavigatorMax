@@ -238,7 +238,7 @@ $(document).ready ->
           $("##{sensor}_extent_#{ext}").html data.spatial_extents["#{sensor}_#{ext}"]
     if data.spatial_attributes
       attribs = data.spatial_attributes
-      $('#raw_spatial_attributes').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+      $('#title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
         
   ws.onclose = -> 
     console.log "socket closed"

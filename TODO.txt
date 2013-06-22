@@ -1,11 +1,9 @@
-* GUI : On commloss should retry connection
-  * We should indicate comm status in upper right, along with FPS
-
-
 * Then work on the compass output
   * TODO: This should be relative to the ground. Maybe...
   * Look through the compass.m implementation, and see what you think....
 
+* GUI : On commloss should retry connection
+  * We should indicate comm status in upper right, along with FPS
 
 * GPS TODO:
   * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml

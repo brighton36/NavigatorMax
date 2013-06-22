@@ -1,7 +1,5 @@
 = link_to "Home", root_path, :class => 'brand'
 %ul.nav
-  %li
-    %a(href='#') Spatial Data (Raw)
-  %li
-    %a(href='#') Orientation (Kalman)
-
+  - navigation.each do |nav_item|
+    %li{:class => ( (nav_item.tr('/','') == @requested_action) ? 'active' : nil) }
+      %a{:href => nav_item}=title_from_url nav_item
