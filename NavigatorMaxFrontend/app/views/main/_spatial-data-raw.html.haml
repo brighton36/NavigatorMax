@@ -1,0 +1,78 @@
+.row
+  .span4
+    %h3 Euler Rotations
+    %table.table.table-striped.table-bordered.table-condensed#phidget_orientation
+      %thead
+        %tr
+          %th
+          %th Heading (θ)
+          %th Pitch (φ)
+          %th Bank (ψ)
+      %tbody
+        %tr
+        - %w(Acceleration Gyroscope Compass).each do |label|
+          %tr
+            %th
+              %div{:class => [ label.downcase, 'legend_indicator'] }
+              =label
+            - %w(heading pitch bank).each do |axis|
+              %td{:id => ['euler',label.downcase,axis].join('_')}
+
+    %h3 Sensor Values
+    %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
+      %thead
+        %tr
+          %th
+          %th X-coord
+          %th Y-coord
+          %th Z-coord
+      %tbody
+        - %w(Acceleration Gyroscope Compass).each do |sensor|
+          %tr
+            %th
+              %div{:class => [ sensor.downcase, 'legend_indicator'] }
+              =sensor
+            %td{:id => '%s_data_x' % sensor.downcase}
+            %td{:id => '%s_data_y' % sensor.downcase}
+            %td{:id => '%s_data_z' % sensor.downcase}
+
+    %h3 Sensor Min/Max
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr 
+          %th
+          %th Min
+          %th Max
+      %tbody
+        - %w(Acceleration Compass Gyroscope).each do |sensor|
+          %tr
+            %th=sensor
+            %td{:id => '%s_extent_min' % sensor.downcase}
+            %td{:id => '%s_extent_max' % sensor.downcase}
+
+    %h3 Runtime Stats
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr 
+          %th
+          %th Value
+      %tbody
+        - ['Last GUI Poll','GUI Refresh Rate','Device Comm Rate'].each do |stat|
+          %tr
+            %th=stat
+            %td{:id => '%s_value' % stat.downcase.tr(' ','_')}
+
+  .span6
+    %h3 Spatial Vectors (3D)
+    %canvas#spatial_vectors_threed(width = '570' height = '354')
+    %h3 Gyroscope Breakout
+    .horizontal_planes
+      %canvas#xy_spatial_gyro(width = '170' height = '170')
+      %canvas#yz_spatial_gyro(width = '170' height = '170')
+      %canvas#xz_spatial_gyro(width = '170' height = '170')
+  .span2
+    %h3 Spatial Sensors
+    .vertical_planes
+      %canvas#xy_spatial_vectors(width = '170' height = '170')
+      %canvas#yz_spatial_vectors(width = '170' height = '170')
+      %canvas#xz_spatial_vectors(width = '170' height = '170')

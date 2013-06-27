@@ -1,0 +1,11 @@
+%div(data-yield="main")
+
+-#-@site_navigation.each do |nav_item|
+  %div{:id => nav_item, :class => 'nav_pane', 'data-showif' => "window.NavigatorMaxFrontend.currentRoute.controller | matches '%s'" % nav_item.titleize.tr(' ','')}
+    .row
+      .span12.page_header
+        %h1
+          =tab_label nav_item
+          %small
+            %span.title_annotation
+    =render nav_item
