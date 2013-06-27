@@ -3,3 +3,4 @@ class NavigatorMaxFrontend.HomeController extends Batman.Controller
 
   index: (params) ->
     console.log "In the home index!"
+    @render false

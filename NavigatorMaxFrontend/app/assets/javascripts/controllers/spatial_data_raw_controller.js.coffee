@@ -3,4 +3,4 @@ class NavigatorMaxFrontend.SpatialDataRawController extends Batman.Controller
 
   index: (params) ->
     console.log "In the index!"
-    # @render false
+    @render false
