@@ -1,4 +1,4 @@
-PhidgetRails::Application.routes.draw do
+NavigatorMaxFrontend::Application.routes.draw do
   match '/' => 'view_handler#index'
 
   match '*anything' => 'ViewHandler#catchall', :as => :catchall
