@@ -16,7 +16,7 @@
               %div{:class => [ label.downcase, 'legend_indicator'] }
               =label
             - %w(heading pitch bank).each do |axis|
-              %td{:id => ['euler',label.downcase,axis].join('_')}
+              %td{:class => ['euler',label.downcase,axis].join('_')}
 
     %h3 Sensor Values
     %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
@@ -32,12 +32,12 @@
             %th
               %div{:class => [ sensor.downcase, 'legend_indicator'] }
               =sensor
-            %td{:id => '%s_data_x' % sensor.downcase}
-            %td{:id => '%s_data_y' % sensor.downcase}
-            %td{:id => '%s_data_z' % sensor.downcase}
+            %td{:class => '%s_data_x' % sensor.downcase}
+            %td{:class => '%s_data_y' % sensor.downcase}
+            %td{:class => '%s_data_z' % sensor.downcase}
 
     %h3 Sensor Min/Max
-    %table.table.table-striped.table-bordered.table-condensed
+    %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_extents
       %thead
         %tr 
           %th
@@ -47,8 +47,8 @@
         - %w(Acceleration Compass Gyroscope).each do |sensor|
           %tr
             %th=sensor
-            %td{:id => '%s_extent_min' % sensor.downcase}
-            %td{:id => '%s_extent_max' % sensor.downcase}
+            %td{:class => '%s_extent_min' % sensor.downcase}
+            %td{:class => '%s_extent_max' % sensor.downcase}
 
     %h3 Runtime Stats
     %table.table.table-striped.table-bordered.table-condensed
@@ -57,7 +57,7 @@
           %th
           %th Value
       %tbody
-        - ['Last GUI Poll','GUI Refresh Rate','Device Comm Rate'].each do |stat|
+        - ['Last GUI Poll','Device Comm Rate'].each do |stat|
           %tr
             %th=stat
             %td{:id => '%s_value' % stat.downcase.tr(' ','_')}

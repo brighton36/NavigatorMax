@@ -1,8 +1,5 @@
 window.SpatialDataRawController = class
   constructor: () ->
-    # Decorate our html a bit (mostly the legends):
-    for label, color of VECTOR_COLORS
-      $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
     @spatial_cxt = $('#spatial_vectors_threed')[0].getContext( '2d' )
 
     @camera = new THREE.PerspectiveCamera( 30, @spatial_cxt.canvas.width / @spatial_cxt.canvas.height , 1, 10000 )
@@ -44,15 +41,30 @@ window.SpatialDataRawController = class
           plane.toUpperCase().match(/./g).join('/')+" #{type}", plane[0], plane[1], 
           VECTOR_COLORS
 
+    @data_tables = {
+      orientation: new DataTableView('#phidget_orientation'),
+      coords: new DataTableView('#phidget_spatial_coords')
+    }
+
+  set_metadata: (data) -> 
+    console.log "huhuh"
+    extents = new DataTableView '#phidget_spatial_extents'
+    for sensor in ['acceleration', 'gyroscope', 'compass']
+      for ext in ['min', 'max']
+        extents.set "#{sensor}_extent_#{ext}", data.spatial_extents["#{sensor}_#{ext}"]
+    extents.render()
+
+    attribs = data.spatial_attributes
+    $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+
   tick: (data) ->
     if data.spatial_data
       $('#last_gui_poll_value').html(data.ts)
       $('#device_comm_rate_value').html("#{data.updates_per_second}  hz")
-      $('#gui_refresh_rate_value').html("#{window.frames_per_second} fps")
 
       for sensor in ['acceleration', 'gyroscope', 'compass']
-        $(['x', 'y', 'z']).each (i,coord) ->
-          $("##{sensor}_data_#{coord}").html data.spatial_data.raw[sensor][i].toFixed(2)
+        for i, coord of ['x', 'y', 'z']
+          @data_tables.coords.set "#{sensor}_data_#{coord}", data.spatial_data.raw[sensor][i].toFixed(2)
 
       # Update the 2d planes:
       norm_accel = new THREE.Vector3().fromArray( data.spatial_data.raw['acceleration'] ).normalize()
@@ -81,9 +93,9 @@ window.SpatialDataRawController = class
         dcm_compass = data.spatial_data.direction_cosine_matrix['compass']
         dcm_gyro = data.spatial_data.direction_cosine_matrix['gyroscope']
 
-        $(['acceleration','gyroscope', 'compass']).each (i, sensor) ->
-          $(['heading','pitch','bank']).each (j,coord) ->
-            $("#euler_#{sensor}_#{coord}").html( data.spatial_data.euler_angles[sensor][j].toFixed(2) )
+        for sensor in ['acceleration','gyroscope', 'compass']
+          for i, coord of ['heading','pitch','bank']
+            @data_tables.orientation.set "euler_#{sensor}_#{coord}", data.spatial_data.euler_angles[sensor][i].toFixed(2)
         
         # We can take the rotation from the eular 
         #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
@@ -126,6 +138,7 @@ window.SpatialDataRawController = class
 
     # 2D Visualizations:
     plane.render() for label, plane of @plane_vectors
+    table.render() for label, table of @data_tables
 
   rotate_around_world_axis: (object, axis, radians) ->
     rotWorldMatrix = new THREE.Matrix4()

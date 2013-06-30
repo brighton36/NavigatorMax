@@ -344,9 +344,8 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
     ret = {:ts => Time.new.strftime('%H:%M:%S.%L'), :request => req }
 
     case req.downcase
-      when 'get spatial_attributes'
+      when 'get application_metadata'
         ret[:spatial_attributes] = orientation.device_attributes
-      when 'get spatial_extents'
         ret[:spatial_extents] = {
           :acceleration_max => orientation.acceleration_max, 
           :acceleration_max => orientation.acceleration_max, 
@@ -356,7 +355,7 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :compass_max => orientation.compass_max,
           :compass_min => orientation.compass_min
         }
-      when 'get spatial_data'
+      when 'get application_state'
         ret.merge!({ 
           :updates_per_second => orientation.updates_per_second,
           :spatial_data => {

@@ -1,8 +1,7 @@
-* Clean up the js and the rails code a bit
-  * We need a better dispatch model for handling the animate() and ws.event loops
-    * Use: Object.keys($.bbq.getState())[0]
-    * Most of our gadgets need to be objects, and when called upon, drawn
-    * Figure out how that animate loop runs
+* Rename VECTOR_COLORS to say COLORS
+
+* Then start renaming/refactoring the backend. 
+  * And add gps support!
 
 * Then work on the compass output
   * TODO: This should be relative to the ground. Maybe...

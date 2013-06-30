@@ -1,38 +1,13 @@
 #=require_tree ./lib
 #=require_tree ./controllers
+#=require_tree ./views
 
 window.VECTOR_COLORS = { 
   x_axis: 0xff0000, y_axis: 0x00ff00, z_axis: 0x0000ff,
   acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e
 }
 
-window.ConnectionStatusView = class 
-  constructor: ->
-    # We use these to calculate the fps count
-    @frames_since_last_fps = 0
-    @frames_per_second = 0
-    @last_fps_update_at = new Date().getTime()
-    @is_connected = false
-
-  disconnect: ->
-    @is_connected = false
-  connect: ->
-    @is_connected = true
-
-  render: ->
-    # FPS Calc
-    now = new Date().getTime()
-
-    if (now - @last_fps_update_at) > 1000
-      @frames_per_second = @frames_since_last_fps
-      @frames_since_last_fps = 1
-      @last_fps_update_at = now
-    else
-      @frames_since_last_fps++
-
-    $('#gui_refresh_rate_value').html("#{@frames_per_second} fps")
-
-$(window).bind 'hashchange', (e) ->
+on_route_change = (e) ->
   nav_pane = $.param.fragment()
   nav_pane = 'home' unless nav_pane
   
@@ -42,42 +17,43 @@ $(window).bind 'hashchange', (e) ->
   $( 'a[href="#' + nav_pane + '"]' ).parent('li').addClass( 'active' )
   $("##{nav_pane}").show()
 
+  window.active_controller = window.controllers[nav_pane]
+
 $(document).ready -> 
   window.controllers = {
     'spatial-data-raw': new SpatialDataRawController
   }
-  connection_status = new ConnectionStatusView
+  connection_status = new ConnectionStatusView '#connection_status'
+
+  # This is our primitive router. Seems to work well enough:
+  $(window).bind 'hashchange', on_route_change
+  
+  $(window).trigger( 'hashchange' )
+
+  # Decorate our html a bit (mostly the legends):
+  for label, color of VECTOR_COLORS
+    $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
 
   window.animate = ->
     requestAnimationFrame window.animate 
     connection_status.render()
-    window.controllers['spatial-data-raw'].render()
+    window.active_controller.render() if window.active_controller
 
-  # the event is only triggered when the hash changes, we need to trigger
-  # event now, to handle the hash the page may have loaded with.
-  $(window).trigger( 'hashchange' )
-
-  window.animate()
+  requestAnimationFrame window.animate 
 
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
   ws = new Socket "ws://localhost:8080/"
   ws.onmessage = (evt) ->
     data = $.parseJSON(evt.data)
 
-    window.controllers['spatial-data-raw'].tick(data)
-
-    if data.spatial_extents
-      for sensor in ['acceleration', 'gyroscope', 'compass']
-        $(['min', 'max']).each (i,ext) ->
-          $("##{sensor}_extent_#{ext}").html data.spatial_extents["#{sensor}_#{ext}"]
-    if data.spatial_attributes
-      attribs = data.spatial_attributes
-      $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+    if data.request == 'get application_state'
+      window.active_controller.tick(data) if window.active_controller
+    else if data.request == 'get application_metadata'
+      controller.set_metadata data for label, controller of window.controllers
         
   ws.onclose = -> 
-    console.log "socket closed"
+    connection_status.is_connected false
   ws.onopen = ->
-    ws.send 'get spatial_extents'
-    ws.send 'get spatial_attributes'
-    setInterval ( -> ws.send "get spatial_data" ), 1000/30
-    
+    connection_status.is_connected true
+    ws.send 'get application_metadata'
+    setInterval ( -> ws.send "get application_state" ), 1000/30
