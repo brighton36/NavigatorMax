@@ -1,0 +1,184 @@
+window.SpatialDataRawController = class
+  constructor: () ->
+    # Decorate our html a bit (mostly the legends):
+    for label, color of VECTOR_COLORS
+      $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
+    @spatial_cxt = $('#spatial_vectors_threed')[0].getContext( '2d' )
+
+    @camera = new THREE.PerspectiveCamera( 30, @spatial_cxt.canvas.width / @spatial_cxt.canvas.height , 1, 10000 )
+    @camera.position.z = 1000
+    @camera.position.y = -1000
+    @camera.position.x = 1000
+
+    @camera.lookAt(new THREE.Vector3(0,0,0))
+    @camera.rotation.z = 0.5
+
+    @scene = new THREE.Scene()
+
+    # Debug elements:
+    @debug_axis_length = 150
+    @debug_axis_position = v(-50,-600,0)
+    @debug_axis(@scene, @debug_axis_position, @debug_axis_length)
+    @scene.add(@debug_plane(50,50,50,50))
+
+    # Accelerometer Arrow:
+    @vector_arrows = {}
+
+    for sensor in ['acceleration', 'compass', 'gyroscope']
+      @vector_arrows[sensor] = new THREE.Mesh( @arrow_geometry(250),
+        new THREE.MeshBasicMaterial( { color: VECTOR_COLORS[sensor]} ) )
+      @scene.add(@vector_arrows[sensor])
+
+    # The actual model
+    @scene.add( new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
+      new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) ) )
+
+    @renderer = new THREE.CanvasRenderer(canvas: @spatial_cxt.canvas)
+    @renderer.setSize @spatial_cxt.canvas.width, @spatial_cxt.canvas.height
+
+    @plane_vectors = {}
+    for plane in [ 'xy', 'yz', 'xz' ]
+      for type in ['vectors', 'gyro']
+        label = "#{plane}_spatial_#{type}"
+        @plane_vectors[label]= new VectorPlot2D $("##{label}")[0], 
+          plane.toUpperCase().match(/./g).join('/')+" #{type}", plane[0], plane[1], 
+          VECTOR_COLORS
+
+  tick: (data) ->
+    if data.spatial_data
+      $('#last_gui_poll_value').html(data.ts)
+      $('#device_comm_rate_value').html("#{data.updates_per_second}  hz")
+      $('#gui_refresh_rate_value').html("#{window.frames_per_second} fps")
+
+      for sensor in ['acceleration', 'gyroscope', 'compass']
+        $(['x', 'y', 'z']).each (i,coord) ->
+          $("##{sensor}_data_#{coord}").html data.spatial_data.raw[sensor][i].toFixed(2)
+
+      # Update the 2d planes:
+      norm_accel = new THREE.Vector3().fromArray( data.spatial_data.raw['acceleration'] ).normalize()
+      @plane_vectors['xy_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
+      @plane_vectors['yz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
+      @plane_vectors['xz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
+
+      # Update the 2d planes:
+      norm_compass = new THREE.Vector3().fromArray( data.spatial_data.raw['compass'] ).normalize()
+      @plane_vectors['xy_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
+      @plane_vectors['yz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
+      @plane_vectors['xz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
+
+      # Update the 2d planes:
+      gyroscope = new THREE.Vector3().fromArray( 
+        $(data.spatial_data.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
+      @plane_vectors['xy_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
+      @plane_vectors['yz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
+      @plane_vectors['xz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
+
+      # Let's try out our rotation matrix:
+      if data.spatial_data.euler_angles
+        euler_accel = data.spatial_data.euler_angles['acceleration']
+        dcm_accel = data.spatial_data.direction_cosine_matrix['acceleration']
+        euler_compass = data.spatial_data.euler_angles['compass']
+        dcm_compass = data.spatial_data.direction_cosine_matrix['compass']
+        dcm_gyro = data.spatial_data.direction_cosine_matrix['gyroscope']
+
+        $(['acceleration','gyroscope', 'compass']).each (i, sensor) ->
+          $(['heading','pitch','bank']).each (j,coord) ->
+            $("#euler_#{sensor}_#{coord}").html( data.spatial_data.euler_angles[sensor][j].toFixed(2) )
+        
+        # We can take the rotation from the eular 
+        #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
+
+        # Or, we can take the rotation from the direction cosine:
+        accel_rot = new THREE.Matrix4( 
+          dcm_accel[0][0], dcm_accel[0][1], dcm_accel[0][2], 0, 
+          dcm_accel[1][0], dcm_accel[1][1], dcm_accel[1][2], 0, 
+          dcm_accel[2][0], dcm_accel[2][1], dcm_accel[2][2], 0, 
+          0, 0, 0, 1 )
+        
+        compass_rot = new THREE.Matrix4( 
+          dcm_compass[0][0], dcm_compass[0][1], dcm_compass[0][2], 0, 
+          dcm_compass[1][0], dcm_compass[1][1], dcm_compass[1][2], 0, 
+          dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
+          0, 0, 0, 1 )
+
+        gyro_rot = new THREE.Matrix4( 
+          dcm_gyro[0][0], dcm_gyro[0][1], dcm_gyro[0][2], 0, 
+          dcm_gyro[1][0], dcm_gyro[1][1], dcm_gyro[1][2], 0, 
+          dcm_gyro[2][0], dcm_gyro[2][1], dcm_gyro[2][2], 0, 
+          0, 0, 0, 1 )
+      
+        @vector_arrows['acceleration'].matrix = new THREE.Matrix4()
+        @vector_arrows['acceleration'].applyMatrix(accel_rot)
+
+        @vector_arrows['compass'].matrix = new THREE.Matrix4()
+        @vector_arrows['compass'].applyMatrix(compass_rot)
+
+        @vector_arrows['gyroscope'].matrix = new THREE.Matrix4()
+        @vector_arrows['gyroscope'].applyMatrix(gyro_rot)
+
+  render: ->
+    @renderer.render @scene, @camera
+
+    # Draw Debug axis labels
+    draw_text(@spatial_cxt, @camera, '+x', @debug_axis_position.clone().add(v(@debug_axis_length*1.2, 0, 0)), VECTOR_COLORS.x_axis)
+    draw_text(@spatial_cxt, @camera, '+y', @debug_axis_position.clone().add(v(0, @debug_axis_length*1.2, 0)), VECTOR_COLORS.y_axis)
+    draw_text(@spatial_cxt, @camera, '+z', @debug_axis_position.clone().add(v(0, 0, @debug_axis_length*1.2)), VECTOR_COLORS.z_axis)
+
+    # 2D Visualizations:
+    plane.render() for label, plane of @plane_vectors
+
+  rotate_around_world_axis: (object, axis, radians) ->
+    rotWorldMatrix = new THREE.Matrix4()
+    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians)
+    object.matrix = rotWorldMatrix.multiply(object.matrix)
+    object.rotation.setEulerFromRotationMatrix(object.matrix)
+
+  add_axis: (scene, position, length, cap_rotation, color) ->
+    lineGeometry = new THREE.Geometry()
+    lineMat = new THREE.LineBasicMaterial({color: color, linewidth: 3})
+    lineGeometry.vertices.push(v(0,0,0), length)
+    cap = new THREE.Mesh( 
+      new THREE.CylinderGeometry(1, 20, 50, 10, 10)
+      new THREE.MeshBasicMaterial( { color: color } )
+    )
+
+    scene.add cap
+    @rotate_around_world_axis(cap, cap_rotation, Math.PI)
+    cap_position = position.clone()
+    cap_position.add(length)
+
+    cap.position = cap_position
+
+    axis_line = new THREE.Line(lineGeometry, lineMat)
+    axis_line.position = position
+    scene.add axis_line
+
+  arrow_geometry: (length) ->
+    lineGeometry = new THREE.CubeGeometry( 10, length, 10 )
+    cylGeometry = new THREE.CylinderGeometry(1, 20, 50, 10, 10)
+   
+    # Move the arrow head down a bit:
+    cylGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, length, 0))
+    lineGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, length/2, 0))
+    
+    THREE.GeometryUtils.merge(lineGeometry, cylGeometry)
+
+    lineGeometry
+
+  # beam is width, carlin is length, height is 
+  phidget_geometry: (beam, carlin, height) ->
+    extents = new THREE.CubeGeometry( beam, carlin, height )
+    usb_jack = new THREE.CubeGeometry( beam / 3, carlin/4, height/2 )
+    usb_jack.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0-carlin*0.50, 0))
+    THREE.GeometryUtils.merge(extents, usb_jack)
+    extents
+
+  debug_axis: (scene, position, axisLength) ->
+    @add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), VECTOR_COLORS.x_axis)
+    @add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), VECTOR_COLORS.y_axis)
+    @add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), VECTOR_COLORS.z_axis)
+
+  debug_plane: (planeW, planeH, numW, numH) -> 
+    new THREE.Mesh( 
+      new THREE.PlaneGeometry( planeW*50, planeH*50, numW, numH),
+      new THREE.MeshBasicMaterial( { color: 0xaaaaaa, wireframe: true } ) )

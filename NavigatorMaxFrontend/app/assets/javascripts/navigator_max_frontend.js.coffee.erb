@@ -1,0 +1,83 @@
+#=require_tree ./lib
+#=require_tree ./controllers
+
+window.VECTOR_COLORS = { 
+  x_axis: 0xff0000, y_axis: 0x00ff00, z_axis: 0x0000ff,
+  acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e
+}
+
+window.ConnectionStatusView = class 
+  constructor: ->
+    # We use these to calculate the fps count
+    @frames_since_last_fps = 0
+    @frames_per_second = 0
+    @last_fps_update_at = new Date().getTime()
+    @is_connected = false
+
+  disconnect: ->
+    @is_connected = false
+  connect: ->
+    @is_connected = true
+
+  render: ->
+    # FPS Calc
+    now = new Date().getTime()
+
+    if (now - @last_fps_update_at) > 1000
+      @frames_per_second = @frames_since_last_fps
+      @frames_since_last_fps = 1
+      @last_fps_update_at = now
+    else
+      @frames_since_last_fps++
+
+    $('#gui_refresh_rate_value').html("#{@frames_per_second} fps")
+
+$(window).bind 'hashchange', (e) ->
+  nav_pane = $.param.fragment()
+  nav_pane = 'home' unless nav_pane
+  
+  $( 'li.active' ).removeClass( 'active' )
+  $( '.nav_pane:visible' ).hide()
+
+  $( 'a[href="#' + nav_pane + '"]' ).parent('li').addClass( 'active' )
+  $("##{nav_pane}").show()
+
+$(document).ready -> 
+  window.controllers = {
+    'spatial-data-raw': new SpatialDataRawController
+  }
+  connection_status = new ConnectionStatusView
+
+  window.animate = ->
+    requestAnimationFrame window.animate 
+    connection_status.render()
+    window.controllers['spatial-data-raw'].render()
+
+  # the event is only triggered when the hash changes, we need to trigger
+  # event now, to handle the hash the page may have loaded with.
+  $(window).trigger( 'hashchange' )
+
+  window.animate()
+
+  Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
+  ws = new Socket "ws://localhost:8080/"
+  ws.onmessage = (evt) ->
+    data = $.parseJSON(evt.data)
+
+    window.controllers['spatial-data-raw'].tick(data)
+
+    if data.spatial_extents
+      for sensor in ['acceleration', 'gyroscope', 'compass']
+        $(['min', 'max']).each (i,ext) ->
+          $("##{sensor}_extent_#{ext}").html data.spatial_extents["#{sensor}_#{ext}"]
+    if data.spatial_attributes
+      attribs = data.spatial_attributes
+      $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+        
+  ws.onclose = -> 
+    console.log "socket closed"
+  ws.onopen = ->
+    ws.send 'get spatial_extents'
+    ws.send 'get spatial_attributes'
+    setInterval ( -> ws.send "get spatial_data" ), 1000/30
+    
