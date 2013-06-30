@@ -1,6 +1,7 @@
 * Rename VECTOR_COLORS to say COLORS
 
 * Then start renaming/refactoring the backend. 
+  * We need to fix this on startup bug: ERROR#<Phidgets::Error::UnknownVal: Value is Unknown (State not yet received from device, or not yet set by user).>
   * And add gps support!
 
 * Then work on the compass output
