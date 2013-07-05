@@ -1,18 +1,22 @@
+* Figure out the gps time /date  is working as well
+  Something weird is going on here, check the puts out put
+
+* We need to test the is_fixed status firing
+
 * Rename VECTOR_COLORS to say COLORS
 
 * Then start renaming/refactoring the backend. 
   * We need to fix this on startup bug: ERROR#<Phidgets::Error::UnknownVal: Value is Unknown (State not yet received from device, or not yet set by user).>
   * And add gps support!
 
+* GPS TODO:
+  * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
+
 * Then work on the compass output
   * TODO: This should be relative to the ground. Maybe...
   * Look through the compass.m implementation, and see what you think....
 
 * GUI : On commloss should retry connection
-  * We should indicate comm status in upper right, along with FPS
-
-* GPS TODO:
-  * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
 
 * Under a general tab
   * Maybe a system load memory consumption gc stats, etc

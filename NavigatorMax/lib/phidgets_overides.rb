@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-# This was hacked up slightly so that we don't segfault with GC running
+# NOTE:
+#   Mostly the reason we did all this was because the event handlers were 
+#   segfaulting when garbage collection was on. I'm not 100% sure that I know
+#   what's going on, but switching to FFI::Function and not passing user
+#   pointers seemed to fix the problem
+
 class Phidgets::Spatial
   
   # NOTE: 
@@ -43,5 +48,31 @@ class Phidgets::Spatial
     end
 
     Klass.set_OnSpatialData_Handler(@handle, @on_spatial_data, nil)
+  end
+end
+
+class Phidgets::GPS
+  # NOTE: 
+  #   * I changed the event handler from a Proc to an FFI::Function
+  #   * I wrapped the code in an exception handler
+  #   * Rather than pass an obj pointer, I set the @on_position_change/@on_position_fix_status_change
+  def on_position_change(obj=nil)
+	  @on_position_change_obj = obj
+
+    @on_position_change = FFI::Function.new(:int, [:pointer, :pointer, :double, :double, :double], 
+      :blocking => true) { |device, obj_ptr, lat, long, alt|
+      @on_position_change_obj.on_position_change lat, long, alt
+    }
+    Klass.set_OnPositionChange_Handler(@handle, @on_position_change, nil)
+  end
+
+  def on_position_fix_status_change(obj=nil, &block)
+    @on_position_fix_status_change_obj = obj
+
+    @on_position_fix_status_change = FFI::Function.new(:int, [:pointer, :pointer, :uint8], 
+      :blocking => true) { |device, obj_ptr, fix_status|
+      @on_position_change_obj.on_position_fix_status_change (fix_status == 0 ? false : true)
+    }
+    Klass.set_OnPositionFixStatusChange_Handler(@handle, @on_position_fix_status_change, nil)
   end
 end

@@ -1,69 +1,22 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-class OrientationSensor
-  # This is kind of silly, but, since we can only pass a 32 bit number to an
-  # on_spatial_data, it'll suffice. Basically, this is a counter to all the 
-  # initialized sensors. Each sensor is guaranteed a unique entry in this table
-  # which is used by the update proc. Possibly a better solution is to re-write
-  # the event handlers to work the way they do with the on_data
-  @@instances = []
+require 'phidget_sensor'
 
-  def self.instance(id)
-    @@instances[id]
-  end
-
-  ON_ATTACH = Proc.new do |device, instance_id|
-    begin
-
-    puts "Device attributes: #{device.attributes} attached"
-    puts "Device: #{device.inspect}"
-
-    orientation = OrientationSensor.instance instance_id
-    orientation.on_attach device
-
-    rescue Exception => e
-      puts "ERROR" + e.inspect
-    end
-  end
-
-  ON_ERROR = Proc.new do |device, obj, code, description|
-    puts "Error #{code}: #{description}"
-  end
-
-  ON_DETACH = Proc.new do |device, instance_id|
-    begin
-      orientation = OrientationSensor.instance instance_id
-      orientation.on_detach device
-    rescue Exception => e
-      puts "ERROR" + e.inspect
-    end
-  end
-
+class OrientationSensor < PhidgetSensor
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
-    :acceleration, :compass, :gyroscope, :updates_per_second
+    :acceleration, :compass, :gyroscope
 
   def initialize(serial_number, compass_correction_params)
-    @@instances << self
-    instances_id = @@instances.index self
-
-    @updates_this_interval = 0
-    @updates_per_second = 0
-    @last_update_interval_at = Time.now.to_f
+    super Phidgets::Spatial.new(:serial_number => @serial_number)
 
     @compass_correction_params = compass_correction_params
-    @is_connected = false
-
-    @phidget = Phidgets::Spatial.new :serial_number => @serial_number
-    @phidget.on_attach instances_id, &ON_ATTACH
-    @phidget.on_error  instances_id, &ON_ERROR
-    @phidget.on_detach instances_id, &ON_DETACH 
     @phidget.on_spatial_data self 
   end
 
   def on_attach(spatial)
-    @is_connected = true
+    super
 
     spatial.set_compass_correction_parameters *@compass_correction_params
     @acceleration_max = spatial.accelerometer_axes[0].acceleration_max
@@ -72,14 +25,6 @@ class OrientationSensor
     @gyroscope_min = spatial.gyro_axes[0].angular_rate_min
     @compass_max = spatial.compass_axes[0].magnetic_field_max
     @compass_min = spatial.compass_axes[0].magnetic_field_min
-  end
-
-  def on_detach(spatial)
-    @is_connected = false
-  end
-
-  def device_attributes
-    @phidget.attributes if @is_connected
   end
 
   def on_data(acceleration, magnetic_field, angular_rate)
@@ -97,17 +42,7 @@ class OrientationSensor
       end
     end
 
-    # Has it been more than a second since we last counted?
-    if now > @last_update_interval_at + 1.0
-      @last_update_interval_at = now
-      @updates_per_second = @updates_this_interval
-      @updates_this_interval = 1
-    else
-      @updates_this_interval += 1
-    end
-
-    @last_data_at = now
-
+    sampled! now
 
     # TODO : We should probably calculate our dcm's here.
   end
@@ -180,8 +115,6 @@ class OrientationSensor
     [accel_dcv.y, 0, accel_dcv.x]
   end
 
-  def connected?; @is_connected; end
- 
   private
 
   def direction_cosine_matrix(around_x, around_y, around_z, in_order = 'XYZ')
