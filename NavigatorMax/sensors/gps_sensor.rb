@@ -9,15 +9,11 @@ class GpsSensor < PhidgetSensor
 
   def initialize(serial_number)
     super Phidgets::GPS.new(:serial_number => @serial_number)
-
-    @is_fixed = false
   end
 
   def on_attach(phidget)
-    super
-    @is_fixed = @phidget.position_fix_status
+    super phidget
     @phidget.on_position_change self 
-    @phidget.on_position_fix_status_change self 
   end
 
   def on_position_change(lat, long, alt)
@@ -26,12 +22,8 @@ class GpsSensor < PhidgetSensor
     sampled! Time.now.to_f
   end
 
-  def on_position_fix_status_change(fix_status)
-    @is_fixed = fix_status
-  end
-
   def is_fixed?
-    @is_fixed
+    @phidget.position_fix_status
   end
 
   def heading
@@ -48,11 +40,9 @@ class GpsSensor < PhidgetSensor
       # though they are available from the phidget
       time_parts = @phidget.time
       date_parts = @phidget.date
-      ret = Time.parse( '%s-%s-%s %s:%s:%s UTC' % [
+      Time.parse( '%s-%s-%s %s:%s:%s UTC' % [
         date_parts[:year], date_parts[:month], date_parts[:day], 
         time_parts[:hours], time_parts[:minutes], time_parts[:seconds] ] )
-      puts ret.inspect
-      ret
     end
   end
 

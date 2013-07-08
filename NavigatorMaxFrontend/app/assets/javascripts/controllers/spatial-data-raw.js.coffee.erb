@@ -47,7 +47,6 @@ window.SpatialDataRawController = class
     }
 
   set_metadata: (data) -> 
-    console.log "huhuh"
     extents = new DataTableView '#phidget_spatial_extents'
     for sensor in ['acceleration', 'gyroscope', 'compass']
       for ext in ['min', 'max']
@@ -60,7 +59,7 @@ window.SpatialDataRawController = class
   tick: (data) ->
     if data.spatial_data
       $('#last_gui_poll_value').html(data.ts)
-      $('#device_comm_rate_value').html("#{data.spatial_data.updates_per_second}  hz")
+      $('#spatial_comm_rate_value').html("#{data.spatial_data.updates_per_second}  hz")
 
       for sensor in ['acceleration', 'gyroscope', 'compass']
         for i, coord of ['x', 'y', 'z']

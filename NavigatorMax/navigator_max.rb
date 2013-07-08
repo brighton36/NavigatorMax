@@ -56,13 +56,13 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
         ret.merge!({ 
           :gps => {
             :updates_per_second => gps.updates_per_second,
-            :is_fixed => gps.is_fixed?,
-            :latitude => gps.latitude,
+            :is_fixed  => gps.is_fixed?,
+            :latitude  => gps.latitude,
             :longitude => gps.longitude,
-            :altitude => gps.altitude,
-            :heading => gps.heading,
-            :velocity => gps.velocity,
-            :time => gps.time
+            :altitude  => gps.altitude,
+            :heading   => gps.heading,
+            :velocity  => gps.velocity,
+            :time      => gps.time
           },
           :spatial_data => {
             :updates_per_second => orientation.updates_per_second,

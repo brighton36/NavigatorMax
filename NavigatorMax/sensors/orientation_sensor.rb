@@ -16,7 +16,7 @@ class OrientationSensor < PhidgetSensor
   end
 
   def on_attach(spatial)
-    super
+    super spatial
 
     spatial.set_compass_correction_parameters *@compass_correction_params
     @acceleration_max = spatial.accelerometer_axes[0].acceleration_max

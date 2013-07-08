@@ -1,7 +1,7 @@
-* Figure out the gps time /date  is working as well
-  Something weird is going on here, check the puts out put
+* The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
 
-* We need to test the is_fixed status firing
+* We should override the on_error and on_detach handlers like we did the attach handlers
+  * and then junk the crazy int-based code
 
 * Rename VECTOR_COLORS to say COLORS
 

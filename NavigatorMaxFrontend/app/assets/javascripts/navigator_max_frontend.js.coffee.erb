@@ -22,6 +22,7 @@ on_route_change = (e) ->
 $(document).ready -> 
   window.controllers = {
     'spatial-data-raw': new SpatialDataRawController
+    'gps-location': new GpsLocation
   }
   connection_status = new ConnectionStatusView '#connection_status'
 

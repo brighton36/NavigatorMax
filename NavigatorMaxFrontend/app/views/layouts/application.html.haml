@@ -6,6 +6,7 @@
     %title= "NavigatorMax"
     = stylesheet_link_tag "application", :media => "all"
     = javascript_include_tag "application"
+    %script(src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false")
     = csrf_meta_tags
   %body
     %header.navbar.navbar-fixed-top

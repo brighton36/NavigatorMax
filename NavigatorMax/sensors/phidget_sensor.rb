@@ -14,11 +14,11 @@ class PhidgetSensor
  
   ON_ATTACH = Proc.new do |device, instance_id|
     begin
+      puts "Device attributes: #{device.attributes} attached"
+      puts "Device: #{device.inspect}"
 
-    puts "Device attributes: #{device.attributes} attached"
-    puts "Device: #{device.inspect}"
-
-    PhidgetSensor.instance(instance_id).on_attach device
+      puts "Instance..."+@on_attach_obj.inspect
+      PhidgetSensor.instance(instance_id).on_attach device
 
     rescue Exception => e
       puts "ERROR" + e.inspect
@@ -44,7 +44,7 @@ class PhidgetSensor
     @is_connected = false
 
     @phidget = phidget 
-    @phidget.on_attach @instance_id, &ON_ATTACH
+    @phidget.on_attach self
     @phidget.on_error  @instance_id, &ON_ERROR
     @phidget.on_detach @instance_id, &ON_DETACH 
 
@@ -54,8 +54,10 @@ class PhidgetSensor
     @last_update_interval_at = Time.now.to_f
   end
 
-  def on_attach(*args)
+  def on_attach(device)
     @is_connected = true
+    puts "Device attributes: #{device.attributes} attached"
+    puts "Device: #{device.inspect}"
   end
 
   def on_detach(*args)

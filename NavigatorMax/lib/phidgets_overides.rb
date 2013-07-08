@@ -7,6 +7,20 @@
 #   what's going on, but switching to FFI::Function and not passing user
 #   pointers seemed to fix the problem
 
+module Phidgets::Common
+  def on_attach(obj)
+	  @on_attach_obj = obj
+    @on_attach = FFI::Function.new(:int, [:pointer, :pointer]) do |handle, obj_ptr|
+      load_device_attributes
+      @on_attach_obj.on_attach self
+    end
+
+    Phidgets::FFI::Common.set_OnAttach_Handler(@handle, @on_attach, nil)
+
+	  true
+ end
+end
+
 class Phidgets::Spatial
   
   # NOTE: 
@@ -16,8 +30,8 @@ class Phidgets::Spatial
   def on_spatial_data(obj)
     @on_spatial_data_obj = obj
 
-    @on_spatial_data = FFI::Function.new(:void, [:pointer, :long, :uint8], 
-      :blocking => true) do |device, obj_ptr, data, data_count|
+    @on_spatial_data = FFI::Function.new(:void, 
+      [:pointer, :pointer, :uint8]) do |device, obj_ptr, data, data_count|
       begin
         # Dist-Code
         acceleration = []
@@ -52,27 +66,17 @@ class Phidgets::Spatial
 end
 
 class Phidgets::GPS
+  
   # NOTE: 
   #   * I changed the event handler from a Proc to an FFI::Function
   #   * I wrapped the code in an exception handler
   #   * Rather than pass an obj pointer, I set the @on_position_change/@on_position_fix_status_change
-  def on_position_change(obj=nil)
+  def on_position_change(obj)
 	  @on_position_change_obj = obj
-
-    @on_position_change = FFI::Function.new(:int, [:pointer, :pointer, :double, :double, :double], 
-      :blocking => true) { |device, obj_ptr, lat, long, alt|
+    @on_position_change = FFI::Function.new(:int, 
+      [:pointer, :pointer, :double, :double, :double]) { |device, obj_ptr, lat, long, alt|
       @on_position_change_obj.on_position_change lat, long, alt
     }
     Klass.set_OnPositionChange_Handler(@handle, @on_position_change, nil)
-  end
-
-  def on_position_fix_status_change(obj=nil, &block)
-    @on_position_fix_status_change_obj = obj
-
-    @on_position_fix_status_change = FFI::Function.new(:int, [:pointer, :pointer, :uint8], 
-      :blocking => true) { |device, obj_ptr, fix_status|
-      @on_position_change_obj.on_position_fix_status_change (fix_status == 0 ? false : true)
-    }
-    Klass.set_OnPositionFixStatusChange_Handler(@handle, @on_position_fix_status_change, nil)
   end
 end

@@ -11,11 +11,11 @@
           'UTC Time','Device Comm Rate'].each do |sensor|
           %tr
             %th=sensor
-            %td 
+            %td{:class => [sensor.downcase.tr('^a-z0-9 ','').tr(' ','_')].join('_')}
     %h3 Orientation
     %canvas#heading_gps_vector(width = '370' height = '270')
 
   .span6
     %h3 Location
     #gps_map
-      %iframe(width="770" height="556" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=palm+aire,+fl&hl=en&ll=26.215035,-80.170687&spn=0.000745,0.001414&sll=27.698638,-83.804601&sspn=12.02486,23.15918&hnear=Palm+Aire,+Florida&t=h&z=20&output=embed")
+      -#%iframe(width="770" height="556" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=palm+aire,+fl&hl=en&ll=26.215035,-80.170687&spn=0.000745,0.001414&sll=27.698638,-83.804601&sspn=12.02486,23.15918&hnear=Palm+Aire,+Florida&t=h&z=20&output=embed")
