@@ -4,6 +4,7 @@
 require 'rubygems'
 require "sys/cpu"
 require 'sys/uptime'
+require "vmstat"
 include Sys
 
 
@@ -51,3 +52,17 @@ puts "  * Threads:" + threads.to_s
 puts "  (Poll Time %s ms)" % poll_time.to_s
 
 puts "TODO! Iowait?"
+
+puts "VM Stat test"
+
+
+puts "Vmstat Snap:"
+snap = nil
+poll_time = time_method do
+  snap = Vmstat.snapshot
+end
+puts "(%s ms) Output: %s" % [poll_time.to_s, snap.inspect]
+
+puts "  * This process Virtual Size: %s KiB" % snap.task.virtual_size
+puts "  * This process Resident Size: %s KiB" % snap.task.resident_size
+puts "  (Poll Time %s ms)" % poll_time.to_s

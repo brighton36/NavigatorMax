@@ -1,0 +1,8 @@
+.row
+  .span4
+    =data_table 'NavigatorMax Process', %w(Threads CPU Memory Started Interpreter GC\ Count)
+    =data_table 'Kernel Stats', %w(Load\ Avg CPU\ Usage Threads Uptime)
+  .span4
+    =data_table 'Network Stats', %w(Signal\ Strength Address Send\ Rate Receive\ Rate)
+    =data_table 'System Stats', %w(Hostname CPU\ Arch Processor Memory Filesystem Boot\ Time)
+

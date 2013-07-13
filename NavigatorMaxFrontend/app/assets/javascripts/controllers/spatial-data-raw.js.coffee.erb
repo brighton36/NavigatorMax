@@ -50,7 +50,7 @@ window.SpatialDataRawController = class
     extents = new DataTableView '#phidget_spatial_extents'
     for sensor in ['acceleration', 'gyroscope', 'compass']
       for ext in ['min', 'max']
-        extents.set "#{sensor}_extent_#{ext}", data.spatial_extents["#{sensor}_#{ext}"]
+        extents.set "#{sensor}_extent_#{ext}", data.spatial_attributes.extents["#{sensor}_#{ext}"]
     extents.render()
 
     attribs = data.spatial_attributes

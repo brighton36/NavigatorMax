@@ -1,0 +1,24 @@
+window.System = class
+  constructor: () ->
+    @tables = {
+      system: new DataTableView('#system_stats'),
+      process: new DataTableView('#navigatormax_process')}
+
+  set_metadata: (data) -> 
+    attribs = data.system_attributes
+    console.log attribs
+    $('#system .title_annotation').html("TODO")
+
+    @tables.system.set(property, value) for property, value of { 
+      hostname: attribs.hostname,
+      boot_time: attribs.boot_time,
+      cpu_arch: attribs.cpu_arch}
+
+    @tables.process.set(property, value) for property, value of { 
+      interpreter: attribs.ruby_description
+      }
+    table.render() for label, table of @tables
+    
+  tick: (data) ->
+
+  render: ->

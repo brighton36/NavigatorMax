@@ -3,5 +3,9 @@ source 'https://rubygems.org'
 gem 'rspec'
 gem 'phidgets-ffi'
 gem 'em-websocket'
+
 gem 'sys-cpu'
 gem 'sys-uptime'
+gem 'sys-uname'
+# TODO: Double-check these, I'm not sure we want/need all of them:
+gem 'vmstat'

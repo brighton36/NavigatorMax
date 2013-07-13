@@ -1,13 +1,20 @@
+* Prune the libs we don't use out of the system sensor
+
+* I think we need a System, and an Analog Sensors tab
+  * And do a time plot for the indicators
+
+* Migrate over to that data_table helper in your views
+
+* I think the way to fix the gmaps redraw bug is to call during a tab switch
+  google.maps.event.trigger(map, 'resize');
+  or this: http://stackoverflow.com/questions/3360494/keep-a-google-maps-v3-map-hidden-show-when-needed
+
 * The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
 
 * We should override the on_error and on_detach handlers like we did the attach handlers
   * and then junk the crazy int-based code
 
 * Rename VECTOR_COLORS to say COLORS
-
-* Then start renaming/refactoring the backend. 
-  * We need to fix this on startup bug: ERROR#<Phidgets::Error::UnknownVal: Value is Unknown (State not yet received from device, or not yet set by user).>
-  * And add gps support!
 
 * GPS TODO:
   * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml

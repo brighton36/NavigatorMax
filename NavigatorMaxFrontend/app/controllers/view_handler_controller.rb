@@ -3,7 +3,7 @@ class ViewHandlerController < ApplicationController
   CATCHALL_REQUESTURI_PARTS = /\A[\/]?(.*)[\/]?\Z/
 
   SITE_NAVIGATION = [ 'home', 'orientation-kalman', 'spatial-data-raw',
-    'gps-location', 'system' ]
+    'gps-location', 'analog-sensors', 'system' ]
 
   def catchall
     raise StandardError if /\.\./.match(request.fullpath)

@@ -2,6 +2,7 @@ window.GpsLocation = class
   constructor:  ->
     @gps_table = new DataTableView '#phidget_gps_coords'
 
+    google.maps.visualRefresh = true
     default_latlng = new google.maps.LatLng(40.6892, -74.0447)
     @google_map = new google.maps.Map( $('#gps_map')[0], 
       { zoom: 21, mapTypeId: google.maps.MapTypeId.SATELLITE, center: default_latlng, zoomControl: true, tilt: 0 } )

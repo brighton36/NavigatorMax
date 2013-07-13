@@ -13,11 +13,12 @@ require 'phidgets_overides'
 require 'core_overides'
 require 'orientation_sensor'
 require 'gps_sensor'
+require 'system_sensor'
 
 puts "Library Version: #{Phidgets::FFI.library_version}"
 Phidgets::Log.enable :verbose
 
-
+system = SystemSensor.new
 orientation = OrientationSensor.new 302012, 
   [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
 gps = GpsSensor.new 284771
@@ -37,17 +38,16 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
 
     case req.downcase
       when 'get application_metadata'
+        ret[:system_attributes] = system.device_attributes
         ret[:gps_attributes] = gps.device_attributes
-        ret[:spatial_attributes] = orientation.device_attributes
-        ret[:spatial_extents] = {
+        ret[:spatial_attributes] = orientation.device_attributes.merge({:extents => {
           :acceleration_max => orientation.acceleration_max, 
           :acceleration_max => orientation.acceleration_max, 
           :acceleration_min => orientation.acceleration_min,
           :gyroscope_max => orientation.gyroscope_max,
           :gyroscope_min => orientation.gyroscope_min,
           :compass_max => orientation.compass_max,
-          :compass_min => orientation.compass_min
-        }
+          :compass_min => orientation.compass_min } } )
       when 'get application_state'
         ret.merge!({ 
           :gps => {
