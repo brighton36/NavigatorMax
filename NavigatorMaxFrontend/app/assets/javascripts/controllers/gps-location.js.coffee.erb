@@ -8,7 +8,7 @@ window.GpsLocation = class
     @marker = new google.maps.Marker({ position: default_latlng, map: @google_map, zIndex: 1 })
 
     @orientation = new VectorPlot2D $("#heading_gps_vector")[0], 
-      "Heading Vector", 'N', 'E', VECTOR_COLORS
+      "Heading", 'E', 'N', VECTOR_COLORS
 
   set_metadata: (data) -> 
     attribs = data.gps_attributes
@@ -18,14 +18,19 @@ window.GpsLocation = class
     @gps_table.set(property, value) for property, value of { 
       device_comm_rate: "#{data.gps.updates_per_second} hz", 
       fixed: (if data.gps.is_fixed then 'Yes' else 'No'),
-      latitude: data.gps.latitude, longitude: data.gps.longitude, 
-      altitude: data.gps.altitude, heading: data.gps.heading, 
-      velocity: data.gps.velocity, utc_time: data.gps.time}
-    @gps_table.render()
+      latitude: "#{data.gps.latitude.toFixed(14)}&deg;", longitude: "#{data.gps.longitude.toFixed(14)}&deg;", 
+      altitude: "#{data.gps.altitude} m", heading: "#{data.gps.heading.toFixed(1)}&deg;", 
+      velocity: "#{data.gps.velocity.toFixed(4)} km/h", utc_time: data.gps.time}
+
+    heading_in_rad = data.gps.heading / 360 * 2*Math.PI
+    
+    @orientation.plot( 'gps_heading', 
+      new THREE.Vector2(Math.sin(heading_in_rad), Math.cos(heading_in_rad)) )
 
     position = new google.maps.LatLng(data.gps.latitude, data.gps.longitude)
     @marker.setPosition(position)
     @google_map.panTo(position)
 
   render: ->
+    @gps_table.render()
     @orientation.render()

@@ -24,16 +24,12 @@ gps = GpsSensor.new 284771
 
 # TODO: orientation.zero_gyro!
 
-trap("INT") do
-  puts "Script terminated by user."
-  orientation.close
-  gps.close
-  exit
-end
-
 # We'll use this to block the execution. Phidget seems to run as an 'interrupt' 
 # to this proc:
 EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false) do |ws|
+  Signal.trap("INT")  { puts "Handling INT"; gps.close; orientation.close; EventMachine.stop }
+  Signal.trap("TERM") { puts "Handling TERM"; gps.close; orientation.close; EventMachine.stop }
+  
   ws.onerror   { |e| puts "Error: #{e.message}" }
 
   ws.onmessage do |req| 
