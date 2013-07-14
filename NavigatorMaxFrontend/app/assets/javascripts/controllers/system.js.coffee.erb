@@ -1,24 +1,51 @@
 window.System = class
   constructor: () ->
-    @tables = {
-      system: new DataTableView('#system_stats'),
-      process: new DataTableView('#navigatormax_process')}
+    @tables = { system: 'system_stats', process: 'navigatormax_process', kernel: 'kernel_stats', network: 'network_stats' }
+
+    @tables[label] = new DataTableView("##{table}") for label, table of @tables
 
   set_metadata: (data) -> 
     attribs = data.system_attributes
-    console.log attribs
-    $('#system .title_annotation').html("TODO")
+    $('#system .title_annotation').html(attribs.hostname)
 
     @tables.system.set(property, value) for property, value of { 
-      hostname: attribs.hostname,
-      boot_time: attribs.boot_time,
-      cpu_arch: attribs.cpu_arch}
+      uname: attribs.uname, boot_time: attribs.boot_time,
+      cpu_arch: attribs.cpu_arch }
 
     @tables.process.set(property, value) for property, value of { 
-      interpreter: attribs.ruby_description
-      }
-    table.render() for label, table of @tables
+      interpreter: attribs.ruby_description }
+    @tables.network.set(property, value) for property, value of { 
+      primary_interface: attribs.primary_interface }
     
   tick: (data) ->
+    system = data.system
+    load_avg = system.load_avg.map( (avg,i) -> avg.toFixed(2) ).join(', ')
+    
+    cpu_usage = []
+    for label, value of {User: system.cpu_percent_user, System: system.cpu_percent_system, Idle: system.cpu_percent_idle}
+      cpu_usage.push "#{label}: #{value.toFixed(2)}%"
+
+    # There's better ways to do this, but this works for now:
+    uptime = system.uptime
+    up_days = Math.floor(uptime / 3600 / 24)
+    uptime -= up_days * 3600 * 24
+    up_hours = Math.floor( uptime / 3600 )
+    uptime -= up_hours * 3600
+    up_min = Math.floor( uptime / 60 )
+    up_sec = uptime - up_min * 60
+
+    uptime = "#{up_days} days #{up_hours} hours #{up_min} min #{up_sec} sec" 
+
+    @tables.process.set(property, value) for property, value of { 
+      comm_rate: "#{system.updates_per_second} hz", 
+      gc_rate: "#{system.gc_rate.toFixed(2)} hz" }
+    @tables.system.set(property, value) for property, value of { 
+      memory: system.memory, filesystem: system.filesystem }
+    @tables.kernel.set(property, value) for property, value of { 
+      load_avg: load_avg, cpu_usage: cpu_usage.join(', '), uptime: uptime }
+    @tables.network.set(property, value) for property, value of { 
+      send_rate: "#{(system.network_send_rate/1024).toFixed(2)} KiB",
+      receive_rate: "#{(system.network_recv_rate/1024).toFixed(2)} KiB" }
 
   render: ->
+    table.render() for label, table of @tables

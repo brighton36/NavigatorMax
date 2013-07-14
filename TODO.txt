@@ -1,4 +1,9 @@
 * Prune the libs we don't use out of the system sensor
+# In KiB
+@process_rss = `ps -o rss= -p #{Process.pid}`.chomp.to_i
+
+# 
+@process_cpu_usage,@process_threads = `top -l 1 -pid #{Process.pid} -stats cpu,threads`.lines.to_a.last.split ' '
 
 * I think we need a System, and an Analog Sensors tab
   * And do a time plot for the indicators

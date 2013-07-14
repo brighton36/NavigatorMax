@@ -18,7 +18,7 @@ require 'system_sensor'
 puts "Library Version: #{Phidgets::FFI.library_version}"
 Phidgets::Log.enable :verbose
 
-system = SystemSensor.new
+system = SystemSensor.new 'en0'
 orientation = OrientationSensor.new 302012, 
   [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
 gps = GpsSensor.new 284771
@@ -50,6 +50,19 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :compass_min => orientation.compass_min } } )
       when 'get application_state'
         ret.merge!({ 
+          :system => {
+            :updates_per_second => system.updates_per_second,
+            :memory     => system.memory,
+            :filesystem => system.filesystem,
+            :load_avg   => system.load_avg,
+            :uptime     => system.uptime,
+            :gc_rate    => system.gc_rate,
+            :cpu_percent_user   => system.cpu_percent_user,
+            :cpu_percent_system => system.cpu_percent_system,
+            :cpu_percent_idle   => system.cpu_percent_idle,
+            :network_send_rate  => system.network_send_rate,
+            :network_recv_rate  => system.network_recv_rate,
+          },
           :gps => {
             :updates_per_second => gps.updates_per_second,
             :is_fixed  => gps.is_fixed?,

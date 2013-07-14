@@ -1,4 +1,4 @@
-class PhidgetSensor
+class Sensor
   attr_accessor :updates_per_second
 
   # This is kind of silly, but, since we can only pass a 32 bit number to an
@@ -11,6 +11,33 @@ class PhidgetSensor
   def self.instance(id)
     @@instances[id]
   end
+
+  def initialize(*args)
+    @@instances << self
+    @instance_id = @@instances.index(self)
+
+    # This is to track the sampling rates:
+    @updates_this_interval = 0
+    @updates_per_second = 0
+    @last_update_interval_at = Time.now.to_f
+  end
+
+  def sampled!(now)
+    # Has it been more than a second since we last counted?
+    if now > @last_update_interval_at + 1.0
+      @last_update_interval_at = now
+      @updates_per_second = @updates_this_interval
+      @updates_this_interval = 1
+    else
+      @updates_this_interval += 1
+    end
+
+    @last_data_at = now
+  end
+
+end
+
+class PhidgetSensor < Sensor
  
   ON_ATTACH = Proc.new do |device, instance_id|
     begin
@@ -38,8 +65,7 @@ class PhidgetSensor
   end
 
   def initialize(phidget)
-    @@instances << self
-    @instance_id = @@instances.index(self)
+    super
 
     @is_connected = false
 
@@ -47,11 +73,6 @@ class PhidgetSensor
     @phidget.on_attach self
     @phidget.on_error  @instance_id, &ON_ERROR
     @phidget.on_detach @instance_id, &ON_DETACH 
-
-    # This is to track the sampling rates:
-    @updates_this_interval = 0
-    @updates_per_second = 0
-    @last_update_interval_at = Time.now.to_f
   end
 
   def on_attach(device)
@@ -76,19 +97,6 @@ class PhidgetSensor
   def close
     @is_connected = false
     @phidget.close
-  end
-
-  def sampled!(now)
-    # Has it been more than a second since we last counted?
-    if now > @last_update_interval_at + 1.0
-      @last_update_interval_at = now
-      @updates_per_second = @updates_this_interval
-      @updates_this_interval = 1
-    else
-      @updates_this_interval += 1
-    end
-
-    @last_data_at = now
   end
 
 end
