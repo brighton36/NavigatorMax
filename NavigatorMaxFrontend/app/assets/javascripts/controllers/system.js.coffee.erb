@@ -60,6 +60,7 @@ window.System = class
     
   tick: (data) ->
     system = data.system
+    
     if system.snapshot_at != @last_snapshot_at
       @last_snapshot_at = system.snapshot_at
 

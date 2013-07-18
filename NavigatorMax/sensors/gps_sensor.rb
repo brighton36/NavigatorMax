@@ -52,6 +52,6 @@ class GpsSensor < PhidgetSensor
     yield
 
 	  rescue Phidgets::Error::UnknownVal => e
-			puts "Exception caught: #{e.message}"
+      nil
   end
 end

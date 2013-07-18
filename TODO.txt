@@ -2,11 +2,17 @@
   * Something is up with stacking...
     * Get the vector colors showing in the table and matching the graph
   * Prune the libs we don't use out of the system sensor
+    * sys-cpu is garbage - stop using it
   # In KiB
   @process_rss = `ps -o rss= -p #{Process.pid}`.chomp.to_i
-
-  # 
   @process_cpu_usage,@process_threads = `top -l 1 -pid #{Process.pid} -stats cpu,threads`.lines.to_a.last.split ' '
+  * This should help you get process stats:
+    http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/286178
+    http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/286178
+    http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man2/getrusage.2.html
+
+    https://groups.google.com/forum/#!topic/ruby-benchmark-suite/r8FWTBN9xu8
+    https://www.ruby-toolbox.com/projects/rusage
 
 * Migrate over to that data_table helper in your views
 

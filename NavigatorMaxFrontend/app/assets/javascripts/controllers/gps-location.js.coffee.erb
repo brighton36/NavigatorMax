@@ -16,12 +16,17 @@ window.GpsLocation = class
     $('#gps-location .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
     
   tick: (data) ->
+    latitude = if data.gps.latitude? then "#{data.gps.latitude.toFixed(14)}&deg;" else ''
+    longitude = if data.gps.longitude? then "#{data.gps.longitude.toFixed(14)}&deg;" else ''
+    altitude = if data.gps.altitude? then "#{data.gps.altitude} m" else ''
+    heading = if data.gps.heading? then "#{data.gps.heading.toFixed(1)}&deg;" else ''
+    velocity = if data.gps.velocity? then "#{data.gps.velocity.toFixed(4)} km/h" else ''
+
     @gps_table.set(property, value) for property, value of { 
-      device_comm_rate: "#{data.gps.updates_per_second} hz", 
-      fixed: (if data.gps.is_fixed then 'Yes' else 'No'),
-      latitude: "#{data.gps.latitude.toFixed(14)}&deg;", longitude: "#{data.gps.longitude.toFixed(14)}&deg;", 
-      altitude: "#{data.gps.altitude} m", heading: "#{data.gps.heading.toFixed(1)}&deg;", 
-      velocity: "#{data.gps.velocity.toFixed(4)} km/h", utc_time: data.gps.time}
+      device_comm_rate: "#{data.gps.updates_per_second} hz", latitude: latitude, 
+      longitude: longitude, altitude: altitude, heading: heading, 
+      velocity: velocity, utc_time: data.gps.time,
+      fixed: (if data.gps.is_fixed then 'Yes' else 'No') }
 
     heading_in_rad = data.gps.heading / 360 * 2*Math.PI
     

@@ -18,7 +18,7 @@ require 'system_sensor'
 puts "Library Version: #{Phidgets::FFI.library_version}"
 Phidgets::Log.enable :verbose
 
-system = SystemSensor.new 'en0'
+system = SystemSensor.new (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
 orientation = OrientationSensor.new 302012, 
   [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
 gps = GpsSensor.new 284771
