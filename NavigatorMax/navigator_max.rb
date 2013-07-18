@@ -52,11 +52,12 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
         ret.merge!({ 
           :system => {
             :updates_per_second => system.updates_per_second,
-            :memory     => system.memory,
-            :filesystem => system.filesystem,
-            :load_avg   => system.load_avg,
-            :uptime     => system.uptime,
-            :gc_rate    => system.gc_rate,
+            :snapshot_at => system.snapshot_at,
+            :memory      => system.memory,
+            :filesystem  => system.filesystem,
+            :load_avg    => system.load_avg,
+            :uptime      => system.uptime,
+            :gc_rate     => system.gc_rate,
             :cpu_percent_user   => system.cpu_percent_user,
             :cpu_percent_system => system.cpu_percent_system,
             :cpu_percent_idle   => system.cpu_percent_idle,

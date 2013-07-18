@@ -13,4 +13,5 @@
 //= require jquery
 //= require jquery_ujs
 //= require bootstrap
+//= require lib/jquery.flot.js
 //= require navigator_max_frontend

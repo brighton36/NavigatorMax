@@ -2,11 +2,11 @@ window.GpsLocation = class
   constructor:  ->
     @gps_table = new DataTableView '#phidget_gps_coords'
 
-    google.maps.visualRefresh = true
-    default_latlng = new google.maps.LatLng(40.6892, -74.0447)
-    @google_map = new google.maps.Map( $('#gps_map')[0], 
-      { zoom: 21, mapTypeId: google.maps.MapTypeId.SATELLITE, center: default_latlng, zoomControl: true, tilt: 0 } )
-    @marker = new google.maps.Marker({ position: default_latlng, map: @google_map, zIndex: 1 })
+    #google.maps.visualRefresh = true
+    #default_latlng = new google.maps.LatLng(40.6892, -74.0447)
+    #@google_map = new google.maps.Map( $('#gps_map')[0], 
+      #{ zoom: 21, mapTypeId: google.maps.MapTypeId.SATELLITE, center: default_latlng, zoomControl: true, tilt: 0 } )
+    #@marker = new google.maps.Marker({ position: default_latlng, map: @google_map, zIndex: 1 })
 
     @orientation = new VectorPlot2D $("#heading_gps_vector")[0], 
       "Heading", 'E', 'N', VECTOR_COLORS
@@ -28,9 +28,9 @@ window.GpsLocation = class
     @orientation.plot( 'gps_heading', 
       new THREE.Vector2(Math.sin(heading_in_rad), Math.cos(heading_in_rad)) )
 
-    position = new google.maps.LatLng(data.gps.latitude, data.gps.longitude)
-    @marker.setPosition(position)
-    @google_map.panTo(position)
+    #position = new google.maps.LatLng(data.gps.latitude, data.gps.longitude)
+    #@marker.setPosition(position)
+    #@google_map.panTo(position)
 
   render: ->
     @gps_table.render()

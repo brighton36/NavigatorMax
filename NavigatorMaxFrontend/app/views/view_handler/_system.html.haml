@@ -1,8 +1,15 @@
 .row
   .span4
-    =data_table 'NavigatorMax Process', %w(Threads CPU Memory Started Interpreter GC\ Rate Comm\ Rate)
-    =data_table 'Kernel Stats', %w(Load\ Avg CPU\ Usage Uptime)
-  .span4
-    =data_table 'Network Stats', %w(Primary\ Interface RSSI Noise Wifi\ Network Address Send\ Rate Receive\ Rate)
     =data_table 'System Stats', %w(Uname CPU\ Arch Memory Filesystem Boot\ Time)
+    =data_table 'Kernel Stats', %w(Load\ Avg CPU\ Usage Uptime)
+  .span8
+    .row
+      .span8
+        %h3 System CPU load
+        #cpu_load_graph.graph_container(style='width:770px;height:200px')
+    .row
+      .span4
+        =data_table 'NavigatorMax Process', %w(Threads CPU Memory Started Interpreter GC\ Rate Comm\ Rate)
+      .span4
+        =data_table 'Network Stats', %w(Primary\ Interface RSSI Noise Wifi\ Network Address Send\ Rate Receive\ Rate)
 

@@ -110,6 +110,10 @@ class SystemSensor < Sensor
     %w(one_minute five_minutes fifteen_minutes).collect{|t| load_avg.send t}
   end
 
+  def snapshot_at
+    @snapshot.at
+  end
+
   # Reports in seconds
   def uptime
     (@snapshot.at - @snapshot.boot_time).to_i

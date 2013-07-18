@@ -48,3 +48,25 @@ canvas {
 
 table tr th{ white-space: nowrap; }
 
+.graph_container {
+  margin-bottom: 18px;
+}
+.axisLabel {
+  position: absolute;
+  text-align: center;
+  font-size: 12px;
+}
+.yaxisLabel {
+  top: 50%;
+  left: 8px;
+  transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);
+  transform-origin: 0 0;
+  -o-transform-origin: 0 0;
+  -ms-transform-origin: 0 0;
+  -moz-transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+}

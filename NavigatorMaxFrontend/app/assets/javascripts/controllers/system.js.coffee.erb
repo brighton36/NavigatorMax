@@ -1,8 +1,49 @@
 window.System = class
   constructor: () ->
-    @tables = { system: 'system_stats', process: 'navigatormax_process', kernel: 'kernel_stats', network: 'network_stats' }
+    @last_snapshot_at = null
+
+    @tables = { 
+      system: 'system_stats',
+      process: 'navigatormax_process',
+      kernel: 'kernel_stats',
+      network: 'network_stats' }
 
     @tables[label] = new DataTableView("##{table}") for label, table of @tables
+
+    #### CPU Chart setup
+    @totalPoints = 300
+    @cpu_percent_system = []
+    @cpu_percent_user = []
+    for i in [0..@totalPoints-1] by 1
+      @cpu_percent_system.push 1
+      @cpu_percent_user.push 1
+
+    options = {
+      grid: {
+        borderWidth: 1, minBorderMargin: 20, labelMargin: 10,
+        backgroundColor: { colors: ["#fff", "#fafafa"] },
+        margin: { top: 8, bottom: 18, left: 45 },
+        markings: (axes) ->
+          markings = []
+          xaxis = axes.xaxis
+          for x in [Math.floor(xaxis.min)..xaxis.max] by xaxis.tickSize * 2
+            markings.push({ xaxis: { from: x, to: x + xaxis.tickSize }, color: "rgba(232, 232, 255, 0.2)" })
+          markings
+      },
+      series: {stack: true, lines: { show: true, fill: true} , shadowSize: 0}, 
+      xaxis: { tickFormatter: (i) -> i },
+      yaxis: { min: 0, max: 100, tickFormatter: (i) -> "<span style='margin-left: -15px'>#{i}</span>" },
+      legend: { show: true }
+    }
+    container = $('#cpu_load_graph')
+    @plot = $.plot(container,  @_cpu_plot_format() , options)
+
+    yaxisLabel = $("<div class='axisLabel yaxisLabel'>CPU Usage (%)</div>")
+    yaxisLabel.appendTo(container)
+    width = $('#cpu_load_graph .yaxisLabel').width()
+    width =  107 # TODO! this needs to calculate on the first render
+    yaxisLabel.css("margin-top", width / 2 - 20)
+    
 
   set_metadata: (data) -> 
     attribs = data.system_attributes
@@ -19,33 +60,55 @@ window.System = class
     
   tick: (data) ->
     system = data.system
-    load_avg = system.load_avg.map( (avg,i) -> avg.toFixed(2) ).join(', ')
-    
-    cpu_usage = []
-    for label, value of {User: system.cpu_percent_user, System: system.cpu_percent_system, Idle: system.cpu_percent_idle}
-      cpu_usage.push "#{label}: #{value.toFixed(2)}%"
+    if system.snapshot_at != @last_snapshot_at
+      @last_snapshot_at = system.snapshot_at
 
-    # There's better ways to do this, but this works for now:
-    uptime = system.uptime
-    up_days = Math.floor(uptime / 3600 / 24)
-    uptime -= up_days * 3600 * 24
-    up_hours = Math.floor( uptime / 3600 )
-    uptime -= up_hours * 3600
-    up_min = Math.floor( uptime / 60 )
-    up_sec = uptime - up_min * 60
+      load_avg = system.load_avg.map( (avg,i) -> avg.toFixed(2) ).join(', ')
+      
+      cpu_usage = []
+      for label, value of {User: system.cpu_percent_user, System: system.cpu_percent_system, Idle: system.cpu_percent_idle}
+        cpu_usage.push "#{label}: #{value.toFixed(2)}%"
 
-    uptime = "#{up_days} days #{up_hours} hours #{up_min} min #{up_sec} sec" 
+      # There's better ways to do this, but this works for now:
+      uptime = system.uptime
+      up_days = Math.floor(uptime / 3600 / 24)
+      uptime -= up_days * 3600 * 24
+      up_hours = Math.floor( uptime / 3600 )
+      uptime -= up_hours * 3600
+      up_min = Math.floor( uptime / 60 )
+      up_sec = uptime - up_min * 60
 
-    @tables.process.set(property, value) for property, value of { 
-      comm_rate: "#{system.updates_per_second} hz", 
-      gc_rate: "#{system.gc_rate.toFixed(2)} hz" }
-    @tables.system.set(property, value) for property, value of { 
-      memory: system.memory, filesystem: system.filesystem }
-    @tables.kernel.set(property, value) for property, value of { 
-      load_avg: load_avg, cpu_usage: cpu_usage.join(', '), uptime: uptime }
-    @tables.network.set(property, value) for property, value of { 
-      send_rate: "#{(system.network_send_rate/1024).toFixed(2)} KiB",
-      receive_rate: "#{(system.network_recv_rate/1024).toFixed(2)} KiB" }
+      uptime = "#{up_days} days #{up_hours} hours #{up_min} min #{up_sec} sec" 
+
+      @tables.process.set(property, value) for property, value of { 
+        comm_rate: "#{system.updates_per_second} hz", 
+        gc_rate: "#{system.gc_rate.toFixed(2)} hz" }
+      @tables.system.set(property, value) for property, value of { 
+        memory: system.memory, filesystem: system.filesystem }
+      @tables.kernel.set(property, value) for property, value of { 
+        load_avg: load_avg, cpu_usage: cpu_usage.join(', '), uptime: uptime }
+      @tables.network.set(property, value) for property, value of { 
+        send_rate: "#{(system.network_send_rate/1024).toFixed(2)} KiB",
+        receive_rate: "#{(system.network_recv_rate/1024).toFixed(2)} KiB" }
+
+      # Update the CPU Graph:
+      @cpu_percent_system = @cpu_percent_system.slice(1) 
+      @cpu_percent_system.push parseInt(system.cpu_percent_system)
+      @cpu_percent_user = @cpu_percent_user.slice(1) 
+      @cpu_percent_user.push parseInt(system.cpu_percent_user)
+
+      @plot.setData(@_cpu_plot_format()) if @plot
 
   render: ->
     table.render() for label, table of @tables
+    @plot.draw() if @plot
+
+  _to_plot_format: (data) ->
+    ret = []
+    ret.push([i, value]) for value,i in data
+    ret
+
+  _cpu_plot_format: ->
+    [ { label: 'system', color: '#ff0000', data: @_to_plot_format(@cpu_percent_system) }, 
+      { label: 'user', color: '#00ff00', data: @_to_plot_format(@cpu_percent_user)} ]
+

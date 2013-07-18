@@ -1,34 +1,30 @@
-* Prune the libs we don't use out of the system sensor
-# In KiB
-@process_rss = `ps -o rss= -p #{Process.pid}`.chomp.to_i
+* Finish the system tab
+  * Something is up with stacking...
+    * Get the vector colors showing in the table and matching the graph
+  * Prune the libs we don't use out of the system sensor
+  # In KiB
+  @process_rss = `ps -o rss= -p #{Process.pid}`.chomp.to_i
 
-# 
-@process_cpu_usage,@process_threads = `top -l 1 -pid #{Process.pid} -stats cpu,threads`.lines.to_a.last.split ' '
-
-* I think we need a System, and an Analog Sensors tab
-  * And do a time plot for the indicators
+  # 
+  @process_cpu_usage,@process_threads = `top -l 1 -pid #{Process.pid} -stats cpu,threads`.lines.to_a.last.split ' '
 
 * Migrate over to that data_table helper in your views
 
-* I think the way to fix the gmaps redraw bug is to call during a tab switch
-  google.maps.event.trigger(map, 'resize');
-  or this: http://stackoverflow.com/questions/3360494/keep-a-google-maps-v3-map-hidden-show-when-needed
-
 * The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
-
-* We should override the on_error and on_detach handlers like we did the attach handlers
-  * and then junk the crazy int-based code
 
 * Rename VECTOR_COLORS to say COLORS
 
-* GPS TODO:
-  * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
+* Back to maps:
+  * This is what we should do on the maps:
+    https://developers.google.com/maps/documentation/staticmaps/#quick_example
+  and cache!
 
-* Then work on the compass output
-  * TODO: This should be relative to the ground. Maybe...
-  * Look through the compass.m implementation, and see what you think....
+* We should override the on_error and on_detach handlers like we did the attach handlers
+  * Possibly - let's get the pi working first. We may want to dump the handlers for all but 
+  * and then junk the crazy int-based code
 
-* GUI : On commloss should retry connection
+* After testing....
+  * GPS TODO:
+    * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
 
-* Under a general tab
-  * Maybe a system load memory consumption gc stats, etc
+  * GUI : On commloss should retry connection
