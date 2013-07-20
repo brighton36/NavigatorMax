@@ -1,27 +1,20 @@
-* Finish the system tab
-  * Something is up with stacking...
-    * Get the vector colors showing in the table and matching the graph
-  * Prune the libs we don't use out of the system sensor
-    * sys-cpu is garbage - stop using it
-  # In KiB
-  @process_rss = `ps -o rss= -p #{Process.pid}`.chomp.to_i
-  @process_cpu_usage,@process_threads = `top -l 1 -pid #{Process.pid} -stats cpu,threads`.lines.to_a.last.split ' '
-  * This should help you get process stats:
-    http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/286178
-    http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/286178
-    http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man2/getrusage.2.html
 
-    https://groups.google.com/forum/#!topic/ruby-benchmark-suite/r8FWTBN9xu8
-    https://www.ruby-toolbox.com/projects/rusage
+* Finish the system tab
+  * Swap is probably important
+    * Might want to break out memory into separate rows
+  * PID might be nice as well
 
 * Migrate over to that data_table helper in your views
 
-* The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
-
 * Rename VECTOR_COLORS to say COLORS
+
+* Now start deploying the c-based phidget poll
+
+* I think? The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
 
 * Back to maps:
   * This is what we should do on the maps:
+    https://developers.google.com/maps/documentation/staticmaps/#quick_example
     https://developers.google.com/maps/documentation/staticmaps/#quick_example
   and cache!
 

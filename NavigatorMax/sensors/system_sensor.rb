@@ -1,19 +1,19 @@
-require "sys/cpu"
 require 'vmstat'
 require 'socket'
+require 'rusage'
 
 class SystemSensor < Sensor
-  include Sys
-
-  DEVICE_ATTRIBUTES = [:hostname, :uname, :boot_time, :cpu_arch, :ruby_description, 
-    :primary_interface]
+  DEVICE_ATTRIBUTES = [:hostname, :uname, :boot_time, :cpu_arch, :serial_number, 
+    :ruby_description, :primary_interface]
 
   attr_accessor *DEVICE_ATTRIBUTES
 
   attr_accessor :network_send_rate, :network_recv_rate, :cpu_percent_user, 
-    :cpu_percent_system, :cpu_percent_idle, :gc_rate
+    :cpu_percent_system, :cpu_percent_idle, :gc_rate, :process_percent_user,
+    :process_percent_system
 
   OSX_SYSTEM_PROFILER = '/usr/sbin/system_profiler'
+  OSX_AIRPORT = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
 
   def initialize(primary_interface)
     super
@@ -22,12 +22,10 @@ class SystemSensor < Sensor
     @snapshot = Vmstat.snapshot
     @cpu_count = @snapshot.cpus.length
 
-    @hostname = Socket.gethostname
+    @hostname = Socket.gethostname 
     @uname = `uname -a`
     @boot_time = @snapshot.boot_time
 
-    @cpu_arch = '%sx %s (%s/%s) at %s' % [@cpu_count, CPU.model, 
-      CPU.architecture, CPU.machine, cpu_frequency]
     @ruby_description = RUBY_DESCRIPTION
 
     @poller = Thread.new(self){|sensor| sensor.on_poll while sleep(1) }
@@ -45,6 +43,9 @@ class SystemSensor < Sensor
   def on_poll
     last_snapshot = @snapshot
     @snapshot = Vmstat.snapshot
+
+    last_rusage = @rusage
+    @rusage = Process.rusage
 
     last_gc_count = @gc_count
     @gc_count = GC.count
@@ -65,7 +66,7 @@ class SystemSensor < Sensor
       @network_recv_rate = (
         (this_intf.in_bytes - last_intf.in_bytes).to_f / poll_delta).to_i
 
-      # CPU Stats:
+      # System CPU Stats:
       system_ticks, user_ticks, idle_ticks = [:system, :user, :idle].collect{|ticker|
         [@snapshot, last_snapshot].collect{|snap| 
           snap.cpus.collect(&ticker).reduce(&:+).to_f }.reduce(&:-) / poll_delta }
@@ -76,18 +77,34 @@ class SystemSensor < Sensor
       @cpu_percent_idle = idle_ticks / total_ticks * 100
     end
 
+    # Process CPU Stats:
+    if last_rusage
+      @process_percent_user, @process_percent_system = %w(utime stime).collect{|a|
+        (@rusage.send(a) - last_rusage.send(a)) / poll_delta * 100}
+    end
+
     # GC Stats
     @gc_rate = ( @gc_count.to_f - last_gc_count.to_f ) / poll_delta if last_gc_count
 
+    # This allows us to cache these commands for a second or so
+    @airport = nil
   end
 
-  def cpu_frequency
-    if CPU.respond_to?(:cpu_freq)
-      CPU.cpu_freq
-    elsif system_profiler
-      $1 if /^[ ]*Processor Speed:[ ]*(.+)/.match system_profiler
+  def serial_number
+    # Serial Number (system)
+    @serial_number ||= if system_profiler?
+      system_profiler('Serial Number \(system\)')
     else
-      'Unknown' 
+      'TODO'
+    end
+  end
+
+  def cpu_arch
+    @cpu_arch ||= if system_profiler?
+      '%s (%sx) %s %s' % ['Model Identifier', 'Total Number of Cores', 'Processor Name', 
+        'Processor Speed'].collect{|for_value| system_profiler(for_value)}
+    else
+      'TODO: Linux version' 
     end
   end
 
@@ -110,6 +127,14 @@ class SystemSensor < Sensor
     %w(one_minute five_minutes fifteen_minutes).collect{|t| load_avg.send t}
   end
 
+  def process_resident_memory
+    @snapshot.task.resident_size
+  end
+
+  def process_virtual_memory
+    @snapshot.task.virtual_size
+  end
+
   def snapshot_at
     @snapshot.at
   end
@@ -119,8 +144,18 @@ class SystemSensor < Sensor
     (@snapshot.at - @snapshot.boot_time).to_i
   end
 
-  def network_signal
-    # /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I
+  def wifi_network
+    (airport?) ? 
+      ('"%s" Ch. %s (%s)' % ['SSID','channel','link auth'].collect{|v| airport(v)}) : 
+      'TODO'
+  end
+
+  def wifi_noise
+    (airport?) ? airport('agrCtlNoise') : 'TODO'
+  end
+
+  def wifi_signal
+    (airport?) ? airport('agrCtlRSSI') : 'TODO'
   end
 
   private
@@ -129,8 +164,30 @@ class SystemSensor < Sensor
     (for_snapshot || @snapshot).network_interfaces.find{|i| i.name == @primary_interface.to_sym}
   end
 
-  def system_profiler
-    @system_profiler ||= `#{OSX_SYSTEM_PROFILER} SPHardwareDataType` if File.exists? OSX_SYSTEM_PROFILER
+  def system_profiler?
+    @has_system_profiler = File.exists? OSX_SYSTEM_PROFILER
+  end
+
+  def system_profiler(for_value)
+    if system_profiler?
+      @system_profiler ||= `#{OSX_SYSTEM_PROFILER} SPHardwareDataType`
+      osx_command_parse @system_profiler, for_value
+    end
+  end
+
+  def airport?
+    @has_airport = File.exists? OSX_AIRPORT
+  end
+
+  def airport(for_value = nil)
+    if airport?
+      @airport ||= `#{OSX_AIRPORT} -I`
+      osx_command_parse @airport, for_value
+    end
+  end
+
+  def osx_command_parse(output, for_value)
+    $1 if /^[ ]*#{for_value}:[ ]*(.+)/.match(output)
   end
 
 end

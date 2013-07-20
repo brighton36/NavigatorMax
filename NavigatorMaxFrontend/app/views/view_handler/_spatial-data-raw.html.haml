@@ -13,7 +13,7 @@
         - %w(Acceleration Gyroscope Compass).each do |label|
           %tr
             %th
-              %div{:class => [ label.downcase, 'legend_indicator'] }
+              =legend_for label
               =label
             - %w(heading pitch bank).each do |axis|
               %td{:class => ['euler',label.downcase,axis].join('_')}
@@ -30,7 +30,7 @@
         - %w(Acceleration Gyroscope Compass).each do |sensor|
           %tr
             %th
-              %div{:class => [ sensor.downcase, 'legend_indicator'] }
+              =legend_for sensor
               =sensor
             %td{:class => '%s_data_x' % sensor.downcase}
             %td{:class => '%s_data_y' % sensor.downcase}

@@ -63,6 +63,12 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
             :cpu_percent_idle   => system.cpu_percent_idle,
             :network_send_rate  => system.network_send_rate,
             :network_recv_rate  => system.network_recv_rate,
+            :process_resident_memory => system.process_resident_memory,
+            :process_percent_user    => system.process_percent_user,
+            :process_percent_system  => system.process_percent_system,
+            :wifi_network => system.wifi_network,
+            :wifi_signal  => system.wifi_signal,
+            :wifi_noise   => system.wifi_noise
           },
           :gps => {
             :updates_per_second => gps.updates_per_second,

@@ -3,9 +3,14 @@
 #=require_tree ./views
 
 window.VECTOR_COLORS = { 
-  x_axis: 0xff0000, y_axis: 0x00ff00, z_axis: 0x0000ff,
-  E_axis: 0x000000, N_axis: 0x000000,
+  # GPS: 
   gps_heading: 0xffa500,
+  E_axis: 0x000000, N_axis: 0x000000,
+  # System:
+  cpu_system: 0x990033, cpu_user: 0x669900,
+  process_system: 0x0033cc, process_user: 0x0099ff,
+  # Spatial:
+  x_axis: 0xff0000, y_axis: 0x00ff00, z_axis: 0x0000ff,
   acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e
 }
 
@@ -36,7 +41,7 @@ $(document).ready ->
 
   # Decorate our html a bit (mostly the legends):
   for label, color of VECTOR_COLORS
-    $(".#{label}").css('background-color', '#'+decimal_to_hex_string(color) )
+    $(".#{label}_legend_indicator").css('background-color', '#'+decimal_to_hex_string(color) )
 
   window.animate = ->
     requestAnimationFrame window.animate 

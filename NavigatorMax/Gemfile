@@ -4,6 +4,5 @@ gem 'rspec'
 gem 'phidgets-ffi'
 gem 'em-websocket'
 
-gem 'sys-cpu'
-# TODO: Double-check these, I'm not sure we want/need all of them:
 gem 'vmstat'
+gem 'rusage'

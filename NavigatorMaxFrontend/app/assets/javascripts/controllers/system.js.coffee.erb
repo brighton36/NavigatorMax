@@ -2,8 +2,14 @@ window.System = class
   constructor: () ->
     @last_snapshot_at = null
 
+    # Load the Colors
+    @cpu_system_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.cpu_system)
+    @cpu_user_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.cpu_user)
+    @process_system_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.process_system)
+    @process_user_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.process_user)
+
     @tables = { 
-      system: 'system_stats',
+      system: 'system_info',
       process: 'navigatormax_process',
       kernel: 'kernel_stats',
       network: 'network_stats' }
@@ -12,11 +18,15 @@ window.System = class
 
     #### CPU Chart setup
     @totalPoints = 300
-    @cpu_percent_system = []
-    @cpu_percent_user = []
+    @cpu_system_percent = []
+    @cpu_user_percent = []
+    @process_system_percent = []
+    @process_user_percent = []
     for i in [0..@totalPoints-1] by 1
-      @cpu_percent_system.push 1
-      @cpu_percent_user.push 1
+      @cpu_system_percent.push 1
+      @cpu_user_percent.push 1
+      @process_system_percent.push 1
+      @process_user_percent.push 1
 
     options = {
       grid: {
@@ -31,9 +41,9 @@ window.System = class
           markings
       },
       series: {stack: true, lines: { show: true, fill: true} , shadowSize: 0}, 
-      xaxis: { tickFormatter: (i) -> i },
+      xaxis: { tickFormatter: (i) => "-#{@totalPoints - i} sec" },
       yaxis: { min: 0, max: 100, tickFormatter: (i) -> "<span style='margin-left: -15px'>#{i}</span>" },
-      legend: { show: true }
+      legend: { show: true, position: "nw" }
     }
     container = $('#cpu_load_graph')
     @plot = $.plot(container,  @_cpu_plot_format() , options)
@@ -47,7 +57,7 @@ window.System = class
 
   set_metadata: (data) -> 
     attribs = data.system_attributes
-    $('#system .title_annotation').html(attribs.hostname)
+    $('#system .title_annotation').html("#{attribs.hostname} (serial #{attribs.serial_number})")
 
     @tables.system.set(property, value) for property, value of { 
       uname: attribs.uname, boot_time: attribs.boot_time,
@@ -66,9 +76,15 @@ window.System = class
 
       load_avg = system.load_avg.map( (avg,i) -> avg.toFixed(2) ).join(', ')
       
-      cpu_usage = []
-      for label, value of {User: system.cpu_percent_user, System: system.cpu_percent_system, Idle: system.cpu_percent_idle}
-        cpu_usage.push "#{label}: #{value.toFixed(2)}%"
+      cpu_usage = { 
+        user: system.cpu_percent_user, 
+        system: system.cpu_percent_system, 
+        idle: system.cpu_percent_idle,
+        process_total: system.process_percent_system+system.process_percent_user,
+        process_user: system.process_percent_user,
+        process_system: system.process_percent_system}
+      for label, value of cpu_usage 
+        cpu_usage[label] = "#{value.toFixed(2)}%"
 
       # There's better ways to do this, but this works for now:
       uptime = system.uptime
@@ -82,21 +98,31 @@ window.System = class
       uptime = "#{up_days} days #{up_hours} hours #{up_min} min #{up_sec} sec" 
 
       @tables.process.set(property, value) for property, value of { 
+        process_cpu: cpu_usage.process_total,
+        process_user: cpu_usage.process_user, process_system: cpu_usage.process_system,
+        resident_memory: "#{(system.process_resident_memory/1024/1024).toFixed(2)} MiB",
         comm_rate: "#{system.updates_per_second} hz", 
-        gc_rate: "#{system.gc_rate.toFixed(2)} hz" }
-      @tables.system.set(property, value) for property, value of { 
-        memory: system.memory, filesystem: system.filesystem }
+        gc_rate: "#{system.gc_rate.toFixed(2)} hz"}
       @tables.kernel.set(property, value) for property, value of { 
-        load_avg: load_avg, cpu_usage: cpu_usage.join(', '), uptime: uptime }
+        load_avg: load_avg, cpu_idle: cpu_usage.idle, 
+        cpu_user: cpu_usage.user, cpu_system: cpu_usage.system,
+        uptime: uptime , memory: system.memory, filesystem: system.filesystem  }
       @tables.network.set(property, value) for property, value of { 
+        wifi_network: system.wifi_network, signal: system.wifi_signal, 
+        noise: system.wifi_noise,
         send_rate: "#{(system.network_send_rate/1024).toFixed(2)} KiB",
         receive_rate: "#{(system.network_recv_rate/1024).toFixed(2)} KiB" }
 
       # Update the CPU Graph:
-      @cpu_percent_system = @cpu_percent_system.slice(1) 
-      @cpu_percent_system.push parseInt(system.cpu_percent_system)
-      @cpu_percent_user = @cpu_percent_user.slice(1) 
-      @cpu_percent_user.push parseInt(system.cpu_percent_user)
+
+      @cpu_system_percent = @cpu_system_percent.slice(1) 
+      @cpu_system_percent.push parseInt(system.cpu_percent_system-system.process_percent_system)
+      @cpu_user_percent = @cpu_user_percent.slice(1) 
+      @cpu_user_percent.push parseInt(system.cpu_percent_user-system.process_percent_user)
+      @process_system_percent = @process_system_percent.slice(1)
+      @process_system_percent.push parseInt(system.process_percent_system)
+      @process_user_percent = @process_user_percent.slice(1)
+      @process_user_percent.push parseInt(system.process_percent_user)
 
       @plot.setData(@_cpu_plot_format()) if @plot
 
@@ -110,6 +136,9 @@ window.System = class
     ret
 
   _cpu_plot_format: ->
-    [ { label: 'system', color: '#ff0000', data: @_to_plot_format(@cpu_percent_system) }, 
-      { label: 'user', color: '#00ff00', data: @_to_plot_format(@cpu_percent_user)} ]
+    [ { label: 'CPU System', color: @cpu_system_color , data: @_to_plot_format(@cpu_system_percent) }, 
+      { label: 'Process System', color: @process_system_color, data: @_to_plot_format(@process_system_percent)},
+      { label: 'CPU User', color: @cpu_user_color, data: @_to_plot_format(@cpu_user_percent)},
+      { label: 'Process User', color: @process_user_color, data: @_to_plot_format(@process_user_percent)}
+    ]
 
