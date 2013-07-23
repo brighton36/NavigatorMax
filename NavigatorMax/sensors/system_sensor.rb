@@ -4,13 +4,13 @@ require 'rusage'
 
 class SystemSensor < Sensor
   DEVICE_ATTRIBUTES = [:hostname, :uname, :boot_time, :cpu_arch, :serial_number, 
-    :ruby_description, :primary_interface]
+    :ruby_description, :primary_interface, :memory_total, :root_filesystem]
 
   attr_accessor *DEVICE_ATTRIBUTES
 
   attr_accessor :network_send_rate, :network_recv_rate, :cpu_percent_user, 
     :cpu_percent_system, :cpu_percent_idle, :gc_rate, :process_percent_user,
-    :process_percent_system
+    :process_percent_system, :swap_in_rate, :swap_out_rate
 
   OSX_SYSTEM_PROFILER = '/usr/sbin/system_profiler'
   OSX_AIRPORT = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
@@ -75,6 +75,11 @@ class SystemSensor < Sensor
       @cpu_percent_user = user_ticks / total_ticks * 100
       @cpu_percent_system = system_ticks / total_ticks * 100
       @cpu_percent_idle = idle_ticks / total_ticks * 100
+
+      # Swap stats:
+      @swap_in_rate, @swap_out_rate = [:pageins, :pageouts].collect{ |ticker| 
+        [@snapshot, last_snapshot].collect{ |snap| 
+          snap.memory.send(ticker)}.reduce(&:-).to_f * @snapshot.memory.pagesize / poll_delta }
     end
 
     # Process CPU Stats:
@@ -108,18 +113,27 @@ class SystemSensor < Sensor
     end
   end
 
-  def memory
-    mem = @snapshot.memory
-
-    'Free: %.1f MiB, Total: %.1f MiB' % [ mem.free, 
-      (mem.free + mem.wired + mem.active + mem.inactive) 
-    ].collect{|m| m * mem.pagesize / 1024 / 1024}
+  def memory_free
+    @snapshot.memory.free * @snapshot.memory.pagesize
   end
 
-  def filesystem
+  def memory_total
+    %w(free wired active inactive).collect{|attr| @snapshot.memory.send(attr)}.reduce(:+) * @snapshot.memory.pagesize
+  end
+
+  def memory_swaprates
+    'In: %.2f KiB Out: %.2f Kib' % [swap_in_rate / 1024 , swap_out_rate / 1024 ]
+  end
+
+  def root_filesystem
     fs = @snapshot.disks.find{|d| d.mount == '/'}
-    '%s:%s, Free: %.1f GiB, Total: %.1f GiB' % ([fs.origin, fs.type.to_s]+
-     [fs.free_blocks, fs.total_blocks].collect{|size| size.to_f * fs.block_size / 1024 / 1024 / 1024} )
+    '%s:%s: %.2f GiB' % [fs.origin, fs.type.to_s,
+      fs.total_blocks.to_f * fs.block_size / 1024 / 1024 / 1024]
+  end
+
+  def root_filesystem_free
+    fs = @snapshot.disks.find{|d| d.mount == '/'}
+    '%.2f GiB' % [ fs.free_blocks.to_f * fs.block_size / 1024 / 1024 / 1024 ]
   end
 
   def load_avg

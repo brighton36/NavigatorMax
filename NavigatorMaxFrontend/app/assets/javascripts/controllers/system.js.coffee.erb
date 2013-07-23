@@ -12,7 +12,8 @@ window.System = class
       system: 'system_info',
       process: 'navigatormax_process',
       kernel: 'kernel_stats',
-      network: 'network_stats' }
+      network: 'network_stats',
+      memory: 'memory_management'}
 
     @tables[label] = new DataTableView("##{table}") for label, table of @tables
 
@@ -67,6 +68,10 @@ window.System = class
       interpreter: attribs.ruby_description }
     @tables.network.set(property, value) for property, value of { 
       primary_interface: attribs.primary_interface }
+    @tables.memory.set(property, value) for property, value of { 
+      total: "#{format_number(attribs.memory_total / 1024 / 1024, 2)} MiB" }
+    @tables.kernel.set(property, value) for property, value of { 
+      root_fs: attribs.root_filesystem  }
     
   tick: (data) ->
     system = data.system
@@ -106,12 +111,15 @@ window.System = class
       @tables.kernel.set(property, value) for property, value of { 
         load_avg: load_avg, cpu_idle: cpu_usage.idle, 
         cpu_user: cpu_usage.user, cpu_system: cpu_usage.system,
-        uptime: uptime , memory: system.memory, filesystem: system.filesystem  }
+        uptime: uptime , root_fs_free: system.root_filesystem_free  }
       @tables.network.set(property, value) for property, value of { 
         wifi_network: system.wifi_network, signal: system.wifi_signal, 
         noise: system.wifi_noise,
         send_rate: "#{(system.network_send_rate/1024).toFixed(2)} KiB",
         receive_rate: "#{(system.network_recv_rate/1024).toFixed(2)} KiB" }
+      @tables.memory.set(property, value) for property, value of { 
+        free: "#{format_number(system.memory_free / 1024 / 1024, 2)} MiB",
+        swap_rate: system.memory_swaprates}
 
       # Update the CPU Graph:
 

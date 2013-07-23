@@ -1,10 +1,4 @@
-
-* Finish the system tab
-  * Swap is probably important
-    * Might want to break out memory into separate rows
-  * PID might be nice as well
-
-* Migrate over to that data_table helper in your views
+* Migrate over to that data_table helper in all your views
 
 * Rename VECTOR_COLORS to say COLORS
 

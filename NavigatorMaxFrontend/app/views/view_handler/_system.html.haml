@@ -2,6 +2,7 @@
   .span4
     =data_table 'Network Stats', %w(Primary\ Interface Signal Noise Wifi\ Network Send\ Rate Receive\ Rate)
     =data_table 'System Info', %w(Uname CPU\ Arch Boot\ Time)
+    =data_table 'Memory Management', %w(Total Free Swap\ Rate)
   .span8
     .row
       .span8
@@ -13,6 +14,6 @@
           'Process CPU', 'Resident Memory', 'Interpreter', 'GC Rate', 'Comm Rate'],
           :legends => %w(process_user process_system)
       .span4
-        =data_table 'Kernel Stats', %w(CPU\ User CPU\ System CPU\ Idle Load\ Avg Uptime Memory Filesystem ),
+        =data_table 'Kernel Stats', %w(CPU\ User CPU\ System CPU\ Idle Load\ Avg Uptime Root\ FS Root\ FS\ Free),
           :legends => %w(cpu_user cpu_system)
 

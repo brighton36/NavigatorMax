@@ -53,8 +53,9 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
           :system => {
             :updates_per_second => system.updates_per_second,
             :snapshot_at => system.snapshot_at,
-            :memory      => system.memory,
-            :filesystem  => system.filesystem,
+            :memory_free => system.memory_free,
+            :memory_swaprates => system.memory_swaprates,
+            :root_filesystem_free  => system.root_filesystem_free,
             :load_avg    => system.load_avg,
             :uptime      => system.uptime,
             :gc_rate     => system.gc_rate,
