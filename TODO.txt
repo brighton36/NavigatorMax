@@ -1,20 +1,20 @@
-* Migrate over to that data_table helper in all your views
-
-* Rename VECTOR_COLORS to say COLORS
-
-* Now start deploying the c-based phidget poll
+* Migrate over to that data_table helper in the spatial_data controller
 
 * I think? The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
+
+* Now start deploying the c-based phidget poll
+  * We should override the on_error and on_detach handlers like we did the attach handlers
+    * Possibly - let's get the pi working first. We may want to dump the handlers for all but 
+    * and then junk the crazy int-based code
+
+* Perhaps we should do this for the 'production' mode, and switch to apache:
+  * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
+  * https://developers.google.com/maps/documentation/staticmaps/#quick_example
 
 * Back to maps:
   * This is what we should do on the maps:
     https://developers.google.com/maps/documentation/staticmaps/#quick_example
-    https://developers.google.com/maps/documentation/staticmaps/#quick_example
   and cache!
-
-* We should override the on_error and on_detach handlers like we did the attach handlers
-  * Possibly - let's get the pi working first. We may want to dump the handlers for all but 
-  * and then junk the crazy int-based code
 
 * After testing....
   * GPS TODO:

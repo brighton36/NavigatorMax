@@ -2,7 +2,7 @@
 #=require_tree ./controllers
 #=require_tree ./views
 
-window.VECTOR_COLORS = { 
+window.COLORS = { 
   # GPS: 
   gps_heading: 0xffa500,
   E_axis: 0x000000, N_axis: 0x000000,
@@ -40,7 +40,7 @@ $(document).ready ->
   $(window).trigger( 'hashchange' )
 
   # Decorate our html a bit (mostly the legends):
-  for label, color of VECTOR_COLORS
+  for label, color of COLORS
     $(".#{label}_legend_indicator").css('background-color', '#'+decimal_to_hex_string(color) )
 
   window.animate = ->

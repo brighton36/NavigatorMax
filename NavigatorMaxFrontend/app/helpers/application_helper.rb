@@ -33,6 +33,6 @@ module ApplicationHelper
   # Not a creative name, but this works a bit better for us than the default rails
   # underscore
   def underscore2(val)
-    val.downcase.tr(' ','_')
+    val.downcase.tr(' ','_').tr('^a-z0-9_','')
   end
 end

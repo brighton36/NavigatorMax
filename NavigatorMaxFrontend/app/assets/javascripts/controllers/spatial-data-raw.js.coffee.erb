@@ -23,7 +23,7 @@ window.SpatialDataRawController = class
 
     for sensor in ['acceleration', 'compass', 'gyroscope']
       @vector_arrows[sensor] = new THREE.Mesh( @arrow_geometry(250),
-        new THREE.MeshBasicMaterial( { color: VECTOR_COLORS[sensor]} ) )
+        new THREE.MeshBasicMaterial( { color: COLORS[sensor]} ) )
       @scene.add(@vector_arrows[sensor])
 
     # The actual model
@@ -39,7 +39,7 @@ window.SpatialDataRawController = class
         label = "#{plane}_spatial_#{type}"
         @plane_vectors[label]= new VectorPlot2D $("##{label}")[0], 
           plane.toUpperCase().match(/./g).join('/')+" #{type}", plane[0], plane[1], 
-          VECTOR_COLORS
+          COLORS
 
     @data_tables = {
       orientation: new DataTableView('#phidget_orientation'),
@@ -131,9 +131,9 @@ window.SpatialDataRawController = class
     @renderer.render @scene, @camera
 
     # Draw Debug axis labels
-    draw_text(@spatial_cxt, @camera, '+x', @debug_axis_position.clone().add(v(@debug_axis_length*1.2, 0, 0)), VECTOR_COLORS.x_axis)
-    draw_text(@spatial_cxt, @camera, '+y', @debug_axis_position.clone().add(v(0, @debug_axis_length*1.2, 0)), VECTOR_COLORS.y_axis)
-    draw_text(@spatial_cxt, @camera, '+z', @debug_axis_position.clone().add(v(0, 0, @debug_axis_length*1.2)), VECTOR_COLORS.z_axis)
+    draw_text(@spatial_cxt, @camera, '+x', @debug_axis_position.clone().add(v(@debug_axis_length*1.2, 0, 0)), COLORS.x_axis)
+    draw_text(@spatial_cxt, @camera, '+y', @debug_axis_position.clone().add(v(0, @debug_axis_length*1.2, 0)), COLORS.y_axis)
+    draw_text(@spatial_cxt, @camera, '+z', @debug_axis_position.clone().add(v(0, 0, @debug_axis_length*1.2)), COLORS.z_axis)
 
     # 2D Visualizations:
     plane.render() for label, plane of @plane_vectors
@@ -186,9 +186,9 @@ window.SpatialDataRawController = class
     extents
 
   debug_axis: (scene, position, axisLength) ->
-    @add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), VECTOR_COLORS.x_axis)
-    @add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), VECTOR_COLORS.y_axis)
-    @add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), VECTOR_COLORS.z_axis)
+    @add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), COLORS.x_axis)
+    @add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), COLORS.y_axis)
+    @add_axis(scene, position, v(0, 0, axisLength), v(0,1,1), COLORS.z_axis)
 
   debug_plane: (planeW, planeH, numW, numH) -> 
     new THREE.Mesh( 

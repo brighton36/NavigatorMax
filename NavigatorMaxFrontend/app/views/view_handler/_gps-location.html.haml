@@ -1,17 +1,8 @@
 .row
   .span4
-    %h3 GPS Sensor
-    %table.table.table-striped.table-bordered.table-condensed#phidget_gps_coords
-      %thead
-        %tr
-          %th
-          %th Value
-      %tbody
-        - ['Fixed?', 'Latitude', 'Longitude', 'Altitude', 'Velocity', 'Heading',
-          'UTC Time','Device Comm Rate'].each do |sensor|
-          %tr
-            %th=sensor
-            %td{:class => [sensor.downcase.tr('^a-z0-9 ','').tr(' ','_')].join('_')}
+    =data_table 'GPS Sensor', ['Fixed?', 'Latitude', 'Longitude', 'Altitude', 
+      'Velocity', 'Heading', 'UTC Time','Device Comm Rate']
+
     %h3 Orientation
     %canvas#heading_gps_vector(width = '370' height = '270')
 

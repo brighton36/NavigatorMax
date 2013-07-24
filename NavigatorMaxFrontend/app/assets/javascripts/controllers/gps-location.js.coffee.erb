@@ -1,6 +1,6 @@
 window.GpsLocation = class
   constructor:  ->
-    @gps_table = new DataTableView '#phidget_gps_coords'
+    @gps_table = new DataTableView '#gps_sensor'
 
     #google.maps.visualRefresh = true
     #default_latlng = new google.maps.LatLng(40.6892, -74.0447)
@@ -9,7 +9,7 @@ window.GpsLocation = class
     #@marker = new google.maps.Marker({ position: default_latlng, map: @google_map, zIndex: 1 })
 
     @orientation = new VectorPlot2D $("#heading_gps_vector")[0], 
-      "Heading", 'E', 'N', VECTOR_COLORS
+      "Heading", 'E', 'N', COLORS
 
   set_metadata: (data) -> 
     attribs = data.gps_attributes

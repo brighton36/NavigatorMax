@@ -3,10 +3,10 @@ window.System = class
     @last_snapshot_at = null
 
     # Load the Colors
-    @cpu_system_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.cpu_system)
-    @cpu_user_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.cpu_user)
-    @process_system_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.process_system)
-    @process_user_color =  '#'+decimal_to_hex_string(VECTOR_COLORS.process_user)
+    @cpu_system_color =  '#'+decimal_to_hex_string(COLORS.cpu_system)
+    @cpu_user_color =  '#'+decimal_to_hex_string(COLORS.cpu_user)
+    @process_system_color =  '#'+decimal_to_hex_string(COLORS.process_system)
+    @process_user_color =  '#'+decimal_to_hex_string(COLORS.process_user)
 
     @tables = { 
       system: 'system_info',
