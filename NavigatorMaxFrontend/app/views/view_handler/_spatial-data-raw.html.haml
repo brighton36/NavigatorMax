@@ -1,68 +1,17 @@
 .row
   .span4
-    %h3 Euler Rotations
-    %table.table.table-striped.table-bordered.table-condensed#phidget_orientation
-      %thead
-        %tr
-          %th
-          %th Heading (θ)
-          %th Pitch (φ)
-          %th Bank (ψ)
-      %tbody
-        %tr
-        - %w(Acceleration Gyroscope Compass).each do |label|
-          %tr
-            %th
-              =legend_for label
-              =label
-            - %w(heading pitch bank).each do |axis|
-              %td{:class => ['euler',label.downcase,axis].join('_')}
+    =data_table 'Euler Rotations', %w(Acceleration Compass Gyroscope), 
+      :columns => ['Heading (θ)','Pitch (φ)','Bank (ψ)'],
+      :legends => %w(acceleration compass gyroscope)
 
-    %h3 Sensor Values
-    %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_coords
-      %thead
-        %tr
-          %th
-          %th X-coord
-          %th Y-coord
-          %th Z-coord
-      %tbody
-        - %w(Acceleration Gyroscope Compass).each do |sensor|
-          %tr
-            %th
-              =legend_for sensor
-              =sensor
-            %td{:class => '%s_data_x' % sensor.downcase}
-            %td{:class => '%s_data_y' % sensor.downcase}
-            %td{:class => '%s_data_z' % sensor.downcase}
+    =data_table 'Sensor Values', %w(Acceleration Compass Gyroscope), 
+      :columns => ['X-coord', 'Y-coord', 'Z-coord'],
+      :legends => %w(acceleration compass gyroscope)
 
-    %h3 Sensor Min/Max
-    %table.table.table-striped.table-bordered.table-condensed#phidget_spatial_extents
-      %thead
-        %tr 
-          %th
-          %th Min
-          %th Max
-      %tbody
-        - %w(Acceleration Compass Gyroscope).each do |sensor|
-          %tr
-            %th=sensor
-            %td{:class => '%s_extent_min' % sensor.downcase}
-            %td{:class => '%s_extent_max' % sensor.downcase}
+    =data_table 'Sensor Min/Max', %w(Acceleration Compass Gyroscope), 
+      :columns => ['Min','Max']
 
-    -# TODO!
-    -# =data_table 'Runtime Stats', ['Last GUI Poll','Spatial Comm Rate']
-    %h3 Runtime Stats
-    %table.table.table-striped.table-bordered.table-condensed
-      %thead
-        %tr 
-          %th
-          %th Value
-      %tbody
-        - ['Last GUI Poll','Spatial Comm Rate'].each do |stat|
-          %tr
-            %th=stat
-            %td{:id => '%s_value' % stat.downcase.tr(' ','_')}
+    =data_table 'Runtime Stats', ['Last GUI Poll','Spatial Comm Rate']
 
   .span6
     %h3 Spatial Vectors (3D)
