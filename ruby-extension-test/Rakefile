@@ -1,0 +1,5 @@
+# File: Rakefile
+
+require 'rake/extensiontask'
+
+Rake::ExtensionTask.new('ruby_extension_test')
