@@ -47,6 +47,7 @@ void Init_ruby_extension_test();
 VALUE spatial_new(VALUE self, VALUE serial);
 VALUE spatial_initialize(VALUE self, VALUE serial);
 VALUE spatial_close(VALUE self);
+VALUE spatial_wait_for_attachment(VALUE self, VALUE timeout);
 
 VALUE spatial_device_class(VALUE self);
 VALUE spatial_device_id(VALUE self);
@@ -110,6 +111,11 @@ int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
   CPhidgetSpatial_getMagneticFieldMax((CPhidgetSpatialHandle)phid, 0, &info->compass_max);
   CPhidgetSpatial_getAngularRateMin((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_min);
   CPhidgetSpatial_getAngularRateMax((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_max);
+
+	// Set the data rate for the spatial events in milliseconds. 
+  // Note that 1000/16 = 62.5 Hz
+  // TODO: set this from the info param
+	CPhidgetSpatial_setDataRate((CPhidgetSpatialHandle)phid, 16);
 
   return 0;
 }
@@ -176,31 +182,6 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
   return 0;
 }
 
-int display_properties(CPhidgetHandle phid)
-{
-  int serialNo, version;
-  const char* ptr;
-  int numAccelAxes, numGyroAxes, numCompassAxes, dataRateMax, dataRateMin;
-
-  CPhidget_getDeviceType(phid, &ptr);
-  CPhidget_getSerialNumber(phid, &serialNo);
-  CPhidget_getDeviceVersion(phid, &version);
-  CPhidgetSpatial_getAccelerationAxisCount((CPhidgetSpatialHandle)phid, &numAccelAxes);
-  CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)phid, &numGyroAxes);
-  CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)phid, &numCompassAxes);
-  CPhidgetSpatial_getDataRateMax((CPhidgetSpatialHandle)phid, &dataRateMax);
-  CPhidgetSpatial_getDataRateMin((CPhidgetSpatialHandle)phid, &dataRateMin);
-
-  printf("%s\n", ptr);
-  printf("Serial Number: %10d\nVersion: %8d\n", serialNo, version);
-  printf("Number of Accel Axes: %i\n", numAccelAxes);
-  printf("Number of Gyro Axes: %i\n", numGyroAxes);
-  printf("Number of Compass Axes: %i\n", numCompassAxes);
-  printf("datarate> Max: %d  Min: %d\n", dataRateMax, dataRateMin);
-
-  return 0;
-}
-
 void Init_ruby_extension_test() {
   VALUE Phidget = rb_define_module("Phidget");
   VALUE Spatial = rb_define_class_under(Phidget, "Spatial",rb_cObject);
@@ -208,6 +189,7 @@ void Init_ruby_extension_test() {
   rb_define_singleton_method(Spatial, "new", spatial_new, 1);
   rb_define_method(Spatial, "initialize", spatial_initialize, 1);
   rb_define_method(Spatial, "close", spatial_close, 0);
+  rb_define_method(Spatial, "wait_for_attachment", spatial_wait_for_attachment, 1);
 
   // Phidget Accessors
   rb_define_method(Spatial, "device_class", spatial_device_class, 0);
@@ -233,9 +215,6 @@ void Init_ruby_extension_test() {
 }
 
 VALUE spatial_new(VALUE class, VALUE serial) {
-  int result;
-  const char *err;
-
   // Setup a spatial handle
   CPhidgetSpatialHandle spatial = 0;
   CPhidgetSpatial_create(&spatial);
@@ -252,28 +231,9 @@ VALUE spatial_new(VALUE class, VALUE serial) {
 	CPhidget_set_OnAttach_Handler((CPhidgetHandle)spatial, AttachHandler, info);
 	CPhidget_set_OnDetach_Handler((CPhidgetHandle)spatial, DetachHandler, info);
 	CPhidget_set_OnError_Handler((CPhidgetHandle)spatial, ErrorHandler, info);
-
-	//Registers a callback that will run according to the set data rate that will return the spatial data changes
-	//Requires the handle for the Spatial, the callback handler function that will be called, 
-	//and an arbitrary pointer that will be supplied to the callback function (may be NULL)
 	CPhidgetSpatial_set_OnSpatialData_Handler(spatial, SpatialDataHandler, info);
 
 	CPhidget_open((CPhidgetHandle)spatial, FIX2INT(serial)); 
-
-	//get the program to wait for a spatial device to be attached
-	printf("Waiting for spatial to be attached.... \n");
-
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)spatial, 10000))) {
-		CPhidget_getErrorDescription(result, &err);
-		printf("Problem waiting for attachment: %s\n", err);
-	}
-
-	//Display the properties of the attached spatial device
-	display_properties((CPhidgetHandle)spatial);
-
-	// Set the data rate for the spatial events in milliseconds. 
-  // Note that 1000/16 = 62.5 Hz
-	CPhidgetSpatial_setDataRate(spatial, 16);
 
   // Initialize our class instance
   VALUE argv[1];
@@ -291,7 +251,7 @@ VALUE spatial_close(VALUE self) {
   PhidgetInfo *info;
   Data_Get_Struct( self, PhidgetInfo, info );
 
-  printf("Inseide close \n");
+  printf("Inside close \n");
 
   CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, NULL, NULL);
   CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, NULL, NULL);
@@ -299,6 +259,25 @@ VALUE spatial_close(VALUE self) {
   CPhidgetSpatial_set_OnSpatialData_Handler((CPhidgetSpatialHandle)info->handle, NULL, NULL);
 
   return Qnil;
+}
+
+VALUE spatial_wait_for_attachment(VALUE self, VALUE timeout) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+	//get the program to wait for a spatial device to be attached
+	printf("Waiting for spatial to be attached.... \n");
+
+  int result;
+  const char *err;
+
+	if(result = CPhidget_waitForAttachment((CPhidgetHandle)info->handle, FIX2UINT(timeout))) {
+		CPhidget_getErrorDescription(result, &err);
+		printf("Problem waiting for attachment: %s\n", err);
+    return Qfalse;
+	}
+
+  return Qtrue;
 }
 
 VALUE spatial_device_class(VALUE self) {

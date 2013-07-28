@@ -1,15 +1,9 @@
-* Probably remove the dispaly attributes method and wait helper
-  * See if you broke anyithing?
-  * Maybe implement  a wait_for method for use in the test script
-
-* Compass correction setting in constructor
-  * You might want to pass the sample rate here as well
-
 * Now start deploying the c-based phidget poll in orientation
 
-* Test what happens when you unplug and plug the device in
-  * Do we lose our attributes?
-  * Also Test the magnetic poll for the case of unknown
+* Compass correction setting in constructor
+  * You should pass the sample rate here as well, and set it in the attach
+
+* Should we null out the measurements on detach?
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
