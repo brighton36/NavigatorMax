@@ -1,8 +1,11 @@
-* Get the attributes on attach?
+* Alright - implement the rest of on_data
+  * gyro needs time corrections 
 
-* gyro needs time corrections 
-* Test the magnetic poll for the case of unknown
 * Compass correction setting
+
+* Test what happens when you unplug and plug the device in
+  * Do we lose our attributes?
+  * Also Test the magnetic poll for the case of unknown
 
 * Now start deploying the c-based phidget poll
   * We should override the on_error and on_detach handlers like we did the attach handlers
