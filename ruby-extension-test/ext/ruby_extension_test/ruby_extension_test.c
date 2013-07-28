@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <ruby.h>
 #include <phidget21.h>
+#include <math.h>
 
 typedef struct phidget_data {
   CPhidgetHandle handle;
@@ -17,6 +18,19 @@ typedef struct phidget_data {
   CPhidget_DeviceClass device_class;
   CPhidget_DeviceID device_id;
 
+  // Sample tracking.
+  double sample_rate;       // NOTE: These are in Hz
+  int samples_last_second;  // This is the prior second value in our sampling loop
+  int samples_in_second;    // A counter which resets when the second changes
+  
+  // Accelerometer
+  double acceleration_min;
+  double acceleration_max;
+  double compass_min;
+  double compass_max;
+  double gyroscope_min;
+  double gyroscope_max;
+
   double acceleration_x;
   double acceleration_y;
   double acceleration_z;
@@ -26,6 +40,7 @@ typedef struct phidget_data {
   double gyroscope_x;
   double gyroscope_y;
   double gyroscope_z;
+
 } PhidgetInfo;
 
 void Init_ruby_extension_test();
@@ -40,10 +55,18 @@ VALUE spatial_name(VALUE self);
 VALUE spatial_label(VALUE self);
 VALUE spatial_serial_number(VALUE self);
 VALUE spatial_version(VALUE self);
+VALUE spatial_sample_rate(VALUE self);
 
 VALUE spatial_accelerometer_axes(VALUE self);
 VALUE spatial_compass_axes(VALUE self);
 VALUE spatial_gyro_axes(VALUE self);
+
+VALUE spatial_accelerometer_min(VALUE self);
+VALUE spatial_accelerometer_max(VALUE self);
+VALUE spatial_gyro_min(VALUE self);
+VALUE spatial_gyro_max(VALUE self);
+VALUE spatial_compass_min(VALUE self);
+VALUE spatial_compass_max(VALUE self);
 
 static void free_phidget_data(PhidgetInfo *info) {
   printf("Inside free_phidget_data\n");
@@ -56,7 +79,6 @@ static void free_phidget_data(PhidgetInfo *info) {
   }
 }
 
-
 //callback that will run if the Spatial is attached to the computer
 int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
 {
@@ -68,15 +90,26 @@ int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
   PhidgetInfo *info = userptr;
   info->is_attached = true;
 
+  // Phidget Attributes:
   CPhidget_getDeviceType(phid, &info->type);
   CPhidget_getDeviceVersion(phid, &info->version);
   CPhidget_getDeviceClass(phid, &info->device_class);
   CPhidget_getDeviceID(phid, &info->device_id);
   CPhidget_getDeviceLabel(phid, &info->label);
   CPhidget_getDeviceName(phid, &info->name);
+
+  // Accelerometer Attributes:
   CPhidgetSpatial_getAccelerationAxisCount((CPhidgetSpatialHandle)phid, &info->accelerometer_axes);
   CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)phid, &info->gyro_axes);
   CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)phid, &info->compass_axes);
+
+  // Accelerometer
+  CPhidgetSpatial_getAccelerationMin((CPhidgetSpatialHandle)phid, 0, &info->acceleration_min);
+  CPhidgetSpatial_getAccelerationMax((CPhidgetSpatialHandle)phid, 0, &info->acceleration_max);
+  CPhidgetSpatial_getMagneticFieldMin((CPhidgetSpatialHandle)phid, 0, &info->compass_min);
+  CPhidgetSpatial_getMagneticFieldMax((CPhidgetSpatialHandle)phid, 0, &info->compass_max);
+  CPhidgetSpatial_getAngularRateMin((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_min);
+  CPhidgetSpatial_getAngularRateMax((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_max);
 
   return 0;
 }
@@ -107,33 +140,38 @@ int CCONV ErrorHandler(CPhidgetHandle spatial, void *userptr, int ErrorCode, con
 //count - the number of spatial data event packets included in this event
 int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
 {
-  printf("Number of Data Packets in this event: %d\n", count);
-
   PhidgetInfo *info = userptr;
   info->is_attached = false;
 
   int i;
   for(i = 0; i < count; i++) {
+    info->samples_in_second++;
+
+    // Sample tracking
+    if ( info->samples_last_second == 0 )
+      info->samples_last_second = data[i]->timestamp.seconds;
+    else if ( info->samples_last_second != data[i]->timestamp.seconds ) {
+      info->sample_rate = (double) info->samples_in_second / 
+          (double) (data[i]->timestamp.seconds - info->samples_last_second);
+      info->samples_in_second = 0;
+      info->samples_last_second = data[i]->timestamp.seconds;
+
+      printf("Sample rate: %f\n", info->sample_rate);
+    }
+
+    // Set the values to where they need to be:
     info->acceleration_x = data[i]->acceleration[0];
     info->acceleration_y = data[i]->acceleration[1];
     info->acceleration_z = data[i]->acceleration[2];
     info->compass_x = data[i]->magneticField[0];
     info->compass_y = data[i]->magneticField[1];
     info->compass_z = data[i]->magneticField[2];
-    info->gyroscope_x = data[i]->angularRate[0];
-    info->gyroscope_y = data[i]->angularRate[1];
-    info->gyroscope_z = data[i]->angularRate[2];
 
-    //printf("=== Data Set: %d ===\n", i);
-    //printf("Acceleration> x: %6f  y: %6f  x: %6f\n", data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
-    //printf("Angular Rate> x: %6f  y: %6f  x: %6f\n", data[i]->angularRate[0], data[i]->angularRate[1], data[i]->angularRate[2]);
-    //printf("Magnetic Field> x: %6f  y: %6f  x: %6f\n", data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2]);
-
-    // TODO
-    // printf("Timestamp> seconds: %d -- microseconds: %d\n", data[i]->timestamp.seconds, data[i]->timestamp.microseconds);
+    // Gyros get handled slightly different:
+    info->gyroscope_x += data[i]->angularRate[0];
+    info->gyroscope_y += data[i]->angularRate[1];
+    info->gyroscope_z += data[i]->angularRate[2];
   }
-
-  //printf("---------------------------------------------\n");
 
   return 0;
 }
@@ -179,11 +217,19 @@ void Init_ruby_extension_test() {
   rb_define_method(Spatial, "label", spatial_label, 0);
   rb_define_method(Spatial, "serial_number", spatial_serial_number, 0);
   rb_define_method(Spatial, "version", spatial_version, 0);
+  rb_define_method(Spatial, "sample_rate", spatial_sample_rate, 0);
   
   // Spatial Accessors
   rb_define_method(Spatial, "accelerometer_axes", spatial_accelerometer_axes, 0);
   rb_define_method(Spatial, "compass_axes", spatial_compass_axes, 0);
   rb_define_method(Spatial, "gyro_axes", spatial_gyro_axes, 0);
+
+  rb_define_method(Spatial, "gyro_min", spatial_gyro_min, 0);
+  rb_define_method(Spatial, "gyro_max", spatial_gyro_max, 0);
+  rb_define_method(Spatial, "accelerometer_min", spatial_accelerometer_min, 0);
+  rb_define_method(Spatial, "accelerometer_max", spatial_accelerometer_max, 0);
+  rb_define_method(Spatial, "compass_min", spatial_compass_min, 0);
+  rb_define_method(Spatial, "compass_max", spatial_compass_max, 0);
 }
 
 VALUE spatial_new(VALUE class, VALUE serial) {
@@ -225,7 +271,8 @@ VALUE spatial_new(VALUE class, VALUE serial) {
 	//Display the properties of the attached spatial device
 	display_properties((CPhidgetHandle)spatial);
 
-	//Set the data rate for the spatial events
+	// Set the data rate for the spatial events in milliseconds. 
+  // Note that 1000/16 = 62.5 Hz
 	CPhidgetSpatial_setDataRate(spatial, 16);
 
   // Initialize our class instance
@@ -469,4 +516,53 @@ VALUE spatial_gyro_axes(VALUE self) {
   Data_Get_Struct( self, PhidgetInfo, info );
 
   return (info->gyro_axes == 0) ? Qnil : INT2FIX(info->gyro_axes);
+}  
+
+VALUE spatial_sample_rate(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return DBL2NUM(info->sample_rate);
+}  
+
+VALUE spatial_accelerometer_min(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->acceleration_min == 0) ? Qnil : DBL2NUM(info->acceleration_min);
+}  
+
+VALUE spatial_accelerometer_max(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->acceleration_max == 0) ? Qnil : DBL2NUM(info->acceleration_max);
+}  
+
+VALUE spatial_gyro_min(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->gyroscope_min == 0) ? Qnil : DBL2NUM(info->gyroscope_min);
+}  
+
+VALUE spatial_gyro_max(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->gyroscope_max == 0) ? Qnil : DBL2NUM(info->gyroscope_max);
+}  
+
+VALUE spatial_compass_min(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->compass_min == 0) ? Qnil : DBL2NUM(info->compass_min);
+}  
+
+VALUE spatial_compass_max(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->compass_max == 0) ? Qnil : DBL2NUM(info->compass_max);
 }  

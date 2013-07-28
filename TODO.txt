@@ -1,16 +1,15 @@
-* Alright - implement the rest of on_data
-  * gyro needs time corrections 
+* Probably remove the dispaly attributes method and wait helper
+  * See if you broke anyithing?
+  * Maybe implement  a wait_for method for use in the test script
 
-* Compass correction setting
+* Compass correction setting in constructor
+  * You might want to pass the sample rate here as well
+
+* Now start deploying the c-based phidget poll in orientation
 
 * Test what happens when you unplug and plug the device in
   * Do we lose our attributes?
   * Also Test the magnetic poll for the case of unknown
-
-* Now start deploying the c-based phidget poll
-  * We should override the on_error and on_detach handlers like we did the attach handlers
-    * Possibly - let's get the pi working first. We may want to dump the handlers for all but 
-    * and then junk the crazy int-based code
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
