@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require './lib/ruby_extension_test.bundle'
+require './lib/ruby_phidget_native.bundle'
 class Phidget::Spatial
   def test_method
     'uhuhu'

@@ -43,7 +43,7 @@ typedef struct phidget_data {
 
 } PhidgetInfo;
 
-void Init_ruby_extension_test();
+void Init_ruby_phidget_native();
 VALUE spatial_new(VALUE self, VALUE serial);
 VALUE spatial_initialize(VALUE self, VALUE serial);
 VALUE spatial_close(VALUE self);
@@ -182,7 +182,7 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
   return 0;
 }
 
-void Init_ruby_extension_test() {
+void Init_ruby_phidget_native() {
   VALUE Phidget = rb_define_module("Phidget");
   VALUE Spatial = rb_define_class_under(Phidget, "Spatial",rb_cObject);
 

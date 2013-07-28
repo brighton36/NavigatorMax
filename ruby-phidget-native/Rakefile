@@ -2,4 +2,4 @@
 
 require 'rake/extensiontask'
 
-Rake::ExtensionTask.new('ruby_extension_test')
+Rake::ExtensionTask.new('ruby_phidget_native')

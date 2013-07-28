@@ -1,9 +1,12 @@
 * Now start deploying the c-based phidget poll in orientation
 
-* Compass correction setting in constructor
+* Upgrade the initializer
+  * Compass correction setting in constructor
   * You should pass the sample rate here as well, and set it in the attach
 
 * Should we null out the measurements on detach?
+  * Probably we should at least null out the sample rate controls
+  * Maybe just make it all polled values
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
