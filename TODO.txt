@@ -1,20 +1,23 @@
-* Now start deploying the c-based phidget poll in orientation
-
 * Upgrade the initializer
   * Compass correction setting in constructor
-  * We may need to return the axial limits for all dimensions, see what ffi is doing
+  * Get rid of the _x _y and _z - use an array
+  * We need to return the axial limits for all dimensions
   * You should pass the sample rate here as well, and set it in the attach
   * Probably a zero_gyro function too
+
+* We should define a Phidgets::LIBRARY_VERSION
+* We should raise errors and reference the error constants
 
 * Should we null out the measurements on detach?
   * Probably we should at least null out the sample rate controls
   * Maybe just make it all polled values
 
+* Then implement the gps in C
+
+
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
   * https://developers.google.com/maps/documentation/staticmaps/#quick_example
-
-* I think? The commrate code is off for the case of a multi-second interval between samples. (It should be fractional in this case)
 
 * Back to maps:
   * This is what we should do on the maps:
@@ -24,5 +27,4 @@
 * After testing....
   * GPS TODO:
     * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
-
   * GUI : On commloss should retry connection

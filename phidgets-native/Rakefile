@@ -2,4 +2,4 @@
 
 require 'rake/extensiontask'
 
-Rake::ExtensionTask.new('ruby_phidget_native')
+Rake::ExtensionTask.new('phidgets_native')

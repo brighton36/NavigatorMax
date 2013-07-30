@@ -49,7 +49,7 @@ typedef struct phidget_data {
 
 } PhidgetInfo;
 
-void Init_ruby_phidget_native();
+void Init_phidgets_native();
 VALUE spatial_new(VALUE self, VALUE serial);
 VALUE spatial_initialize(VALUE self, VALUE serial);
 VALUE spatial_close(VALUE self);
@@ -194,6 +194,8 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
     info->compass_z = data[i]->magneticField[2];
 
     // Gyros get handled slightly different:
+    // NOTE: Other people may have a better way to do this, but this is the method
+    // I grabbed from the phidget sample. Maybe I should report these in radians...
     info->gyroscope_x = fmod(info->gyroscope_x + data[i]->angularRate[0] * fractional_second, degrees_in_circle);
     info->gyroscope_y = fmod(info->gyroscope_y + data[i]->angularRate[1] * fractional_second, degrees_in_circle);
     info->gyroscope_z = fmod(info->gyroscope_z + data[i]->angularRate[2] * fractional_second, degrees_in_circle);
@@ -202,7 +204,7 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
   return 0;
 }
 
-void Init_ruby_phidget_native() {
+void Init_phidgets_native() {
   VALUE Phidget = rb_define_module("Phidget");
   VALUE Spatial = rb_define_class_under(Phidget, "Spatial",rb_cObject);
 

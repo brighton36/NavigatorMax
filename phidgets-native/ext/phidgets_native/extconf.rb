@@ -1,7 +1,7 @@
 # File: extconf.rb
 require 'mkmf'
 
-extension_name = 'ruby_phidget_native'
+extension_name = 'phidgets_native'
 
 HEADER_DIRS = [ '/Library/Frameworks/Phidget21.framework/Headers' ]
 
