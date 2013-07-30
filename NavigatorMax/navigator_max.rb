@@ -5,18 +5,19 @@ require 'rubygems'
 require 'em-websocket'
 require 'json'
 require 'matrix'
-require 'phidgets-ffi'
+#require 'phidgets-ffi'
 
 $: << 'lib'
 $: << 'sensors'
-require 'phidgets_overides'
+require 'sensor'
+#require 'phidgets_overides'
 require 'core_overides'
 require 'orientation_sensor'
 require 'gps_sensor'
 require 'system_sensor'
 
-puts "Library Version: #{Phidgets::FFI.library_version}"
-Phidgets::Log.enable :verbose
+#puts "Library Version: #{Phidgets::FFI.library_version}"
+#Phidgets::Log.enable :verbose
 
 system = SystemSensor.new (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
 orientation = OrientationSensor.new 302012, 

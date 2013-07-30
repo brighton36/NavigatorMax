@@ -1,50 +1,62 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require 'phidget_sensor'
+$: << '../ruby-phidget-native/lib/'
+require 'ruby_phidget_native.bundle'
 
-class OrientationSensor < PhidgetSensor
+class OrientationSensor
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
     :acceleration, :compass, :gyroscope
 
   def initialize(serial_number, compass_correction_params)
-    super Phidgets::Spatial.new(:serial_number => @serial_number)
-
+    # TODO:
     @compass_correction_params = compass_correction_params
-    @phidget.on_spatial_data self 
+
+    @phidget = Phidget::Spatial.new(serial_number)
+    # TODO: Raise on error? I think we're currently returning a value...
+    @phidget.wait_for_attachment 10000
+
+    @acceleration_max = @phidget.accelerometer_max
+    @acceleration_min = @phidget.accelerometer_min
+    @gyroscope_max = @phidget.gyro_max
+    @gyroscope_min = @phidget.gyro_min
+    @compass_max = @phidget.compass_max
+    @compass_min = @phidget.compass_min
   end
 
-  def on_attach(spatial)
-    super spatial
-
-    spatial.set_compass_correction_parameters *@compass_correction_params
-    @acceleration_max = spatial.accelerometer_axes[0].acceleration_max
-    @acceleration_min = spatial.accelerometer_axes[0].acceleration_min
-    @gyroscope_max = spatial.gyro_axes[0].angular_rate_max
-    @gyroscope_min = spatial.gyro_axes[0].angular_rate_min
-    @compass_max = spatial.compass_axes[0].magnetic_field_max
-    @compass_min = spatial.compass_axes[0].magnetic_field_min
+  def device_attributes
+    { :type=> @phidget.type, :name=> @phidget.name, 
+      :serial_number => @phidget.serial_number, :version => @phidget.version, 
+      :label => @phidget.label, :device_class => @phidget.device_class, 
+      :device_id => @phidget.device_id, 
+      :accelerometer_axes => @phidget.accelerometer_axes, 
+      :compass_axes => @phidget.compass_axes, :gyro_axes => @phidget.gyro_axes
+    } if connected?
   end
 
-  def on_data(acceleration, magnetic_field, angular_rate)
-    @acceleration = v3 *acceleration
-    @compass = v3 *magnetic_field unless magnetic_field.any?{|n| n == 'Unknown'}
+  def updates_per_second
+    @phidget.sample_rate
+  end
 
-    now = Time.now.to_f
-    if @last_data_at.nil?
-      @gyroscope = v3(0,0,0)
-    else
-      timestamp_delta = now - @last_data_at
+  def connected?
+    @phidget.is_attached?
+  end
 
-      0.upto(2) do |i|
-        @gyroscope[i] = (@gyroscope[i] + timestamp_delta * angular_rate[i]) % 360
-      end
-    end
+  def close
+    @phidget.close
+  end
 
-    sampled! now
+  def acceleration
+    v3(*@phidget.accelerometer)
+  end
 
-    # TODO : We should probably calculate our dcm's here.
+  def compass
+    v3(*@phidget.compass)
+  end
+
+  def gyroscope
+    v3(*@phidget.gyro)
   end
 
   # TODO: This should be based on gravity, not acceleration
@@ -62,13 +74,13 @@ class OrientationSensor < PhidgetSensor
     #
     #   Yaw angle == 0 degrees when axis 0 is pointing at magnetic north
 	  yaw = Math.atan2(
-		   (@compass.z * Math.sin(roll)) - 
-       (@compass.y * Math.cos(roll)),
-		   (@compass.x * Math.cos(pitch)) + 
-       (@compass.y * Math.sin(pitch) * Math.sin(roll)) + 
-       (@compass.z * Math.sin(pitch) * Math.cos(roll)) )
+		   (compass.z * Math.sin(roll)) - 
+       (compass.y * Math.cos(roll)),
+		   (compass.x * Math.cos(pitch)) + 
+       (compass.y * Math.sin(pitch) * Math.sin(roll)) + 
+       (compass.z * Math.sin(pitch) * Math.cos(roll)) )
 
-    (@acceleration.z < 0) ? ( yaw - Math::PI / 2 ) : ( yaw - Math::PI * 1.5 )
+    (acceleration.z < 0) ? ( yaw - Math::PI / 2 ) : ( yaw - Math::PI * 1.5 )
   end
 
   def compass_bearing_dcm
@@ -80,7 +92,7 @@ class OrientationSensor < PhidgetSensor
   end
 
   def gyroscope_to_euler
-    [@gyroscope.x, @gyroscope.y, @gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
+    [gyroscope.x, gyroscope.y, gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
   end
 
   def gyroscope_dcm
@@ -93,12 +105,12 @@ class OrientationSensor < PhidgetSensor
     # Roll Angle - about axis 0
     #   tan(roll) = gy/gz
     #   Use Atan2 so we have an output os (-180 - 180) degrees
-	  roll = Math.atan2 @acceleration.y, @acceleration.z
+	  roll = Math.atan2 acceleration.y, acceleration.z
  
     # Pitch Angle - about axis 1
     #   tan(pitch) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
     #   Pitch angle range is (-90 - 90) degrees
-	  pitch = Math.atan -@acceleration.x / ((@acceleration.y * Math.sin(roll)) + (@acceleration.z * Math.cos(roll)))
+	  pitch = Math.atan -acceleration.x / ((acceleration.y * Math.sin(roll)) + (acceleration.z * Math.cos(roll)))
  
     v3 roll, pitch, 0
   end

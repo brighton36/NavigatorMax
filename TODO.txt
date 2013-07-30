@@ -2,7 +2,9 @@
 
 * Upgrade the initializer
   * Compass correction setting in constructor
+  * We may need to return the axial limits for all dimensions, see what ffi is doing
   * You should pass the sample rate here as well, and set it in the attach
+  * Probably a zero_gyro function too
 
 * Should we null out the measurements on detach?
   * Probably we should at least null out the sample rate controls

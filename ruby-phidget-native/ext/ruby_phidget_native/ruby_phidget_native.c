@@ -4,6 +4,9 @@
 #include <phidget21.h>
 #include <math.h>
 
+static int const microseconds_in_second = 1000000;
+static int const degrees_in_circle = 360;
+
 typedef struct phidget_data {
   CPhidgetHandle handle;
   int  serial;
@@ -20,8 +23,11 @@ typedef struct phidget_data {
 
   // Sample tracking.
   double sample_rate;       // NOTE: These are in Hz
-  int samples_last_second;  // This is the prior second value in our sampling loop
   int samples_in_second;    // A counter which resets when the second changes
+
+  // This is used for calculating deltas for both sample tracking, and gyro adjustment
+  int last_second;
+  int last_microsecond;
   
   // Accelerometer
   double acceleration_min;
@@ -49,6 +55,7 @@ VALUE spatial_initialize(VALUE self, VALUE serial);
 VALUE spatial_close(VALUE self);
 VALUE spatial_wait_for_attachment(VALUE self, VALUE timeout);
 
+VALUE spatial_is_attached(VALUE self);
 VALUE spatial_device_class(VALUE self);
 VALUE spatial_device_id(VALUE self);
 VALUE spatial_type(VALUE self);
@@ -64,10 +71,14 @@ VALUE spatial_gyro_axes(VALUE self);
 
 VALUE spatial_accelerometer_min(VALUE self);
 VALUE spatial_accelerometer_max(VALUE self);
-VALUE spatial_gyro_min(VALUE self);
-VALUE spatial_gyro_max(VALUE self);
 VALUE spatial_compass_min(VALUE self);
 VALUE spatial_compass_max(VALUE self);
+VALUE spatial_gyro_min(VALUE self);
+VALUE spatial_gyro_max(VALUE self);
+
+VALUE spatial_accelerometer(VALUE self);
+VALUE spatial_compass(VALUE self);
+VALUE spatial_gyro(VALUE self);
 
 static void free_phidget_data(PhidgetInfo *info) {
   printf("Inside free_phidget_data\n");
@@ -147,23 +158,32 @@ int CCONV ErrorHandler(CPhidgetHandle spatial, void *userptr, int ErrorCode, con
 int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
 {
   PhidgetInfo *info = userptr;
-  info->is_attached = false;
 
   int i;
   for(i = 0; i < count; i++) {
     info->samples_in_second++;
 
     // Sample tracking
-    if ( info->samples_last_second == 0 )
-      info->samples_last_second = data[i]->timestamp.seconds;
-    else if ( info->samples_last_second != data[i]->timestamp.seconds ) {
+    // We need the > 0 for the case of the first time we've ever entered this loop
+    if ( ( info->last_second > 0 ) && ( info->last_second != data[i]->timestamp.seconds ) ) {
       info->sample_rate = (double) info->samples_in_second / 
-          (double) (data[i]->timestamp.seconds - info->samples_last_second);
+          (double) (data[i]->timestamp.seconds - info->last_second);
       info->samples_in_second = 0;
-      info->samples_last_second = data[i]->timestamp.seconds;
 
       printf("Sample rate: %f\n", info->sample_rate);
     }
+    
+    // Here's where we calculate how much time was between the last sample and
+    // this one, expressed as a percentage of a second:
+    double fractional_second = (double) ( 
+      (data[i]->timestamp.seconds - info->last_second) * microseconds_in_second + 
+      data[i]->timestamp.microseconds - 
+      info->last_microsecond) / microseconds_in_second;
+
+
+    // Now record the last timestamp components:
+    info->last_second = data[i]->timestamp.seconds;
+    info->last_microsecond = data[i]->timestamp.microseconds;
 
     // Set the values to where they need to be:
     info->acceleration_x = data[i]->acceleration[0];
@@ -174,9 +194,9 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
     info->compass_z = data[i]->magneticField[2];
 
     // Gyros get handled slightly different:
-    info->gyroscope_x += data[i]->angularRate[0];
-    info->gyroscope_y += data[i]->angularRate[1];
-    info->gyroscope_z += data[i]->angularRate[2];
+    info->gyroscope_x = fmod(info->gyroscope_x + data[i]->angularRate[0] * fractional_second, degrees_in_circle);
+    info->gyroscope_y = fmod(info->gyroscope_y + data[i]->angularRate[1] * fractional_second, degrees_in_circle);
+    info->gyroscope_z = fmod(info->gyroscope_z + data[i]->angularRate[2] * fractional_second, degrees_in_circle);
   }
 
   return 0;
@@ -192,6 +212,7 @@ void Init_ruby_phidget_native() {
   rb_define_method(Spatial, "wait_for_attachment", spatial_wait_for_attachment, 1);
 
   // Phidget Accessors
+  rb_define_method(Spatial, "is_attached?", spatial_is_attached, 0);
   rb_define_method(Spatial, "device_class", spatial_device_class, 0);
   rb_define_method(Spatial, "device_id", spatial_device_id, 0);
   rb_define_method(Spatial, "type", spatial_type, 0);
@@ -212,6 +233,9 @@ void Init_ruby_phidget_native() {
   rb_define_method(Spatial, "accelerometer_max", spatial_accelerometer_max, 0);
   rb_define_method(Spatial, "compass_min", spatial_compass_min, 0);
   rb_define_method(Spatial, "compass_max", spatial_compass_max, 0);
+  rb_define_method(Spatial, "gyro", spatial_gyro, 0);
+  rb_define_method(Spatial, "compass", spatial_compass, 0);
+  rb_define_method(Spatial, "accelerometer", spatial_accelerometer, 0);
 }
 
 VALUE spatial_new(VALUE class, VALUE serial) {
@@ -278,6 +302,13 @@ VALUE spatial_wait_for_attachment(VALUE self, VALUE timeout) {
 	}
 
   return Qtrue;
+}
+
+VALUE spatial_is_attached(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return (info->is_attached) ? Qtrue : Qfalse;
 }
 
 VALUE spatial_device_class(VALUE self) {
@@ -545,3 +576,28 @@ VALUE spatial_compass_max(VALUE self) {
 
   return (info->compass_max == 0) ? Qnil : DBL2NUM(info->compass_max);
 }  
+
+VALUE spatial_accelerometer(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return rb_ary_new3(3, DBL2NUM(info->acceleration_x), 
+    DBL2NUM(info->acceleration_y), DBL2NUM(info->acceleration_z) );
+}  
+
+VALUE spatial_compass(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return rb_ary_new3(3, DBL2NUM(info->compass_x), DBL2NUM(info->compass_y),
+    DBL2NUM(info->compass_z) );
+}  
+
+VALUE spatial_gyro(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
+
+  return rb_ary_new3(3, DBL2NUM(info->gyroscope_x), DBL2NUM(info->gyroscope_y),
+    DBL2NUM(info->gyroscope_z) );
+}  
+
