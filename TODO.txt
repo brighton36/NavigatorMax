@@ -1,11 +1,17 @@
-* Upgrade the initializer
-  * Compass correction setting in constructor
-  * Get rid of the _x _y and _z - use an array
-  * We need to return the axial limits for all dimensions
-  * You should pass the sample rate here as well, and set it in the attach
-  * Probably a zero_gyro function too
+* Test  close()
+* Clean up the phidget_on_attach
+  * also provide a stub for the detach functionality
 
 * We should define a Phidgets::LIBRARY_VERSION
+
+* Upgrade the initializer
+  * Upgrade the constructor
+    * Compass correction setting in constructor
+    * You should pass the sample rate here as well, and set it in the attach
+  * Get rid of the _x _y and _z - use an array
+  * We need to return the axial limits for all dimensions
+  * Probably a zero_gyro function too
+
 * We should raise errors and reference the error constants
 
 * Should we null out the measurements on detach?
