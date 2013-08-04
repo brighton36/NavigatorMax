@@ -11,7 +11,7 @@ int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr)
 {
   int serialNo;
   CPhidget_getSerialNumber(phid, &serialNo);
-  printf("Phidget %10d attached!", serialNo);
+  printf("Phidget %10d attached!\n", serialNo);
 
   // Populate our data structures with what we know about this device:
   PhidgetInfo *info = userptr;
@@ -25,41 +25,25 @@ int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr)
   CPhidget_getDeviceLabel(phid, &info->label);
   CPhidget_getDeviceName(phid, &info->name);
 
-  // TODO: Get this shit outta here!
-  // Accelerometer Attributes:
-  CPhidgetSpatial_getAccelerationAxisCount((CPhidgetSpatialHandle)phid, &info->accelerometer_axes);
-  CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)phid, &info->gyro_axes);
-  CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)phid, &info->compass_axes);
-
-  // Accelerometer
-  CPhidgetSpatial_getAccelerationMin((CPhidgetSpatialHandle)phid, 0, &info->acceleration_min);
-  CPhidgetSpatial_getAccelerationMax((CPhidgetSpatialHandle)phid, 0, &info->acceleration_max);
-  CPhidgetSpatial_getMagneticFieldMin((CPhidgetSpatialHandle)phid, 0, &info->compass_min);
-  CPhidgetSpatial_getMagneticFieldMax((CPhidgetSpatialHandle)phid, 0, &info->compass_max);
-  CPhidgetSpatial_getAngularRateMin((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_min);
-  CPhidgetSpatial_getAngularRateMax((CPhidgetSpatialHandle)phid, 0, &info->gyroscope_max);
-
-	// Set the data rate for the spatial events in milliseconds. 
-  // Note that 1000/16 = 62.5 Hz
-  // TODO: set this from the info param
-	CPhidgetSpatial_setDataRate((CPhidgetSpatialHandle)phid, 16);
-
-  return 0;
+  return (info->on_type_attach) ? (*info->on_type_attach)(phid, info) : 0;
 }
 
-int CCONV phidget_on_dettach(CPhidgetHandle phidget, void *userptr) {
+int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr) {
   int serialNo;
-  CPhidget_getSerialNumber(phidget, &serialNo);
+  CPhidget_getSerialNumber(phid, &serialNo);
   printf("Phidget %10d detached! \n", serialNo);
 
   PhidgetInfo *info = userptr;
   info->is_attached = false;
   printf("User ptr serial %10d!", info->serial);
 
-  return 0;
+  if (info->on_type_detach)
+    (*info->on_type_detach)(phid, info);
+
+  return (info->on_type_detach) ? (*info->on_type_detach)(phid, info) : 0;
 }
 
-int CCONV phidget_on_error(CPhidgetHandle phidget, void *userptr, int ErrorCode, const char *unknown) {
+int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown) {
   printf("Error handled. %d - %s \n", ErrorCode, unknown);
   return 0;
 }
@@ -71,36 +55,57 @@ void phidget_free(PhidgetInfo *info) {
 	    CPhidget_close((CPhidgetHandle)info->handle);
 	    CPhidget_delete((CPhidgetHandle)info->handle);
     }
+    if (info->type_info)
+      ruby_xfree(info->type_info);
+
     ruby_xfree(info);
   }
 }
 
 
-VALUE phidget_new(VALUE class, VALUE serial) {
+VALUE phidget_new(int argc, VALUE* argv, VALUE class) {
   printf("Inside phidget_new\n");
 
   // We'll need this all over the place later:
   PhidgetInfo *info;
   VALUE self = Data_Make_Struct(class, PhidgetInfo, 0, phidget_free, info);
   memset(info, 0, sizeof(PhidgetInfo));
-  info->serial = FIX2INT(serial);
   info->is_attached = false;
 
-  // Initialize our class instance
-  VALUE argv[1];
-  argv[0] = serial;
-  rb_obj_call_init(self, 1, argv);
+  // Call the object's constructor:
+  rb_obj_call_init(self, argc, argv);
 
   return self;
 }  
 
 VALUE phidget_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+
   printf("Inside phidget_init\n");
+ 
+  info->serial = FIX2INT(serial);
+
+  // TODO Initialize info->handle if it's not already initialized 
+
+  // Register the event handlers:
+	CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, phidget_on_attach, info);
+	CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, phidget_on_detach, info);
+	CPhidget_set_OnError_Handler((CPhidgetHandle)info->handle, phidget_on_error, info);
+
+	CPhidget_open((CPhidgetHandle)info->handle, FIX2INT(serial)); 
+  
   return self;
 }
 
 VALUE phidget_close(VALUE self) {
+  PhidgetInfo *info = get_info(self);
+
   printf("Inside phidget_close \n");
+
+  CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, NULL, NULL);
+  CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, NULL, NULL);
+  CPhidget_set_OnError_Handler((CPhidgetHandle)info->handle, NULL, NULL);
+
   return Qnil;
 }
 

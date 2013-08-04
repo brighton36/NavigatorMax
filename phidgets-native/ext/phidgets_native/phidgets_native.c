@@ -4,11 +4,11 @@ void Init_phidgets_native() {
   VALUE Phidget = rb_define_module("Phidget");
   VALUE Device = rb_define_class_under(Phidget,"Device",rb_cObject);
 
-  rb_define_singleton_method(Device, "new", phidget_new, 1);
+  rb_define_singleton_method(Device, "new", phidget_new, -1);
   rb_define_method(Device, "initialize", phidget_initialize, 1);
   rb_define_method(Device, "close", phidget_close, 0);
 
-  // Phidget Device methods:
+  // Phidget::Device
   rb_define_method(Device, "wait_for_attachment", phidget_wait_for_attachment, 1);
   rb_define_method(Device, "is_attached?", phidget_is_attached, 0);
   rb_define_method(Device, "device_class", phidget_device_class, 0);
@@ -19,12 +19,12 @@ void Init_phidgets_native() {
   rb_define_method(Device, "serial_number", phidget_serial_number, 0);
   rb_define_method(Device, "version", phidget_version, 0);
   rb_define_method(Device, "sample_rate", phidget_sample_rate, 0);
-  rb_define_method(Device, "close", spatial_close, 0);
   
-  // Spatial Methods:
+  // Phidget::Spatial
   VALUE Spatial = rb_define_class_under(Phidget,"Spatial",Device);
-  rb_define_method(Spatial, "initialize", spatial_initialize, 1);
+  rb_define_method(Spatial, "initialize", spatial_initialize, 3);
   rb_define_method(Spatial, "close", spatial_close, 0);
+
   rb_define_method(Spatial, "accelerometer_axes", spatial_accelerometer_axes, 0);
   rb_define_method(Spatial, "compass_axes", spatial_compass_axes, 0);
   rb_define_method(Spatial, "gyro_axes", spatial_gyro_axes, 0);

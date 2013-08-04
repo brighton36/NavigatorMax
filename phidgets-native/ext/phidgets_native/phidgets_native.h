@@ -7,7 +7,10 @@
 static int const microseconds_in_second = 1000000;
 static int const degrees_in_circle = 360;
 
-typedef struct phidget_data {
+static int const compass_correction_length = 13;
+static int const default_spatial_data_rate = 16;
+
+typedef struct phidget_info {
   CPhidgetHandle handle;
   int  serial;
   bool is_attached;
@@ -15,9 +18,6 @@ typedef struct phidget_data {
   const char *name;
   const char *label;
   int version;
-  int accelerometer_axes;
-  int compass_axes;
-  int gyro_axes;
   CPhidget_DeviceClass device_class;
   CPhidget_DeviceID device_id;
 
@@ -28,8 +28,28 @@ typedef struct phidget_data {
   // This is used for calculating deltas for both sample tracking, and gyro adjustment
   int last_second;
   int last_microsecond;
-  
-  // Accelerometer
+
+  // Used by the device drivers to track state:
+  void *type_info;
+
+  // Event Handlers
+  int (*on_type_attach)(CPhidgetHandle phid, void *userptr);
+  int (*on_type_detach)(CPhidgetHandle phid, void *userptr);
+} PhidgetInfo;
+
+typedef struct spatial_info {
+  // Compass Correction Params:
+  bool has_compass_correction;
+  double compass_correction[compass_correction_length];
+
+  // Poll interval
+  int data_rate;
+
+  // Device limits:
+  int accelerometer_axes;
+  int compass_axes;
+  int gyro_axes;
+
   double acceleration_min;
   double acceleration_max;
   double compass_min;
@@ -37,6 +57,7 @@ typedef struct phidget_data {
   double gyroscope_min;
   double gyroscope_max;
 
+  // Runtime Values
   double acceleration_x;
   double acceleration_y;
   double acceleration_z;
@@ -47,17 +68,18 @@ typedef struct phidget_data {
   double gyroscope_y;
   double gyroscope_z;
 
-} PhidgetInfo;
+} SpatialInfo;
 
 void Init_phidgets_native();
 
+// Phidget::Device
 PhidgetInfo *get_info(VALUE self);
 void phidget_free(PhidgetInfo *info);
 int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr);
-int CCONV phidget_on_dettach(CPhidgetHandle phidget, void *userptr);
-int CCONV phidget_on_error(CPhidgetHandle phidget, void *userptr, int ErrorCode, const char *unknown);
+int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr);
+int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown);
 
-VALUE phidget_new(VALUE self, VALUE serial);
+VALUE phidget_new(int argc, VALUE* argv, VALUE class);
 VALUE phidget_initialize(VALUE self, VALUE serial);
 VALUE phidget_close(VALUE self);
 VALUE phidget_wait_for_attachment(VALUE self, VALUE timeout);
@@ -71,8 +93,11 @@ VALUE phidget_serial_number(VALUE self);
 VALUE phidget_version(VALUE self);
 VALUE phidget_sample_rate(VALUE self);
 
+// Phidget::Spatial
+int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr);
+int CCONV spatial_on_detach(CPhidgetHandle phid, void *userptr);
 int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
-VALUE spatial_initialize(VALUE self, VALUE serial);
+VALUE spatial_initialize(VALUE self, VALUE serial, VALUE data_rate, VALUE compass_correction);
 VALUE spatial_close(VALUE self);
 VALUE spatial_accelerometer_axes(VALUE self);
 VALUE spatial_compass_axes(VALUE self);

@@ -2,15 +2,24 @@
 # encoding: UTF-8
 
 require './lib/phidgets_native.bundle'
+
 class Phidget::Spatial
   def test_method
     'uhuhu'
   end
 end
 
-p = Phidget::Spatial.new(302012)
+p = Phidget::Spatial.new(302012, 16,
+  [ 0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, 
+    -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283 ] )
 p.wait_for_attachment 10000
 puts p.inspect
+
+trap("SIGINT") do
+  puts "Sigint!"
+  p.close
+  exit
+end
 
 puts "Type:"+p.type.inspect
 puts "Name:"+p.name.inspect
@@ -35,6 +44,7 @@ puts "gyro_min: "+p.gyro_min.inspect
 puts "gyro_max: "+p.gyro_max.inspect
 
 #sleep 5
+
 
 puts "Test:"+p.test_method.inspect
 while sleep(5) do
