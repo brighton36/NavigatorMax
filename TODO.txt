@@ -1,19 +1,15 @@
 * Upgrade the spatial
-  * Get rid of the _x _y and _z - use an array
-  * We need to return the axial limits for all dimensions
-  * Probably a zero_gyro function too
   * Move sampling into a helper somewhere
+  * Yeah - and I don't like those constructor parametrs after all - make those functions
 
-* Should we null out the measurements on detach?
-  * Probably we should at least null out the sample rate controls
-  * Maybe just make it all polled values
-
-* We should define a Phidgets::LIBRARY_VERSION
 
 * Handle errors:
   * We should likely have better errors raised on crappy inputs (constructors mostly)
     * Use CPhidget_getErrorDescription
   * We should raise errors in the on_error code and translate the error constants
+
+* We should define a Phidgets::LIBRARY_VERSION
+* We should provide a list or find_all method
 
 * Then implement the gps in C
   * If there's no handle by the time it gets to device::init, we should use a generic handle. Test this before/during the gps implement

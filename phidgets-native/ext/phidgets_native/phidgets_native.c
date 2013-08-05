@@ -38,5 +38,19 @@ void Init_phidgets_native() {
   rb_define_method(Spatial, "gyro", spatial_gyro, 0);
   rb_define_method(Spatial, "compass", spatial_compass, 0);
   rb_define_method(Spatial, "accelerometer", spatial_accelerometer, 0);
+
+  rb_define_method(Spatial, "zero_gyro!", spatial_zero_gyro, 0);
+}
+
+// This converts an array of doubles into a ruby array of numbers, or into
+// nil for the case of an invalid dbl_array
+VALUE double_array_to_rb(double *dbl_array, int length) {
+  if (!dbl_array) return Qnil;
+
+  VALUE rb_ary = rb_ary_new2(length);
+
+  for(int i=0; i<length; i++) rb_ary_store(rb_ary, i, DBL2NUM(dbl_array[i]));
+
+  return rb_ary;
 }
 

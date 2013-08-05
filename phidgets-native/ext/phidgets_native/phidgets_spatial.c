@@ -7,6 +7,24 @@ void *get_type_info(VALUE self) {
   return info->type_info;
 }
 
+void spatial_on_free(void *type_info) {
+  printf("here in the spatial free\n");
+
+  SpatialInfo *spatial_info = type_info;
+  free(spatial_info->acceleration);
+  free(spatial_info->acceleration_min);
+  free(spatial_info->acceleration_max);
+  free(spatial_info->gyroscope);
+  free(spatial_info->gyroscope_min);
+  free(spatial_info->gyroscope_max);
+  free(spatial_info->compass);
+  free(spatial_info->compass_min);
+  free(spatial_info->compass_max);
+  free(spatial_info);
+
+  return;
+}
+
 int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
   printf("spatial_on_attach\n");
 
@@ -18,13 +36,42 @@ int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
   CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)phid, &spatial_info->gyro_axes);
   CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)phid, &spatial_info->compass_axes);
 
+  // Dealloc if we're alloc'd, this will prevent memory leaks on device re-attachment:
+  if (spatial_info->acceleration) free(spatial_info->acceleration);
+  if (spatial_info->acceleration_min) free(spatial_info->acceleration_min);
+  if (spatial_info->acceleration_max) free(spatial_info->acceleration_max);
+  if (spatial_info->compass) free(spatial_info->compass);
+  if (spatial_info->compass_min) free(spatial_info->compass_min);
+  if (spatial_info->compass_max) free(spatial_info->compass_max);
+  if (spatial_info->gyroscope) free(spatial_info->gyroscope);
+  if (spatial_info->gyroscope_min) free(spatial_info->gyroscope_min);
+  if (spatial_info->gyroscope_max) free(spatial_info->gyroscope_max);
+
+  // Allocate space for our extents:
+  spatial_info->acceleration = malloc(sizeof(double) * spatial_info->accelerometer_axes); 
+  spatial_info->acceleration_min = malloc(sizeof(double) * spatial_info->accelerometer_axes); 
+  spatial_info->acceleration_max = malloc(sizeof(double) * spatial_info->accelerometer_axes); 
+  spatial_info->compass = malloc(sizeof(double) * spatial_info->compass_axes); 
+  spatial_info->compass_min = malloc(sizeof(double) * spatial_info->compass_axes); 
+  spatial_info->compass_max = malloc(sizeof(double) * spatial_info->compass_axes); 
+  spatial_info->gyroscope = malloc(sizeof(double) * spatial_info->gyro_axes); 
+  spatial_info->gyroscope_min = malloc(sizeof(double) * spatial_info->gyro_axes); 
+  spatial_info->gyroscope_max = malloc(sizeof(double) * spatial_info->gyro_axes); 
+
   // Accelerometer
-  CPhidgetSpatial_getAccelerationMin((CPhidgetSpatialHandle)phid, 0, &spatial_info->acceleration_min);
-  CPhidgetSpatial_getAccelerationMax((CPhidgetSpatialHandle)phid, 0, &spatial_info->acceleration_max);
-  CPhidgetSpatial_getMagneticFieldMin((CPhidgetSpatialHandle)phid, 0, &spatial_info->compass_min);
-  CPhidgetSpatial_getMagneticFieldMax((CPhidgetSpatialHandle)phid, 0, &spatial_info->compass_max);
-  CPhidgetSpatial_getAngularRateMin((CPhidgetSpatialHandle)phid, 0, &spatial_info->gyroscope_min);
-  CPhidgetSpatial_getAngularRateMax((CPhidgetSpatialHandle)phid, 0, &spatial_info->gyroscope_max);
+  for(int i=0; i < spatial_info->accelerometer_axes; i++) {
+    CPhidgetSpatial_getAccelerationMin((CPhidgetSpatialHandle)phid, i, &spatial_info->acceleration_min[i]);
+    CPhidgetSpatial_getAccelerationMax((CPhidgetSpatialHandle)phid, i, &spatial_info->acceleration_max[i]);
+  }
+
+  for(int i=0; i < spatial_info->compass_axes; i++) {
+    CPhidgetSpatial_getMagneticFieldMin((CPhidgetSpatialHandle)phid, i, &spatial_info->compass_min[i]);
+    CPhidgetSpatial_getMagneticFieldMax((CPhidgetSpatialHandle)phid, i, &spatial_info->compass_max[i]);
+  }
+  for(int i=0; i < spatial_info->gyro_axes; i++) {
+    CPhidgetSpatial_getAngularRateMin((CPhidgetSpatialHandle)phid, i, &spatial_info->gyroscope_min[i]);
+    CPhidgetSpatial_getAngularRateMax((CPhidgetSpatialHandle)phid, i, &spatial_info->gyroscope_max[i]);
+  }
 
 	// Set the data rate for the spatial events in milliseconds. 
   // Note that 1000/16 = 62.5 Hz
@@ -43,7 +90,21 @@ int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
 }
 
 int CCONV spatial_on_detach(CPhidgetHandle phidget, void *userptr) {
-  printf("WhOOOO hoo - spatial_on_detach\n");
+  printf("Spatial_on_detach\n");
+  PhidgetInfo *info = userptr;
+  SpatialInfo *spatial_info = info->type_info;
+
+  // These would be misleading to report if there's no device:
+  info->sample_rate = 0;
+  info->samples_in_second = 0;
+  info->last_second = 0;
+  info->last_microsecond = 0;
+
+  // These would be misleading to report if there's no device:
+  memset(spatial_info->acceleration, 0, sizeof(double) * spatial_info->accelerometer_axes);
+  memset(spatial_info->gyroscope, 0, sizeof(double) * spatial_info->gyro_axes);
+  memset(spatial_info->compass, 0, sizeof(double) * spatial_info->compass_axes);
+
   return 0;
 }
 
@@ -82,19 +143,19 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
     info->last_microsecond = data[i]->timestamp.microseconds;
 
     // Set the values to where they need to be:
-    spatial_info->acceleration_x = data[i]->acceleration[0];
-    spatial_info->acceleration_y = data[i]->acceleration[1];
-    spatial_info->acceleration_z = data[i]->acceleration[2];
-    spatial_info->compass_x = data[i]->magneticField[0];
-    spatial_info->compass_y = data[i]->magneticField[1];
-    spatial_info->compass_z = data[i]->magneticField[2];
+    spatial_info->acceleration[0] = data[i]->acceleration[0];
+    spatial_info->acceleration[1] = data[i]->acceleration[1];
+    spatial_info->acceleration[2] = data[i]->acceleration[2];
+    spatial_info->compass[0] = data[i]->magneticField[0];
+    spatial_info->compass[1] = data[i]->magneticField[1];
+    spatial_info->compass[2] = data[i]->magneticField[2];
 
     // Gyros get handled slightly different:
     // NOTE: Other people may have a better way to do this, but this is the method
     // I grabbed from the phidget sample. Maybe I should report these in radians...
-    spatial_info->gyroscope_x = fmod(spatial_info->gyroscope_x + data[i]->angularRate[0] * fractional_second, degrees_in_circle);
-    spatial_info->gyroscope_y = fmod(spatial_info->gyroscope_y + data[i]->angularRate[1] * fractional_second, degrees_in_circle);
-    spatial_info->gyroscope_z = fmod(spatial_info->gyroscope_z + data[i]->angularRate[2] * fractional_second, degrees_in_circle);
+    spatial_info->gyroscope[0] = fmod(spatial_info->gyroscope[0] + data[i]->angularRate[0] * fractional_second, degrees_in_circle);
+    spatial_info->gyroscope[1] = fmod(spatial_info->gyroscope[1] + data[i]->angularRate[1] * fractional_second, degrees_in_circle);
+    spatial_info->gyroscope[2] = fmod(spatial_info->gyroscope[2] + data[i]->angularRate[2] * fractional_second, degrees_in_circle);
   }
 
   return 0;
@@ -126,6 +187,7 @@ VALUE spatial_initialize(VALUE self, VALUE serial, VALUE data_rate, VALUE compas
   info->handle = (CPhidgetHandle)spatial;
   info->on_type_attach = spatial_on_attach;
   info->on_type_detach = spatial_on_detach;
+  info->on_type_free = spatial_on_free;
   info->type_info = spatial_info;
 
   return rb_call_super(1, &serial);
@@ -141,79 +203,86 @@ VALUE spatial_close(VALUE self) {
   return rb_call_super(0,NULL);
 }
 
-
 VALUE spatial_accelerometer_axes(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return (spatial_info->accelerometer_axes == 0) ? Qnil : INT2FIX(spatial_info->accelerometer_axes);
+  return (spatial_info->accelerometer_axes) ? 
+    INT2FIX(spatial_info->accelerometer_axes) : Qnil;
 }  
 
 VALUE spatial_compass_axes(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return (spatial_info->compass_axes == 0) ? Qnil : INT2FIX(spatial_info->compass_axes);
+  return (spatial_info->compass_axes) ? INT2FIX(spatial_info->compass_axes) : Qnil;
 }  
 
 VALUE spatial_gyro_axes(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return (spatial_info->gyro_axes == 0) ? Qnil : INT2FIX(spatial_info->gyro_axes);
-}  
-
-VALUE spatial_accelerometer_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->acceleration_min == 0) ? Qnil : DBL2NUM(spatial_info->acceleration_min);
-}  
-
-VALUE spatial_accelerometer_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->acceleration_max == 0) ? Qnil : DBL2NUM(spatial_info->acceleration_max);
-}  
-
-VALUE spatial_gyro_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->gyroscope_min == 0) ? Qnil : DBL2NUM(spatial_info->gyroscope_min);
-}  
-
-VALUE spatial_gyro_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->gyroscope_max == 0) ? Qnil : DBL2NUM(spatial_info->gyroscope_max);
-}  
-
-VALUE spatial_compass_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->compass_min == 0) ? Qnil : DBL2NUM(spatial_info->compass_min);
-}  
-
-VALUE spatial_compass_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
-
-  return (spatial_info->compass_max == 0) ? Qnil : DBL2NUM(spatial_info->compass_max);
+  return (spatial_info->gyro_axes) ? INT2FIX(spatial_info->gyro_axes) : Qnil;
 }  
 
 VALUE spatial_accelerometer(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return rb_ary_new3(3, DBL2NUM(spatial_info->acceleration_x), 
-    DBL2NUM(spatial_info->acceleration_y), DBL2NUM(spatial_info->acceleration_z) );
+  return double_array_to_rb(spatial_info->acceleration, spatial_info->accelerometer_axes);
 }  
 
-VALUE spatial_compass(VALUE self) {
+VALUE spatial_accelerometer_min(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return rb_ary_new3(3, DBL2NUM(spatial_info->compass_x), DBL2NUM(spatial_info->compass_y),
-    DBL2NUM(spatial_info->compass_z) );
+  return double_array_to_rb(spatial_info->acceleration_min, spatial_info->accelerometer_axes);
+}  
+
+VALUE spatial_accelerometer_max(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->acceleration_max, spatial_info->accelerometer_axes);
 }  
 
 VALUE spatial_gyro(VALUE self) {
   SpatialInfo *spatial_info = get_type_info(self);
 
-  return rb_ary_new3(3, DBL2NUM(spatial_info->gyroscope_x), DBL2NUM(spatial_info->gyroscope_y),
-    DBL2NUM(spatial_info->gyroscope_z) );
+  return double_array_to_rb(spatial_info->gyroscope, spatial_info->gyro_axes);
 }  
 
+VALUE spatial_gyro_min(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->gyroscope_min, spatial_info->gyro_axes);
+}  
+
+VALUE spatial_gyro_max(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->gyroscope_max, spatial_info->gyro_axes);
+}  
+
+VALUE spatial_compass(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->compass, spatial_info->compass_axes);
+}  
+
+VALUE spatial_compass_min(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->compass_min, spatial_info->compass_axes);
+}  
+
+VALUE spatial_compass_max(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return double_array_to_rb(spatial_info->compass_max, spatial_info->compass_axes);
+}  
+
+
+VALUE spatial_zero_gyro(VALUE self) {
+  PhidgetInfo *info = get_info(self);
+  SpatialInfo *spatial_info = info->type_info;
+
+  CPhidgetSpatial_zeroGyro((CPhidgetSpatialHandle) info->handle);
+  memset(spatial_info->gyroscope, 0, sizeof(double) * spatial_info->gyro_axes);
+
+  return Qnil;
+}

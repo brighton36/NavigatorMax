@@ -47,10 +47,19 @@ puts "gyro_max: "+p.gyro_max.inspect
 
 
 puts "Test:"+p.test_method.inspect
+poll_i = 0
 while sleep(5) do
+  poll_i += 1
+
+  if poll_i == 2
+    puts "Zero'ing the gyro, let's see what happens"
+    p.zero_gyro! 
+  end
+
   puts "loop" 
 
   puts "(%d Hz) Gyro: %s, Compass: %s, Accel: %s" % [p.sample_rate, 
     p.gyro.inspect, p.compass.inspect, p.accelerometer.inspect]
+
 end
 p.close

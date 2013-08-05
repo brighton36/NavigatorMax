@@ -35,6 +35,8 @@ typedef struct phidget_info {
   // Event Handlers
   int (*on_type_attach)(CPhidgetHandle phid, void *userptr);
   int (*on_type_detach)(CPhidgetHandle phid, void *userptr);
+  void (*on_type_free)(void *type_info);
+
 } PhidgetInfo;
 
 typedef struct spatial_info {
@@ -50,27 +52,22 @@ typedef struct spatial_info {
   int compass_axes;
   int gyro_axes;
 
-  double acceleration_min;
-  double acceleration_max;
-  double compass_min;
-  double compass_max;
-  double gyroscope_min;
-  double gyroscope_max;
+  double *acceleration_min;
+  double *acceleration_max;
+  double *compass_min;
+  double *compass_max;
+  double *gyroscope_min;
+  double *gyroscope_max;
 
   // Runtime Values
-  double acceleration_x;
-  double acceleration_y;
-  double acceleration_z;
-  double compass_x;
-  double compass_y;
-  double compass_z;
-  double gyroscope_x;
-  double gyroscope_y;
-  double gyroscope_z;
+  double *acceleration;
+  double *compass;
+  double *gyroscope;
 
 } SpatialInfo;
 
 void Init_phidgets_native();
+VALUE double_array_to_rb(double *dbl_array, int length);
 
 // Phidget::Device
 PhidgetInfo *get_info(VALUE self);
@@ -94,6 +91,7 @@ VALUE phidget_version(VALUE self);
 VALUE phidget_sample_rate(VALUE self);
 
 // Phidget::Spatial
+void spatial_on_free(void *type_info);
 int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr);
 int CCONV spatial_on_detach(CPhidgetHandle phid, void *userptr);
 int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
@@ -113,4 +111,6 @@ VALUE spatial_gyro_max(VALUE self);
 VALUE spatial_accelerometer(VALUE self);
 VALUE spatial_compass(VALUE self);
 VALUE spatial_gyro(VALUE self);
+
+VALUE spatial_zero_gyro(VALUE self);
 

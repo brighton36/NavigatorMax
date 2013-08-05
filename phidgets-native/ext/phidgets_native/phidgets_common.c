@@ -55,8 +55,9 @@ void phidget_free(PhidgetInfo *info) {
 	    CPhidget_close((CPhidgetHandle)info->handle);
 	    CPhidget_delete((CPhidgetHandle)info->handle);
     }
-    if (info->type_info)
-      ruby_xfree(info->type_info);
+
+    if (info->on_type_free)
+      (*info->on_type_free)(info->type_info);
 
     ruby_xfree(info);
   }
