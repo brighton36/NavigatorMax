@@ -22,7 +22,7 @@ void Init_phidgets_native() {
   
   // Phidget::Spatial
   VALUE Spatial = rb_define_class_under(Phidget,"Spatial",Device);
-  rb_define_method(Spatial, "initialize", spatial_initialize, 3);
+  rb_define_method(Spatial, "initialize", spatial_initialize, 1);
   rb_define_method(Spatial, "close", spatial_close, 0);
 
   rb_define_method(Spatial, "accelerometer_axes", spatial_accelerometer_axes, 0);
@@ -35,11 +35,16 @@ void Init_phidgets_native() {
   rb_define_method(Spatial, "accelerometer_max", spatial_accelerometer_max, 0);
   rb_define_method(Spatial, "compass_min", spatial_compass_min, 0);
   rb_define_method(Spatial, "compass_max", spatial_compass_max, 0);
+
   rb_define_method(Spatial, "gyro", spatial_gyro, 0);
   rb_define_method(Spatial, "compass", spatial_compass, 0);
   rb_define_method(Spatial, "accelerometer", spatial_accelerometer, 0);
 
   rb_define_method(Spatial, "zero_gyro!", spatial_zero_gyro, 0);
+  rb_define_method(Spatial, "compass_correction=", spatial_compass_correction_set, 1);
+  rb_define_method(Spatial, "compass_correction", spatial_compass_correction_get, 0);
+  rb_define_method(Spatial, "data_rate=", spatial_data_rate_set, 1);
+  rb_define_method(Spatial, "data_rate", spatial_data_rate_get, 0);
 }
 
 // This converts an array of doubles into a ruby array of numbers, or into

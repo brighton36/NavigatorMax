@@ -9,10 +9,14 @@ class Phidget::Spatial
   end
 end
 
-p = Phidget::Spatial.new(302012, 16,
-  [ 0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, 
-    -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283 ] )
+p = Phidget::Spatial.new(302012)
 p.wait_for_attachment 10000
+p.data_rate = 16
+p.compass_correction = [ 0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 
+  2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283 ]
+
+puts "We set the correction to:"+p.compass_correction.inspect
+puts "We set the data_rate to:"+p.data_rate.inspect
 puts p.inspect
 
 trap("SIGINT") do

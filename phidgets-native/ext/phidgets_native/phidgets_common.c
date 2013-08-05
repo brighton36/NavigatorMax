@@ -7,6 +7,22 @@ PhidgetInfo *get_info(VALUE self) {
   return info;
 }
 
+void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
+  info->samples_in_second++;
+
+  // Sample tracking
+  // We need the > 0 for the case of the first time we've ever entered this loop
+  if ( ( info->last_second > 0 ) && ( info->last_second != ts->seconds ) ) {
+    info->sample_rate = (double) info->samples_in_second / 
+        (double) (ts->seconds - info->last_second);
+    info->samples_in_second = 0;
+
+    printf("Sample rate: %f\n", info->sample_rate);
+  }
+
+  return;
+}
+
 int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr)
 {
   int serialNo;
@@ -37,8 +53,11 @@ int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr) {
   info->is_attached = false;
   printf("User ptr serial %10d!", info->serial);
 
-  if (info->on_type_detach)
-    (*info->on_type_detach)(phid, info);
+  // These would be misleading to report if there's no device:
+  info->sample_rate = 0;
+  info->samples_in_second = 0;
+  info->last_second = 0;
+  info->last_microsecond = 0;
 
   return (info->on_type_detach) ? (*info->on_type_detach)(phid, info) : 0;
 }

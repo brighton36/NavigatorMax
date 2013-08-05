@@ -72,6 +72,7 @@ VALUE double_array_to_rb(double *dbl_array, int length);
 // Phidget::Device
 PhidgetInfo *get_info(VALUE self);
 void phidget_free(PhidgetInfo *info);
+void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts);
 int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr);
 int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr);
 int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown);
@@ -95,7 +96,8 @@ void spatial_on_free(void *type_info);
 int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr);
 int CCONV spatial_on_detach(CPhidgetHandle phid, void *userptr);
 int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
-VALUE spatial_initialize(VALUE self, VALUE serial, VALUE data_rate, VALUE compass_correction);
+int spatial_set_compass_correction_by_array(CPhidgetSpatialHandle phid, double *correction);
+VALUE spatial_initialize(VALUE self, VALUE serial);
 VALUE spatial_close(VALUE self);
 VALUE spatial_accelerometer_axes(VALUE self);
 VALUE spatial_compass_axes(VALUE self);
@@ -113,4 +115,8 @@ VALUE spatial_compass(VALUE self);
 VALUE spatial_gyro(VALUE self);
 
 VALUE spatial_zero_gyro(VALUE self);
+VALUE spatial_compass_correction_set(VALUE self, VALUE compass_correction);
+VALUE spatial_compass_correction_get(VALUE self);
 
+VALUE spatial_data_rate_set(VALUE self, VALUE data_rate);
+VALUE spatial_data_rate_get(VALUE self);

@@ -1,15 +1,12 @@
-* Upgrade the spatial
-  * Move sampling into a helper somewhere
-  * Yeah - and I don't like those constructor parametrs after all - make those functions
-
-
 * Handle errors:
   * We should likely have better errors raised on crappy inputs (constructors mostly)
     * Use CPhidget_getErrorDescription
   * We should raise errors in the on_error code and translate the error constants
 
-* We should define a Phidgets::LIBRARY_VERSION
-* We should provide a list or find_all method
+* Global functions...
+  * We should define a Phidgets::LIBRARY_VERSION
+  * We should provide interfaces for the logging
+  * We should provide a list or find_all method
 
 * Then implement the gps in C
   * If there's no handle by the time it gets to device::init, we should use a generic handle. Test this before/during the gps implement
