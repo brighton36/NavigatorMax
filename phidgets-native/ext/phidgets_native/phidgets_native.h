@@ -4,11 +4,10 @@
 #include <phidget21.h>
 #include <math.h>
 
-static int const microseconds_in_second = 1000000;
-static int const degrees_in_circle = 360;
-
-static int const compass_correction_length = 13;
-static int const default_spatial_data_rate = 16;
+static int const MICROSECONDS_IN_SECOND = 1000000;
+static int const COMPASS_CORRECTION_LENGTH = 13;
+static int const DEGREES_IN_CIRCLE = 360;
+static int const DEFAULT_SPATIAL_DATA_RATE = 16;
 
 typedef struct phidget_info {
   CPhidgetHandle handle;
@@ -42,7 +41,7 @@ typedef struct phidget_info {
 typedef struct spatial_info {
   // Compass Correction Params:
   bool has_compass_correction;
-  double compass_correction[compass_correction_length];
+  double compass_correction[COMPASS_CORRECTION_LENGTH];
 
   // Poll interval
   int data_rate;
@@ -68,6 +67,7 @@ typedef struct spatial_info {
 
 void Init_phidgets_native();
 VALUE double_array_to_rb(double *dbl_array, int length);
+int ensure(int result);
 
 // Phidget::Device
 PhidgetInfo *get_info(VALUE self);

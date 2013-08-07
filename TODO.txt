@@ -1,7 +1,5 @@
-* Handle errors:
-  * We should likely have better errors raised on crappy inputs (constructors mostly)
-    * Use CPhidget_getErrorDescription
-  * We should raise errors in the on_error code and translate the error constants
+* Probably we should start putting in rdoc now
+  * http://clalance.blogspot.com/2011/01/writing-ruby-extensions-in-c-part-2.html
 
 * Global functions...
   * We should define a Phidgets::LIBRARY_VERSION
@@ -10,6 +8,8 @@
 
 * Then implement the gps in C
   * If there's no handle by the time it gets to device::init, we should use a generic handle. Test this before/during the gps implement
+
+* Decide if we should do something about phidget_on_error either raise an error or do nothing...
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
