@@ -1,8 +1,4 @@
-* Probably we should start putting in rdoc now
-  * http://clalance.blogspot.com/2011/01/writing-ruby-extensions-in-c-part-2.html
-
 * Global functions...
-  * We should define a Phidgets::LIBRARY_VERSION
   * We should provide interfaces for the logging
   * We should provide a list or find_all method
 

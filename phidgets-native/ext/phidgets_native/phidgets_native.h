@@ -50,6 +50,8 @@ typedef struct spatial_info {
   int accelerometer_axes;
   int compass_axes;
   int gyro_axes;
+  int data_rate_max;
+  int data_rate_min;
 
   double *acceleration_min;
   double *acceleration_max;
@@ -117,6 +119,9 @@ VALUE spatial_gyro(VALUE self);
 VALUE spatial_zero_gyro(VALUE self);
 VALUE spatial_compass_correction_set(VALUE self, VALUE compass_correction);
 VALUE spatial_compass_correction_get(VALUE self);
+VALUE spatial_reset_compass_correction(VALUE self);
 
+VALUE spatial_data_rate_min(VALUE self);
+VALUE spatial_data_rate_max(VALUE self);
 VALUE spatial_data_rate_set(VALUE self, VALUE data_rate);
 VALUE spatial_data_rate_get(VALUE self);

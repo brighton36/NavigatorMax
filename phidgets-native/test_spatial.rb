@@ -9,6 +9,8 @@ class Phidget::Spatial
   end
 end
 
+puts "Using Library version: "+Phidget::LIBRARY_VERSION
+
 p = Phidget::Spatial.new(302012)
 p.wait_for_attachment 10000
 p.data_rate = 16
@@ -35,6 +37,8 @@ puts "Device class: "+p.device_class.inspect
 puts "Device id: "+p.device_id.inspect
 
 puts "Sample Rate: "+p.sample_rate.inspect
+puts "Data Rate Min: "+p.data_rate_min.inspect
+puts "Data Rate Max: "+p.data_rate_max.inspect
 
 puts "accelerometer_axes: "+p.accelerometer_axes.inspect
 puts "compass_axes: "+p.compass_axes.inspect
@@ -47,6 +51,7 @@ puts "compass_max: "+p.compass_max.inspect
 puts "gyro_min: "+p.gyro_min.inspect
 puts "gyro_max: "+p.gyro_max.inspect
 
+p.reset_compass_correction!
 #sleep 5
 
 

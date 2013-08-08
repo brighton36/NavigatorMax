@@ -45,6 +45,8 @@ int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
   ensure(CPhidgetSpatial_getAccelerationAxisCount((CPhidgetSpatialHandle)phid, &spatial_info->accelerometer_axes));
   ensure(CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)phid, &spatial_info->gyro_axes));
   ensure(CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)phid, &spatial_info->compass_axes));
+  ensure(CPhidgetSpatial_getDataRateMax((CPhidgetSpatialHandle)phid, &spatial_info->data_rate_max));
+  ensure(CPhidgetSpatial_getDataRateMin((CPhidgetSpatialHandle)phid, &spatial_info->data_rate_min));
 
   // Dealloc if we're alloc'd, this will prevent memory leaks on device re-attachment:
   if (spatial_info->acceleration) xfree(spatial_info->acceleration);
@@ -270,6 +272,17 @@ VALUE spatial_zero_gyro(VALUE self) {
   return Qnil;
 }
 
+VALUE spatial_reset_compass_correction(VALUE self) {
+  PhidgetInfo *info = get_info(self);
+  SpatialInfo *spatial_info = info->type_info;
+
+  ensure(CPhidgetSpatial_resetCompassCorrectionParameters((CPhidgetSpatialHandle) info->handle));
+  memset(spatial_info->compass_correction, 0, sizeof(double) * COMPASS_CORRECTION_LENGTH );
+  spatial_info->has_compass_correction = false; 
+
+  return Qnil;
+}
+
 VALUE spatial_compass_correction_set(VALUE self, VALUE compass_correction) {
   PhidgetInfo *info = get_info(self);
   SpatialInfo *spatial_info = info->type_info;
@@ -304,6 +317,18 @@ VALUE spatial_compass_correction_get(VALUE self) {
   return (spatial_info->has_compass_correction) ? 
     double_array_to_rb(spatial_info->compass_correction, COMPASS_CORRECTION_LENGTH) : Qnil;
 }
+
+VALUE spatial_data_rate_max(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return (spatial_info->data_rate_max) ? INT2FIX(spatial_info->data_rate_max) : Qnil;
+}  
+
+VALUE spatial_data_rate_min(VALUE self) {
+  SpatialInfo *spatial_info = get_type_info(self);
+
+  return (spatial_info->data_rate_min) ? INT2FIX(spatial_info->data_rate_min) : Qnil;
+}  
 
 VALUE spatial_data_rate_set(VALUE self, VALUE data_rate) {
   PhidgetInfo *info = get_info(self);

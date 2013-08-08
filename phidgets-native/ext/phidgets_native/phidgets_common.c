@@ -362,64 +362,64 @@ int ensure(int result) {
 
   switch(result) {
     case EPHIDGET_NOTFOUND:
-      exception_name = "PhidgetNotFound";
+      exception_name = "PhidgetNotFoundError";
       break;
     case EPHIDGET_NOMEMORY:
-      exception_name = "PhidgetNoMemory";
+      exception_name = "PhidgetNoMemoryError";
       break;
     case EPHIDGET_UNEXPECTED:
-      exception_name = "PhidgetUnexpected";
+      exception_name = "PhidgetUnexpectedError";
       break;
     case EPHIDGET_INVALIDARG:
-      exception_name = "PhidgetInvalidArg";
+      exception_name = "PhidgetInvalidArgError";
       break;
     case EPHIDGET_NOTATTACHED:
-      exception_name = "PhidgetNotAttached";
+      exception_name = "PhidgetNotAttachedError";
       break;
     case EPHIDGET_INTERRUPTED:
-      exception_name = "PhidgetInterrupted";
+      exception_name = "PhidgetInterruptedError";
       break;
     case EPHIDGET_INVALID:
-      exception_name = "PhidgetInvalid";
+      exception_name = "PhidgetInvalidError";
       break;
     case EPHIDGET_NETWORK:
-      exception_name = "PhidgetNetwork";
+      exception_name = "PhidgetNetworkError";
       break;
     case EPHIDGET_UNKNOWNVAL:
-      exception_name = "PhidgetUnknownVal";
+      exception_name = "PhidgetUnknownValError";
       break;
     case EPHIDGET_BADPASSWORD:
-      exception_name = "PhidgetBadPassword";
+      exception_name = "PhidgetBadPasswordError";
       break;
     case EPHIDGET_UNSUPPORTED:
-      exception_name = "PhidgetUnsupported";
+      exception_name = "PhidgetUnsupportedError";
       break;
     case EPHIDGET_DUPLICATE:
-      exception_name = "PhidgetDuplicate";
+      exception_name = "PhidgetDuplicateError";
       break;
     case EPHIDGET_TIMEOUT:
-      exception_name = "PhidgetTimeout";
+      exception_name = "PhidgetTimeoutError";
       break;
     case EPHIDGET_OUTOFBOUNDS:
-      exception_name = "PhidgetOutOfBounds";
+      exception_name = "PhidgetOutOfBoundsError";
       break;
     case EPHIDGET_EVENT:
-      exception_name = "PhidgetEvent";
+      exception_name = "PhidgetEventError";
       break;
     case EPHIDGET_NETWORK_NOTCONNECTED:
-      exception_name = "PhidgetNetworkNotConnected";
+      exception_name = "PhidgetNetworkNotConnectedError";
       break;
     case EPHIDGET_WRONGDEVICE:
-      exception_name = "PhidgetWrongDevice";
+      exception_name = "PhidgetWrongDeviceError";
       break;
     case EPHIDGET_CLOSED:
-      exception_name = "PhidgetClosed";
+      exception_name = "PhidgetClosedError";
       break;
     case EPHIDGET_BADVERSION:
-      exception_name = "PhidgetBadVersion";
+      exception_name = "PhidgetBadVersionError";
       break;
     default:
-      exception_name = "PhidgetUnhandled";
+      exception_name = "PhidgetUnhandledError";
       break;
   }
 
