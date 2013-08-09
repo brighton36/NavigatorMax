@@ -1,5 +1,4 @@
 * Global functions...
-  * We should provide interfaces for the logging
   * We should provide a list or find_all method
 
 * Then implement the gps in C

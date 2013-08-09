@@ -9,6 +9,10 @@ class Phidget::Spatial
   end
 end
 
+Phidget.enable_logging! :verbose
+
+Phidget.log :info, "Huzzzah!"
+
 puts "Using Library version: "+Phidget::LIBRARY_VERSION
 
 p = Phidget::Spatial.new(302012)

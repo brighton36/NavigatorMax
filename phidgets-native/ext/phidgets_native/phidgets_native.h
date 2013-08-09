@@ -70,6 +70,9 @@ typedef struct spatial_info {
 void Init_phidgets_native();
 VALUE double_array_to_rb(double *dbl_array, int length);
 int ensure(int result);
+VALUE phidget_enable_logging(int argc, VALUE *argv, VALUE class);
+VALUE phidget_disable_logging(VALUE class);
+VALUE phidget_log(VALUE class, VALUE log_level, VALUE message);
 
 // Phidget::Device
 PhidgetInfo *get_info(VALUE self);

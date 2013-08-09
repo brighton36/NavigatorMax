@@ -169,6 +169,44 @@ void Init_phidgets_native() {
    * This constant is a string which reflects the version of the phidget library being used.
    */
   rb_define_const(m_Phidget, "LIBRARY_VERSION", rb_str_new2(phidget_library_version));
+
+  /*
+   * Document-method: enable_logging!
+   * call-seq:
+   *   enable_logging!(log_level, file_path = nil) -> nil
+   *
+   * This method will enable logging within the Phidget library. The log_level
+   * parameter indicates the highest degree of desired output verbosity. Logged
+   * data will be that which is less than or equal to this level. Currently, the
+   * supported verbosity levels, in ascending order of verbosity are as follows:
+   *  :critical, :error, :warning, :debug, :info, :verbose
+   * Be sure to specify a symbol, and not a string.
+   *
+   * The optional file_path parameter can be used to divert logging output to a
+   * file, instead of the default behavior of logging to stdout. Be advised that
+   * only absolute path names appear to be supported by the library at this time.
+   */
+  rb_define_singleton_method(m_Phidget, "enable_logging!", phidget_enable_logging, -1);
+
+  /*
+   * Document-method: log
+   * call-seq:
+   *   log(log_level, message) -> nil
+   *
+   * Logs an event of type log_level to the Phidget log, citing the provided message.
+   * Supported log_levels are declared in the enable_logging! method.
+   */
+  rb_define_singleton_method(m_Phidget, "log", phidget_log, 2);
+
+  /*
+   * Document-method: disable_logging!
+   * call-seq:
+   *   disable_logging! -> nil
+   *
+   * This method will disable logging within the Phidget library, if logging was
+   * previously enabled.
+   */
+  rb_define_singleton_method(m_Phidget, "disable_logging!", phidget_disable_logging, -1);
  
   // Phidget Library Exceptions : 
   VALUE c_PhidgetNotFound = rb_define_class_under(m_Phidget, "PhidgetNotFoundError", rb_eStandardError);
@@ -615,16 +653,3 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Spatial, "data_rate", spatial_data_rate_get, 0);
 }
-
-// This converts an array of doubles into a ruby array of numbers, or into
-// nil for the case of an invalid dbl_array
-VALUE double_array_to_rb(double *dbl_array, int length) {
-  if (!dbl_array) return Qnil;
-
-  VALUE rb_ary = rb_ary_new2(length);
-
-  for(int i=0; i<length; i++) rb_ary_store(rb_ary, i, DBL2NUM(dbl_array[i]));
-
-  return rb_ary;
-}
-

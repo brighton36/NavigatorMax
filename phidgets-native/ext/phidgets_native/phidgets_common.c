@@ -10,6 +10,18 @@ PhidgetInfo *get_info(VALUE self) {
   return info;
 }
 
+// This converts an array of doubles into a ruby array of numbers, or into
+// nil for the case of an invalid dbl_array
+VALUE double_array_to_rb(double *dbl_array, int length) {
+  if (!dbl_array) return Qnil;
+
+  VALUE rb_ary = rb_ary_new2(length);
+
+  for(int i=0; i<length; i++) rb_ary_store(rb_ary, i, DBL2NUM(dbl_array[i]));
+
+  return rb_ary;
+}
+
 void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
   info->samples_in_second++;
 
