@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 /* 
- * Document-class: Phidget::Device
+ * Document-class: Phidgets::Device
  *
  * This class is the base class from which all phidget devices will inherit.
  * Basic functionality related to the management of any device can be found
@@ -9,7 +9,7 @@
  */
 
 /*
- * Document-class: Phidget::Spatial
+ * Document-class: Phidgets::Spatial
  *
  * This class provides functionality specific to the "Spatial" device class. 
  * Primarily, this includes reporting of acceleration, compass, and orientation 
@@ -17,294 +17,294 @@
  */
 
 /*
- * Document-class: Phidget::PhidgetNotFoundError
+ * Document-class: Phidgets::PhidgetNotFoundError
  *
  * This exception is raised when the library receives a EPHIDGET_NOTFOUNDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetNoMemoryError
+ * Document-class: Phidgets::PhidgetNoMemoryError
  *
  * This exception is raised when the library receives a EPHIDGET_NOMEMORYERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetUnexpectedError
+ * Document-class: Phidgets::PhidgetUnexpectedError
  *
  * This exception is raised when the library receives a EPHIDGET_UNEXPECTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetInvalidArgError
+ * Document-class: Phidgets::PhidgetInvalidArgError
  *
  * This exception is raised when the library receives a EPHIDGET_INVALIDARGERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetNotAttachedError
+ * Document-class: Phidgets::PhidgetNotAttachedError
  *
  * This exception is raised when the library receives a EPHIDGET_NOTATTACHEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetInterruptedError
+ * Document-class: Phidgets::PhidgetInterruptedError
  *
  * This exception is raised when the library receives a EPHIDGET_INTERRUPTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetInvalidError
+ * Document-class: Phidgets::PhidgetInvalidError
  *
  * This exception is raised when the library receives a EPHIDGET_INVALIDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetNetworkError
+ * Document-class: Phidgets::PhidgetNetworkError
  *
  * This exception is raised when the library receives a EPHIDGET_NETWORKERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetUnknownValError
+ * Document-class: Phidgets::PhidgetUnknownValError
  *
  * This exception is raised when the library receives a EPHIDGET_UNKNOWNVALERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetBadPasswordError
+ * Document-class: Phidgets::PhidgetBadPasswordError
  *
  * This exception is raised when the library receives a EPHIDGET_BADPASSWORDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetUnsupportedError
+ * Document-class: Phidgets::PhidgetUnsupportedError
  *
  * This exception is raised when the library receives a EPHIDGET_UNSUPPORTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetDuplicateError
+ * Document-class: Phidgets::PhidgetDuplicateError
  *
  * This exception is raised when the library receives a EPHIDGET_DUPLICATEERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetTimeoutError
+ * Document-class: Phidgets::PhidgetTimeoutError
  *
  * This exception is raised when the library receives a EPHIDGET_TIMEOUTERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetOutOfBoundsError
+ * Document-class: Phidgets::PhidgetOutOfBoundsError
  *
  * This exception is raised when the library receives a EPHIDGET_OUTOFBOUNDSERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetEventError
+ * Document-class: Phidgets::PhidgetEventError
  *
  * This exception is raised when the library receives a EPHIDGET_EVENTERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetNetworkNotConnectedError
+ * Document-class: Phidgets::PhidgetNetworkNotConnectedError
  *
  * This exception is raised when the library receives a EPHIDGET_NETWORKNOTCONNECTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetWrongDeviceError
+ * Document-class: Phidgets::PhidgetWrongDeviceError
  *
  * This exception is raised when the library receives a EPHIDGET_WRONGDEVICEERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetClosedError
+ * Document-class: Phidgets::PhidgetClosedError
  *
  * This exception is raised when the library receives a EPHIDGET_CLOSEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetBadVersionError
+ * Document-class: Phidgets::PhidgetBadVersionError
  *
  * This exception is raised when the library receives a EPHIDGET_BADVERSIONERROR
  * error.
  */
 
 /*
- * Document-class: Phidget::PhidgetUnhandledError
+ * Document-class: Phidgets::PhidgetUnhandledError
  *
  * This exception is raised when the library receives a EPHIDGET_UNHANDLEDERROR
  * error.
  */
 
 /* 
- * Document-class: Phidget::Accelerometer
+ * Document-class: Phidgets::Accelerometer
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::AdvancedServo
+ * Document-class: Phidgets::AdvancedServo
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::Encoder
+ * Document-class: Phidgets::Encoder
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::InterfaceKit
+ * Document-class: Phidgets::InterfaceKit
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::IR
+ * Document-class: Phidgets::IR
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::LED
+ * Document-class: Phidgets::LED
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::GPS
+ * Document-class: Phidgets::GPS
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::MotorControl
+ * Document-class: Phidgets::MotorControl
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::PHSensor
+ * Document-class: Phidgets::PHSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::RFID
+ * Document-class: Phidgets::RFID
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::Servo
+ * Document-class: Phidgets::Servo
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::Stepper
+ * Document-class: Phidgets::Stepper
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::TemperatureSensor
+ * Document-class: Phidgets::TemperatureSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::TextLCD
+ * Document-class: Phidgets::TextLCD
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::TextLED
+ * Document-class: Phidgets::TextLED
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::WeightSensor
+ * Document-class: Phidgets::WeightSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::Analog
+ * Document-class: Phidgets::Analog
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::Bridge
+ * Document-class: Phidgets::Bridge
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
 /* 
- * Document-class: Phidget::FrequencyCounter
+ * Document-class: Phidgets::FrequencyCounter
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * Nontheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -315,7 +315,7 @@ void Init_phidgets_native() {
   /*
    * Just a container module for all of our objects
    */
-  VALUE m_Phidget = rb_define_module("Phidget");
+  VALUE m_Phidget = rb_define_module("Phidgets");
 
   /*
    * This constant is a string which reflects the version of the phidget library being used.
@@ -392,7 +392,7 @@ void Init_phidgets_native() {
   VALUE c_PhidgetBadVersion = rb_define_class_under(m_Phidget, "PhidgetBadVersionError", rb_eStandardError);
   VALUE c_PhidgetUnhandled = rb_define_class_under(m_Phidget, "PhidgetUnhandledError", rb_eStandardError);
 
-  // Phidget::Device
+  // Phidgets::Device
   VALUE c_Device = rb_define_class_under(m_Phidget,"Device",rb_cObject);
   rb_define_alloc_func(c_Device, phidget_allocate);
 
@@ -529,7 +529,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Device, "sample_rate", phidget_sample_rate, 0);
   
-  // Phidget::Spatial
+  // Phidgets::Spatial
   VALUE c_Spatial = rb_define_class_under(m_Phidget,"Spatial",c_Device);
 
   /*
@@ -815,7 +815,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Spatial, "data_rate", spatial_data_rate_get, 0);
   
-  // Phidget::GPS
+  // Phidgets::GPS
   VALUE c_Gps = rb_define_class_under(m_Phidget,"GPS",c_Device);
 
   /*
@@ -828,7 +828,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Gps, "initialize", gps_initialize, 1);
 
-  // Phidget::InterfaceKit
+  // Phidgets::InterfaceKit
   VALUE c_InterfaceKit = rb_define_class_under(m_Phidget,"InterfaceKit",c_Device);
 
   /*
@@ -841,7 +841,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_InterfaceKit, "initialize", interfacekit_initialize, 1);
 
-  // Phidget::Accelerometer
+  // Phidgets::Accelerometer
  	VALUE c_Accelerometer = rb_define_class_under(m_Phidget, "Accelerometer", c_Device);
 
   /*
@@ -854,7 +854,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Accelerometer, "initialize", accelerometer_initialize, 1);
 
-  // Phidget::AdvancedServo
+  // Phidgets::AdvancedServo
  	VALUE c_AdvancedServo = rb_define_class_under(m_Phidget, "AdvancedServo", c_Device);
 
   /*
@@ -867,7 +867,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_AdvancedServo, "initialize", advancedservo_initialize, 1);
 
-  // Phidget::Encoder
+  // Phidgets::Encoder
  	VALUE c_Encoder = rb_define_class_under(m_Phidget, "Encoder", c_Device);
 
   /*
@@ -880,7 +880,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Encoder, "initialize", encoder_initialize, 1);
 
-  // Phidget::IR
+  // Phidgets::IR
  	VALUE c_IR = rb_define_class_under(m_Phidget, "IR", c_Device);
 
   /*
@@ -893,7 +893,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_IR, "initialize", ir_initialize, 1);
 
-  // Phidget::LED
+  // Phidgets::LED
  	VALUE c_LED = rb_define_class_under(m_Phidget, "LED", c_Device);
 
   /*
@@ -906,7 +906,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_LED, "initialize", led_initialize, 1);
 
-  // Phidget::MotorControl
+  // Phidgets::MotorControl
  	VALUE c_MotorControl = rb_define_class_under(m_Phidget, "MotorControl", c_Device);
 
   /*
@@ -919,7 +919,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_MotorControl, "initialize", motorcontrol_initialize, 1);
 
-  // Phidget::PHSensor
+  // Phidgets::PHSensor
  	VALUE c_PHSensor = rb_define_class_under(m_Phidget, "PHSensor", c_Device);
 
   /*
@@ -932,7 +932,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_PHSensor, "initialize", phsensor_initialize, 1);
 
-  // Phidget::RFID
+  // Phidgets::RFID
  	VALUE c_RFID = rb_define_class_under(m_Phidget, "RFID", c_Device);
 
   /*
@@ -945,7 +945,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_RFID, "initialize", rfid_initialize, 1);
 
-  // Phidget::Servo
+  // Phidgets::Servo
  	VALUE c_Servo = rb_define_class_under(m_Phidget, "Servo", c_Device);
 
   /*
@@ -958,7 +958,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Servo, "initialize", servo_initialize, 1);
 
-  // Phidget::Stepper
+  // Phidgets::Stepper
  	VALUE c_Stepper = rb_define_class_under(m_Phidget, "Stepper", c_Device);
 
   /*
@@ -971,7 +971,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Stepper, "initialize", stepper_initialize, 1);
 
-  // Phidget::TemperatureSensor
+  // Phidgets::TemperatureSensor
  	VALUE c_TemperatureSensor = rb_define_class_under(m_Phidget, "TemperatureSensor", c_Device);
 
   /*
@@ -984,7 +984,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_TemperatureSensor, "initialize", temperaturesensor_initialize, 1);
 
-  // Phidget::TextLCD
+  // Phidgets::TextLCD
  	VALUE c_TextLCD = rb_define_class_under(m_Phidget, "TextLCD", c_Device);
 
   /*
@@ -997,7 +997,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_TextLCD, "initialize", textlcd_initialize, 1);
 
-  // Phidget::TextLED
+  // Phidgets::TextLED
  	VALUE c_TextLED = rb_define_class_under(m_Phidget, "TextLED", c_Device);
 
   /*
@@ -1010,7 +1010,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_TextLED, "initialize", textled_initialize, 1);
 
-  // Phidget::WeightSensor
+  // Phidgets::WeightSensor
  	VALUE c_WeightSensor = rb_define_class_under(m_Phidget, "WeightSensor", c_Device);
 
   /*
@@ -1023,7 +1023,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_WeightSensor, "initialize", weightsensor_initialize, 1);
 
-  // Phidget::Analog
+  // Phidgets::Analog
  	VALUE c_Analog = rb_define_class_under(m_Phidget, "Analog", c_Device);
 
   /*
@@ -1036,7 +1036,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Analog, "initialize", analog_initialize, 1);
 
-  // Phidget::Bridge
+  // Phidgets::Bridge
  	VALUE c_Bridge = rb_define_class_under(m_Phidget, "Bridge", c_Device);
 
   /*
@@ -1049,7 +1049,7 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_Bridge, "initialize", bridge_initialize, 1);
 
-  // Phidget::FrequencyCounter
+  // Phidgets::FrequencyCounter
  	VALUE c_FrequencyCounter = rb_define_class_under(m_Phidget, "FrequencyCounter", c_Device);
 
   /*

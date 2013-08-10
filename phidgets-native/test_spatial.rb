@@ -3,19 +3,19 @@
 
 require './lib/phidgets_native.bundle'
 
-class Phidget::Spatial
+class Phidgets::Spatial
   def test_method
     'uhuhu'
   end
 end
 
-Phidget.enable_logging! :verbose
+Phidgets.enable_logging! :verbose
 
-Phidget.log :info, "Huzzzah!"
+Phidgets.log :info, "Huzzzah!"
 
-puts "Using Library version: "+Phidget::LIBRARY_VERSION
+puts "Using Library version: "+Phidgets::LIBRARY_VERSION
 
-p = Phidget::Spatial.new(302012)
+p = Phidgets::Spatial.new(302012)
 p.wait_for_attachment 10000
 p.data_rate = 16
 p.compass_correction = [ 0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 

@@ -109,7 +109,7 @@ VALUE phidget_all(VALUE class) {
 
   // And start constructing the ruby return value:
   VALUE devices = rb_ary_new2(num_devices);
-  VALUE phidget_module = rb_const_get(rb_cObject, rb_intern("Phidget"));
+  VALUE phidget_module = rb_const_get(rb_cObject, rb_intern("Phidgets"));
 
   for(int i=0; i<num_devices; i++) {
     ID class_const;
@@ -124,7 +124,7 @@ VALUE phidget_all(VALUE class) {
     else if (strcmp("PhidgetInterfaceKit", device_type[i]) == 0)
       class_const = rb_intern("InterfaceKit");
     else if (strcmp("PhidgetGPS", device_type[i]) == 0)
-      class_const = rb_intern("Gps");
+      class_const = rb_intern("GPS");
     else {
       VALUE c_Exception = rb_const_get(phidget_module, rb_intern("PhidgetUnsupportedError"));
       rb_raise(c_Exception, "%s \"%s\"", MSG_UNSUPPORTED_DEVICE_ENUMERATED, device_type[i]);

@@ -3,9 +3,9 @@
 
 require './lib/phidgets_native.bundle'
 
-#Phidget.enable_logging! :verbose
+#Phidgets.enable_logging! :verbose
 
-puts "Using Library version: "+Phidget::LIBRARY_VERSION
+puts "Using Library version: "+Phidgets::LIBRARY_VERSION
 
 # Here's the definition of our table:
 Column = Struct.new :label, :width, :attr
@@ -21,7 +21,7 @@ row_fmt = '|- %s -|' % columns.collect{|col| "%-#{col.width}s"}.join(' -|- ')
 
 # Construct the table and Output it:
 [ end_cap, row_fmt % columns.collect(&:label), 
-  Phidget.all.enum_for(:each_with_index).collect{ |p,i|
+  Phidgets.all.enum_for(:each_with_index).collect{ |p,i|
   [ separator, 
     row_fmt % columns.collect{|col| (col.attr) ? p.send(col.attr.to_sym) : i } ]
 }, end_cap].flatten.each{|line| puts line}
