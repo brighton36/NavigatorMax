@@ -1,10 +1,14 @@
-* Global functions...
-  * We should provide a list or find_all method
+* Add init handlers for the new objects
+  * document them!
+  * And put them in their own files? Also - rename these files 
+    * Device should probably have its own module
 
 * Then implement the gps in C
-  * If there's no handle by the time it gets to device::init, we should use a generic handle. Test this before/during the gps implement
+
+* We should probably not register the handlers until open() is called
 
 * Decide if we should do something about phidget_on_error either raise an error or do nothing...
+  * I'm thinking nothing...
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html

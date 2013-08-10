@@ -70,9 +70,12 @@ typedef struct spatial_info {
 void Init_phidgets_native();
 VALUE double_array_to_rb(double *dbl_array, int length);
 int ensure(int result);
+
+// Phidget (Module)
 VALUE phidget_enable_logging(int argc, VALUE *argv, VALUE class);
 VALUE phidget_disable_logging(VALUE class);
 VALUE phidget_log(VALUE class, VALUE log_level, VALUE message);
+VALUE phidget_all(VALUE class);
 
 // Phidget::Device
 PhidgetInfo *get_info(VALUE self);
@@ -82,7 +85,7 @@ int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr);
 int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr);
 int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown);
 
-VALUE phidget_new(int argc, VALUE* argv, VALUE class);
+VALUE phidget_allocate(VALUE class);
 VALUE phidget_initialize(VALUE self, VALUE serial);
 VALUE phidget_close(VALUE self);
 VALUE phidget_wait_for_attachment(VALUE self, VALUE timeout);
@@ -128,3 +131,28 @@ VALUE spatial_data_rate_min(VALUE self);
 VALUE spatial_data_rate_max(VALUE self);
 VALUE spatial_data_rate_set(VALUE self, VALUE data_rate);
 VALUE spatial_data_rate_get(VALUE self);
+
+// Phidget::InterfaceKit
+VALUE interfacekit_initialize(VALUE self, VALUE serial);
+
+// Phidget::Gps
+VALUE gps_initialize(VALUE self, VALUE serial);
+
+// Stub initializers:
+VALUE accelerometer_initialize(VALUE self, VALUE serial);
+VALUE advancedservo_initialize(VALUE self, VALUE serial);
+VALUE encoder_initialize(VALUE self, VALUE serial);
+VALUE ir_initialize(VALUE self, VALUE serial);
+VALUE led_initialize(VALUE self, VALUE serial);
+VALUE motorcontrol_initialize(VALUE self, VALUE serial);
+VALUE phsensor_initialize(VALUE self, VALUE serial);
+VALUE rfid_initialize(VALUE self, VALUE serial);
+VALUE servo_initialize(VALUE self, VALUE serial);
+VALUE stepper_initialize(VALUE self, VALUE serial);
+VALUE temperaturesensor_initialize(VALUE self, VALUE serial);
+VALUE textlcd_initialize(VALUE self, VALUE serial);
+VALUE textled_initialize(VALUE self, VALUE serial);
+VALUE weightsensor_initialize(VALUE self, VALUE serial);
+VALUE analog_initialize(VALUE self, VALUE serial);
+VALUE bridge_initialize(VALUE self, VALUE serial);
+VALUE frequencycounter_initialize(VALUE self, VALUE serial);

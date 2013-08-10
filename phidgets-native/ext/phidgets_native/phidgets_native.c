@@ -156,6 +156,158 @@
  * error.
  */
 
+/* 
+ * Document-class: Phidget::Accelerometer
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::AdvancedServo
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::Encoder
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::InterfaceKit
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::IR
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::LED
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::GPS
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::MotorControl
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::PHSensor
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::RFID
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::Servo
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::Stepper
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::TemperatureSensor
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::TextLCD
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::TextLED
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::WeightSensor
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::Analog
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::Bridge
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
+/* 
+ * Document-class: Phidget::FrequencyCounter
+ *
+ * This class is a stub, and is currently in need of an actual implementation.
+ * Nontheless, all of the methods from its parent class Phidget::Device are 
+ * available.
+ */
+
 void Init_phidgets_native() {
   const char *phidget_library_version;
 
@@ -206,7 +358,17 @@ void Init_phidgets_native() {
    * This method will disable logging within the Phidget library, if logging was
    * previously enabled.
    */
-  rb_define_singleton_method(m_Phidget, "disable_logging!", phidget_disable_logging, -1);
+  rb_define_singleton_method(m_Phidget, "disable_logging!", phidget_disable_logging, 0);
+
+  /*
+   * Document-method: all
+   * call-seq:
+   *  all -> nil
+   *
+   * This method will return an array of Phidget objects. These objects all the 
+   * represent all the Phidgets which are currently connected to your computer.
+   */
+  rb_define_singleton_method(m_Phidget, "all", phidget_all, 0);
  
   // Phidget Library Exceptions : 
   VALUE c_PhidgetNotFound = rb_define_class_under(m_Phidget, "PhidgetNotFoundError", rb_eStandardError);
@@ -232,12 +394,12 @@ void Init_phidgets_native() {
 
   // Phidget::Device
   VALUE c_Device = rb_define_class_under(m_Phidget,"Device",rb_cObject);
-  rb_define_singleton_method(c_Device, "new", phidget_new, -1);
+  rb_define_alloc_func(c_Device, phidget_allocate);
 
   /*
-   * Document-method: initialize
+   * Document-method: new
    * call-seq:
-   *   initialize(serial_number)
+   *   new(serial_number)
    *
    * All phidget objects are created from the device serial number. Serial numbers
    * are required to be Fixnums (aka "unsigned integers").
@@ -371,9 +533,9 @@ void Init_phidgets_native() {
   VALUE c_Spatial = rb_define_class_under(m_Phidget,"Spatial",c_Device);
 
   /*
-   * Document-method: initialize
+   * Document-method: new
    * call-seq:
-   *   initialize(serial_number)
+   *   new(serial_number)
    *
    * All phidget objects are created from the device serial number. Serial numbers
    * are required to be Fixnums (aka "unsigned integers").
@@ -652,4 +814,407 @@ void Init_phidgets_native() {
    * the default rate, which is 16.
    */
   rb_define_method(c_Spatial, "data_rate", spatial_data_rate_get, 0);
+  
+  // Phidget::GPS
+  VALUE c_Gps = rb_define_class_under(m_Phidget,"GPS",c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Gps, "initialize", gps_initialize, 1);
+
+  // Phidget::InterfaceKit
+  VALUE c_InterfaceKit = rb_define_class_under(m_Phidget,"InterfaceKit",c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_InterfaceKit, "initialize", interfacekit_initialize, 1);
+
+  // Phidget::Accelerometer
+ 	VALUE c_Accelerometer = rb_define_class_under(m_Phidget, "Accelerometer", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Accelerometer, "initialize", accelerometer_initialize, 1);
+
+  // Phidget::AdvancedServo
+ 	VALUE c_AdvancedServo = rb_define_class_under(m_Phidget, "AdvancedServo", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_AdvancedServo, "initialize", advancedservo_initialize, 1);
+
+  // Phidget::Encoder
+ 	VALUE c_Encoder = rb_define_class_under(m_Phidget, "Encoder", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Encoder, "initialize", encoder_initialize, 1);
+
+  // Phidget::IR
+ 	VALUE c_IR = rb_define_class_under(m_Phidget, "IR", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_IR, "initialize", ir_initialize, 1);
+
+  // Phidget::LED
+ 	VALUE c_LED = rb_define_class_under(m_Phidget, "LED", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_LED, "initialize", led_initialize, 1);
+
+  // Phidget::MotorControl
+ 	VALUE c_MotorControl = rb_define_class_under(m_Phidget, "MotorControl", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_MotorControl, "initialize", motorcontrol_initialize, 1);
+
+  // Phidget::PHSensor
+ 	VALUE c_PHSensor = rb_define_class_under(m_Phidget, "PHSensor", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_PHSensor, "initialize", phsensor_initialize, 1);
+
+  // Phidget::RFID
+ 	VALUE c_RFID = rb_define_class_under(m_Phidget, "RFID", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_RFID, "initialize", rfid_initialize, 1);
+
+  // Phidget::Servo
+ 	VALUE c_Servo = rb_define_class_under(m_Phidget, "Servo", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Servo, "initialize", servo_initialize, 1);
+
+  // Phidget::Stepper
+ 	VALUE c_Stepper = rb_define_class_under(m_Phidget, "Stepper", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Stepper, "initialize", stepper_initialize, 1);
+
+  // Phidget::TemperatureSensor
+ 	VALUE c_TemperatureSensor = rb_define_class_under(m_Phidget, "TemperatureSensor", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_TemperatureSensor, "initialize", temperaturesensor_initialize, 1);
+
+  // Phidget::TextLCD
+ 	VALUE c_TextLCD = rb_define_class_under(m_Phidget, "TextLCD", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_TextLCD, "initialize", textlcd_initialize, 1);
+
+  // Phidget::TextLED
+ 	VALUE c_TextLED = rb_define_class_under(m_Phidget, "TextLED", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_TextLED, "initialize", textled_initialize, 1);
+
+  // Phidget::WeightSensor
+ 	VALUE c_WeightSensor = rb_define_class_under(m_Phidget, "WeightSensor", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_WeightSensor, "initialize", weightsensor_initialize, 1);
+
+  // Phidget::Analog
+ 	VALUE c_Analog = rb_define_class_under(m_Phidget, "Analog", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Analog, "initialize", analog_initialize, 1);
+
+  // Phidget::Bridge
+ 	VALUE c_Bridge = rb_define_class_under(m_Phidget, "Bridge", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_Bridge, "initialize", bridge_initialize, 1);
+
+  // Phidget::FrequencyCounter
+ 	VALUE c_FrequencyCounter = rb_define_class_under(m_Phidget, "FrequencyCounter", c_Device);
+
+  /*
+   * Document-method: new
+   * call-seq:
+   *   new(serial_number)
+   *
+   * All phidget objects are created from the device serial number. Serial numbers
+   * are required to be Fixnums (aka "unsigned integers").
+   */
+  rb_define_method(c_FrequencyCounter, "initialize", frequencycounter_initialize, 1);
 }
+
+VALUE interfacekit_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetInterfaceKitHandle interfacekit = 0;
+  ensure(CPhidgetInterfaceKit_create(&interfacekit));
+  info->handle = (CPhidgetHandle)interfacekit;
+  return rb_call_super(1, &serial);
+}
+
+VALUE gps_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetGPSHandle gps = 0;
+  ensure(CPhidgetGPS_create(&gps));
+  info->handle = (CPhidgetHandle)gps;
+  return rb_call_super(1, &serial);
+}
+
+VALUE accelerometer_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+
+  CPhidgetAccelerometerHandle accelerometer = 0;
+  ensure(CPhidgetAccelerometer_create(&accelerometer));
+
+  info->handle = (CPhidgetHandle)accelerometer;
+  return rb_call_super(1, &serial);
+}
+
+VALUE advancedservo_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetAdvancedServoHandle advancedservo = 0;
+  ensure(CPhidgetAdvancedServo_create(&advancedservo));
+  info->handle = (CPhidgetHandle)advancedservo;
+  return rb_call_super(1, &serial);
+}
+
+VALUE encoder_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetEncoderHandle encoder = 0;
+  ensure(CPhidgetEncoder_create(&encoder));
+  info->handle = (CPhidgetHandle)encoder;
+  return rb_call_super(1, &serial);
+}
+
+VALUE ir_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetIRHandle ir = 0;
+  ensure(CPhidgetIR_create(&ir));
+  info->handle = (CPhidgetHandle)ir;
+  return rb_call_super(1, &serial);
+}
+
+VALUE led_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetLEDHandle led = 0;
+  ensure(CPhidgetLED_create(&led));
+  info->handle = (CPhidgetHandle)led;
+  return rb_call_super(1, &serial);
+}
+
+VALUE motorcontrol_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetMotorControlHandle motorcontrol = 0;
+  ensure(CPhidgetMotorControl_create(&motorcontrol));
+  info->handle = (CPhidgetHandle)motorcontrol;
+  return rb_call_super(1, &serial);
+}
+
+VALUE phsensor_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetPHSensorHandle phsensor  = 0;
+  ensure(CPhidgetPHSensor_create(&phsensor));
+  info->handle = (CPhidgetHandle)phsensor ;
+  return rb_call_super(1, &serial);
+}
+
+VALUE rfid_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetRFIDHandle rfid = 0;
+  ensure(CPhidgetRFID_create(&rfid));
+  info->handle = (CPhidgetHandle)rfid;
+  return rb_call_super(1, &serial);
+}
+
+VALUE servo_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetServoHandle servo = 0;
+  ensure(CPhidgetServo_create(&servo));
+  info->handle = (CPhidgetHandle)servo;
+  return rb_call_super(1, &serial);
+}
+
+VALUE stepper_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetStepperHandle stepper = 0;
+  ensure(CPhidgetStepper_create(&stepper));
+  info->handle = (CPhidgetHandle)stepper;
+  return rb_call_super(1, &serial);
+}
+
+VALUE temperaturesensor_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetTemperatureSensorHandle temperaturesensor = 0;
+  ensure(CPhidgetTemperatureSensor_create(&temperaturesensor));
+  info->handle = (CPhidgetHandle)temperaturesensor;
+  return rb_call_super(1, &serial);
+}
+
+VALUE textlcd_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetTextLCDHandle textlcd = 0;
+  ensure(CPhidgetTextLCD_create(&textlcd));
+  info->handle = (CPhidgetHandle)textlcd;
+  return rb_call_super(1, &serial);
+}
+
+VALUE textled_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetTextLEDHandle textled = 0;
+  ensure(CPhidgetTextLED_create(&textled));
+  info->handle = (CPhidgetHandle)textled;
+  return rb_call_super(1, &serial);
+}
+
+VALUE weightsensor_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetWeightSensorHandle weightsensor = 0;
+  ensure(CPhidgetWeightSensor_create(&weightsensor));
+  info->handle = (CPhidgetHandle)weightsensor;
+  return rb_call_super(1, &serial);
+}
+
+VALUE analog_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetAnalogHandle analog = 0;
+  ensure(CPhidgetAnalog_create(&analog));
+  info->handle = (CPhidgetHandle)analog;
+  return rb_call_super(1, &serial);
+}
+
+VALUE bridge_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetBridgeHandle bridge = 0;
+  ensure(CPhidgetBridge_create(&bridge));
+  info->handle = (CPhidgetHandle)bridge;
+  return rb_call_super(1, &serial);
+}
+
+VALUE frequencycounter_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = get_info(self);
+  CPhidgetFrequencyCounterHandle frequencycounter = 0;
+  ensure(CPhidgetFrequencyCounter_create(&frequencycounter));
+  info->handle = (CPhidgetHandle)frequencycounter;
+  return rb_call_super(1, &serial);
+}
+
+

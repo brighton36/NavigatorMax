@@ -2,6 +2,7 @@
 
 const char MSG_SERIAL_MUST_BE_FIX[] = "serial number must be a fixnum";
 const char MSG_TIMEOUT_MUST_BE_FIX[] = "timeout must be a fixnum";
+const char MSG_UNSUPPORTED_INITIALIZATION[] = "device cannot be directly instantiated, please instantiate an inherited class";
 
 PhidgetInfo *get_info(VALUE self) {
   PhidgetInfo *info;
@@ -97,9 +98,8 @@ void phidget_free(PhidgetInfo *info) {
   }
 }
 
-
-VALUE phidget_new(int argc, VALUE* argv, VALUE class) {
-  printf("Inside phidget_new\n");
+VALUE phidget_allocate(VALUE class) {
+  printf("Inside phidget_allocate\n");
 
   // We'll need this all over the place later:
   PhidgetInfo *info;
@@ -107,11 +107,8 @@ VALUE phidget_new(int argc, VALUE* argv, VALUE class) {
   memset(info, 0, sizeof(PhidgetInfo));
   info->is_attached = false;
 
-  // Call the object's constructor:
-  rb_obj_call_init(self, argc, argv);
-
   return self;
-}  
+}
 
 VALUE phidget_initialize(VALUE self, VALUE serial) {
   PhidgetInfo *info = get_info(self);
@@ -125,7 +122,10 @@ VALUE phidget_initialize(VALUE self, VALUE serial) {
 
   info->serial = FIX2INT(serial);
 
-  // TODO Initialize info->handle if it's not already initialized 
+  // If we didn't get called via an inherited class, then we setup a generic pointer
+  // approach to doing this...
+  if ( info->handle == NULL )
+    rb_raise(rb_eTypeError, MSG_UNSUPPORTED_INITIALIZATION);
 
   // Register the event handlers:
 	ensure(CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, phidget_on_attach, info));
