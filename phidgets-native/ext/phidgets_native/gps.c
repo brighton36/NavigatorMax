@@ -4,45 +4,89 @@ int CCONV gps_on_position_change(CPhidgetGPSHandle gps, void *userptr, double la
   PhidgetInfo *info = userptr;
   GpsInfo *gps_info = info->type_info;
 
-  gps_info->latitude = latitude;
-  gps_info->longitude = longitude;
-  gps_info->altitude = altitude;
-
-  double heading;
-  double velocity;
-
-  // TODO: I get the impression that these are only sometimes available, and that
-  // this fails. Maybe we want to ensure this? Maybe we want to check the PUNKness:
-	if( (CPhidgetGPS_getHeading(gps, &heading) == EPHIDGET_OK) && 
-      (CPhidgetGPS_getVelocity(gps, &velocity) == EPHIDGET_OK) ) {
-    gps_info->heading = heading;
-    gps_info->velocity = velocity;
-		printf(" Heading: %3.2lf, Velocity: %4.3lf\n",heading, velocity);
-  } else {
-    gps_info->heading = 0;
-    gps_info->velocity = 0;
-  }
-
-  /* TODO
 	GPSDate date;
 	GPSTime time;
 
-	if(!CPhidgetGPS_getDate(gps, &date) && !CPhidgetGPS_getTime(gps, &time))
-		printf(" Date: %02d/%02d/%02d Time %02d:%02d:%02d.%03d\n", date.tm_mday, date.tm_mon, date.tm_year, time.tm_hour, time.tm_min, time.tm_sec, time.tm_ms);
-  */
+	if ( (CPhidgetGPS_getDate(gps, &date) == EPHIDGET_OK) && 
+    (CPhidgetGPS_getTime(gps, &time) == EPHIDGET_OK) ) {
+    struct tm now_at_utc;
+    now_at_utc.tm_sec = time.tm_sec;
+    now_at_utc.tm_min = time.tm_sec;
+    now_at_utc.tm_hour = time.tm_hour;
+    now_at_utc.tm_mday = date.tm_mday;
+    now_at_utc.tm_mon = date.tm_mon;
+    now_at_utc.tm_year = date.tm_year;
 
-	printf("Position Change event: lat: %3.4lf, long: %4.4lf, alt: %5.4lf\n", latitude, longitude, altitude);
+    gps_info->now_at_utc = mktime(&now_at_utc);
+    gps_info->now_at_utc_ms = time.tm_ms;
+    gps_info->is_now_at_utc_known = true;
+  } else
+    gps_info->is_now_at_utc_known = false;
+
+  /*
+  struct tm now_at_utc;
+  now_at_utc.tm_sec = time.tm_sec;
+  now_at_utc.tm_min = time.tm_sec;
+  now_at_utc.tm_hour = time.tm_hour;
+  now_at_utc.tm_mday = date.tm_mday;
+  now_at_utc.tm_mon = date.tm_mon;
+  now_at_utc.tm_year = date.tm_year;
+
+  gps_info->now_at_utc = mktime(&now_at_utc);
+  if (gps_info->attached_at_utc == 0) {
+    printf("Setting attached at!");
+    gps_info->attached_at_utc = gps_info->now_at_utc;
+  }
+
+  CPhidget_Timestamp ts;
+  memset(&ts, 0, sizeof(CPhidget_Timestamp));
+
+  ts.seconds = difftime(gps_info->attached_at_utc,gps_info->now_at_utc);
+  printf("Diff seconds: %d\n", ts.seconds);
+  ts.microseconds = time.tm_ms * 1000;
+
+  device_sample(info, &ts);
+  */
+  if (gps_info->latitude != PUNK_DBL) {
+    gps_info->is_latitude_known = true;
+    gps_info->latitude = latitude;
+  } else
+    gps_info->is_latitude_known = false;
+
+  if (gps_info->longitude != PUNK_DBL) {
+    gps_info->is_longitude_known = true;
+    gps_info->longitude = longitude;
+  } else
+    gps_info->is_longitude_known = false;
+
+  if (gps_info->altitude != PUNK_DBL) {
+    gps_info->is_altitude_known = true;
+    gps_info->altitude = altitude;
+  } else
+    gps_info->is_altitude_known = false;
+
+  double heading, velocity;
+  if (CPhidgetGPS_getHeading(gps, &heading) == EPHIDGET_OK) {
+    gps_info->heading = heading;
+    gps_info->is_heading_known = true;
+  } else
+    gps_info->is_heading_known = false;
+
+  if (CPhidgetGPS_getVelocity(gps, &velocity) == EPHIDGET_OK) {
+    gps_info->velocity = velocity;
+    gps_info->is_velocity_known = true;
+  } else
+    gps_info->is_velocity_known = false;
 
 	return 0;
 }
 
 int CCONV gps_on_fix_change(CPhidgetGPSHandle gps, void *userptr, int status) {
-  /* 
-   * TODO, this should be true or false I think:
-    gps_info->is_fixed;
-   */
+  PhidgetInfo *info = userptr;
+  GpsInfo *gps_info = info->type_info;
 
-	printf("TODO: Fix change event (what does this value mean): %d\n", status);
+  // I'm fairly certain that status is always either 1 or 0
+  gps_info->is_fixed = (status) ? true : false;
 
 	return 0;
 }
@@ -88,31 +132,31 @@ void gps_on_free(void *type_info) {
 VALUE gps_latitude(VALUE self) {
   GpsInfo *gps_info = device_type_info(self);
 
-  return DBL2NUM(gps_info->latitude);
+  return (gps_info->is_latitude_known) ? DBL2NUM(gps_info->latitude) : Qnil;
 }
 
 VALUE gps_longitude(VALUE self) {
   GpsInfo *gps_info = device_type_info(self);
 
-  return DBL2NUM(gps_info->longitude);
+  return (gps_info->is_longitude_known) ? DBL2NUM(gps_info->longitude) : Qnil;
 }
 
 VALUE gps_altitude(VALUE self) {
   GpsInfo *gps_info = device_type_info(self);
 
-  return DBL2NUM(gps_info->altitude);
+  return (gps_info->is_altitude_known) ? DBL2NUM(gps_info->altitude) : Qnil;
 }
 
 VALUE gps_heading(VALUE self) {
   GpsInfo *gps_info = device_type_info(self);
 
-  return DBL2NUM(gps_info->heading);
+  return (gps_info->is_heading_known) ? DBL2NUM(gps_info->heading) : Qnil;
 }
 
 VALUE gps_velocity(VALUE self) {
   GpsInfo *gps_info = device_type_info(self);
 
-  return DBL2NUM(gps_info->velocity);
+  return (gps_info->is_velocity_known) ? DBL2NUM(gps_info->velocity) : Qnil;
 }
 
 VALUE gps_is_fixed(VALUE self) {

@@ -25,6 +25,9 @@ void device_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
   // Sample tracking
   // We need the > 0 for the case of the first time we've ever entered this loop
   if ( ( info->last_second > 0 ) && ( info->last_second != ts->seconds ) ) {
+    // TODO: What happens if we went over the sizeof(int) ? seconds would wrap
+    // down to zero. Possibly we should handle this.
+
     info->sample_rate = (double) info->samples_in_second / 
         (double) (ts->seconds - info->last_second);
     info->samples_in_second = 0;

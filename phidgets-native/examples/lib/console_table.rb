@@ -28,7 +28,8 @@ class ConsoleTable
 
       puts [
         (options[:header] == false) ? nil : [ end_cap, row_fmt % @columns, separator],
-        rows.collect{ |row| [ (options[:separator] == false) ? nil : separator, row_fmt % row ] }, 
+        rows.to_enum(:each_with_index).collect{ |row,i | 
+          [ (options[:separator] == false || i == 0) ? nil : separator, row_fmt % row ] }, 
         (options[:footer] == false) ? nil : end_cap
       ].flatten.compact.join("\n")
     end

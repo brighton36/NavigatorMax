@@ -1,14 +1,19 @@
 * Then implement the gps in C
-  * Write a gps_test
-  * Address the TODOs in the gps.c and test
   * Then work through sample! 
+    * I think this needs to be done with the system tools, as we don't always have time available..
+  * Address the TODOs in the gps.c and test
+  * Make sure we label the units correctly in the rdoc
   * Time functions should be labeled in UTC
+  * We may need to shy away from the ensures in our threaded handlers. 
+    * Alternatively, we can just allow the unknownvals to slide...
 
 * Then implement the interfacekit in C
 * Then implement the servocontroller in C
 
 * Decide if we should do something about phidget_on_error either raise an error or do nothing...
   * I'm thinking nothing...
+
+* Sometimes the Phidget.all function segfaults while enumerationg. I think a sleep will work
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html

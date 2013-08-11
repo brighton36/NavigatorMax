@@ -30,11 +30,16 @@ ConsoleTable.new(%w(Attribute Value)).output do
 end
 
 # And this updates every 5 seconds:
-gps_attribs = %w(Sample\ Rate Altitude Heading Is\ Fixed Latitude Longitude Velocity)
+gps_attribs = ['Sample Rate', 'Is Fixed', '%-18s' % 'Latitude', '%-18s' % 'Longitude', 'Altitude', 
+  'Heading', 'Velocity']
 i = 0
-ConsoleTable.new(gps_attribs).output(:header => (i == 0), :separator => false) do |columns|
-  i+=1
-  [ columns.collect{|attr| gps.send(attr.tr(' ','_').downcase.to_sym).inspect } ]
-end while sleep(3)
+begin
+  ConsoleTable.new(gps_attribs).output(:header => (i == 0), :separator => false) do |columns|
+    i+=1
+    [ columns.collect{|attr| gps.send(attr.strip.tr(' ','_').downcase.to_sym).inspect } ]
+  end while sleep(3)
+rescue Phidgets::UnknownValError
+  retry
+end
 
 gps.close

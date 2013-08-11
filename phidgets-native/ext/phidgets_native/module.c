@@ -88,7 +88,7 @@ VALUE phidget_all(VALUE class) {
   
   // I'm not sure that this is the "right" amount of time, but it seems to do
   // well enough:
-  sleep(1);
+  usleep(500000);
 
   ensure(CPhidgetManager_getAttachedDevices(man_handle, &handles, &num_devices));
 
@@ -104,6 +104,12 @@ VALUE phidget_all(VALUE class) {
   ensure(CPhidgetManager_freeAttachedDevicesArray(handles));
 	ensure(CPhidgetManager_close(man_handle));
 	ensure(CPhidgetManager_delete(man_handle));
+
+  // So it *seems* that if we don't sleep here, that sometimes the wait_for_attachment
+  // below will segfault. I'm guessing that there's a thread still running for a short
+  // bit, after we call the delete on the manager, which conflicts with the device 
+  // handle below
+  usleep(500000);
 
   // And start constructing the ruby return value:
   VALUE devices = rb_ary_new2(num_devices);

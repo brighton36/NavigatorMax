@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
+#include <time.h>
+
 #include <ruby.h>
 #include <phidget21.h>
-#include <math.h>
 
 static int const MICROSECONDS_IN_SECOND = 1000000;
 static int const COMPASS_CORRECTION_LENGTH = 13;
@@ -69,11 +71,26 @@ typedef struct spatial_info {
 
 typedef struct gps_info {
   bool is_fixed;
+
+  bool is_latitude_known;
   double latitude;
+
+  bool is_longitude_known;
   double longitude;
+
+  bool is_altitude_known;
   double altitude;
+
+  bool is_heading_known;
   double heading;
+
+  bool is_velocity_known;
   double velocity;
+ 
+  bool is_now_at_utc_known;
+	time_t now_at_utc;
+  short now_at_utc_ms;
+
 } GpsInfo;
 
 void Init_phidgets_native();
