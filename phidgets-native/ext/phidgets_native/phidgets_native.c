@@ -318,6 +318,9 @@ void Init_phidgets_native() {
    */
   VALUE m_Phidget = rb_define_module("Phidgets");
 
+  // We need to require the time library for the gps code
+  rb_funcall(m_Phidget, rb_intern("require"), 1, rb_str_new2("time"));
+
   /*
    * This constant is a string which reflects the version of the phidget library being used.
    */
@@ -857,7 +860,7 @@ void Init_phidgets_native() {
    * call-seq:
    *   altitude -> Float
    *
-   * Returns the current altitude, as reported by the most recent gps update.
+   * Returns the current altitude in meters, as reported by the most recent gps update.
    */
   rb_define_method(c_Gps, "altitude", gps_altitude, 0);
 
@@ -866,7 +869,7 @@ void Init_phidgets_native() {
    * call-seq:
    *   heading -> Float
    *
-   * Returns the current heading, as reported by the most recent gps update.
+   * Returns the current heading in degrees, as reported by the most recent gps update.
    */
   rb_define_method(c_Gps, "heading", gps_heading, 0);
 
@@ -875,7 +878,7 @@ void Init_phidgets_native() {
    * call-seq:
    *   velocity -> Float
    *
-   * Returns the current heading, as reported by the most recent gps update.
+   * Returns the current velocity in km/h, as reported by the most recent gps update.
    */
   rb_define_method(c_Gps, "velocity", gps_velocity, 0);
 
@@ -887,6 +890,15 @@ void Init_phidgets_native() {
    * Returns true or false, indicating whether the gps is fixed (aka "locked").
    */
   rb_define_method(c_Gps, "is_fixed", gps_is_fixed, 0);
+
+  /*
+   * Document-method: now_at_utc
+   * call-seq:
+   *   now_at_utc -> Time
+   *
+   * Returns the GPS-reported time, in the UTC zone.
+   */
+  rb_define_method(c_Gps, "now_at_utc", gps_now_at_utc, 0);
 
   // Phidgets::InterfaceKit
   VALUE c_InterfaceKit = rb_define_class_under(m_Phidget,"InterfaceKit",c_Device);

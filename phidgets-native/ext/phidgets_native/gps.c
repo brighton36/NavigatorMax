@@ -9,16 +9,13 @@ int CCONV gps_on_position_change(CPhidgetGPSHandle gps, void *userptr, double la
 
 	if ( (CPhidgetGPS_getDate(gps, &date) == EPHIDGET_OK) && 
     (CPhidgetGPS_getTime(gps, &time) == EPHIDGET_OK) ) {
-    struct tm now_at_utc;
-    now_at_utc.tm_sec = time.tm_sec;
-    now_at_utc.tm_min = time.tm_sec;
-    now_at_utc.tm_hour = time.tm_hour;
-    now_at_utc.tm_mday = date.tm_mday;
-    now_at_utc.tm_mon = date.tm_mon;
-    now_at_utc.tm_year = date.tm_year;
-
-    gps_info->now_at_utc = mktime(&now_at_utc);
-    gps_info->now_at_utc_ms = time.tm_ms;
+    gps_info->now_at_utc.tm_sec = time.tm_sec;
+    gps_info->now_at_utc.tm_min = time.tm_min;
+    gps_info->now_at_utc.tm_hour = time.tm_hour;
+    gps_info->now_at_utc.tm_mday = date.tm_mday;
+    gps_info->now_at_utc.tm_mon = date.tm_mon;
+    gps_info->now_at_utc.tm_year = date.tm_year;
+    gps_info->now_at_utc_ms = (time.tm_ms >= 1000) ? 0 : time.tm_ms;
     gps_info->is_now_at_utc_known = true;
   } else
     gps_info->is_now_at_utc_known = false;
@@ -165,8 +162,28 @@ VALUE gps_is_fixed(VALUE self) {
   return (gps_info->is_fixed) ? Qtrue : Qfalse;
 }
 
-/*
- * TODO:
-int 	CPhidgetGPS_getTime (CPhidgetGPSHandle phid, GPSTime *time)
-int 	CPhidgetGPS_getDate (CPhidgetGPSHandle phid, GPSDate *date)
-*/
+VALUE gps_now_at_utc(VALUE self) {
+  GpsInfo *gps_info = device_type_info(self);
+
+  if (!gps_info->is_now_at_utc_known) return Qnil;
+
+  VALUE c_Time = rb_const_get(rb_cObject, rb_intern("Time"));
+
+  char *now_as_string = ALLOC_N(char, 28);
+  sprintf(now_as_string, "%04d-%02d-%02d %02d:%02d:%02d.%03d UTC",
+    gps_info->now_at_utc.tm_year,
+    gps_info->now_at_utc.tm_mon,
+    gps_info->now_at_utc.tm_mday,
+    gps_info->now_at_utc.tm_hour,
+    gps_info->now_at_utc.tm_min,
+    gps_info->now_at_utc.tm_sec,
+    gps_info->now_at_utc_ms);
+
+  VALUE now = rb_funcall(c_Time, rb_intern("parse"), 2, 
+    rb_str_new2(now_as_string),
+    rb_str_new2("%Y-%m-%d %H:%M:%S.%3N") );
+ 
+  xfree(now_as_string);
+
+  return now;
+}

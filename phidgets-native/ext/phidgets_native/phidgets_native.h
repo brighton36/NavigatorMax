@@ -88,7 +88,7 @@ typedef struct gps_info {
   double velocity;
  
   bool is_now_at_utc_known;
-	time_t now_at_utc;
+	struct tm now_at_utc;
   short now_at_utc_ms;
 
 } GpsInfo;
@@ -175,7 +175,8 @@ VALUE gps_altitude(VALUE self);
 VALUE gps_heading(VALUE self);
 VALUE gps_velocity(VALUE self);
 VALUE gps_is_fixed(VALUE self);
- 
+VALUE gps_now_at_utc(VALUE self);
+
 // Stub initializers:
 VALUE accelerometer_initialize(VALUE self, VALUE serial);
 VALUE advancedservo_initialize(VALUE self, VALUE serial);
