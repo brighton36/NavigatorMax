@@ -530,7 +530,7 @@ void Init_phidgets_native() {
   /*
    * Document-method: version
    * call-seq:
-   *   sample_rate -> Float
+   *   sample_rate -> FixNum
    *
    * For most Phidgets, an event handler processes the device state changes at
    * some regular interval. For these devices, this method will return the rate

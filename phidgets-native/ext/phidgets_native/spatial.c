@@ -95,6 +95,7 @@ int CCONV spatial_on_detach(CPhidgetHandle phidget, void *userptr) {
   memset(spatial_info->acceleration, 0, sizeof(double) * spatial_info->accelerometer_axes);
   memset(spatial_info->gyroscope, 0, sizeof(double) * spatial_info->gyro_axes);
   memset(spatial_info->compass, 0, sizeof(double) * spatial_info->compass_axes);
+  spatial_info->last_microsecond = 0;
 
   return 0;
 }
@@ -116,11 +117,10 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
     double fractional_second = (double) ( 
       (data[i]->timestamp.seconds - info->last_second) * MICROSECONDS_IN_SECOND + 
       data[i]->timestamp.microseconds - 
-      info->last_microsecond) / MICROSECONDS_IN_SECOND;
+      spatial_info->last_microsecond) / MICROSECONDS_IN_SECOND;
 
-    // Now record the last timestamp components:
-    info->last_second = data[i]->timestamp.seconds;
-    info->last_microsecond = data[i]->timestamp.microseconds;
+    // We need this for the next fractional calc:
+    spatial_info->last_microsecond = data[i]->timestamp.microseconds;
 
     // Set the values to where they need to be:
     for(int j=0; j < spatial_info->accelerometer_axes; j++)

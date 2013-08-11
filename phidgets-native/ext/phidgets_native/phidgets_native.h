@@ -14,7 +14,6 @@ static int const DEFAULT_SPATIAL_DATA_RATE = 16;
 typedef struct phidget_info {
   CPhidgetHandle handle;
   int  serial;
-  bool is_attached;
   const char *type;
   const char *name;
   const char *label;
@@ -22,13 +21,19 @@ typedef struct phidget_info {
   CPhidget_DeviceClass device_class;
   CPhidget_DeviceID device_id;
 
+  // Attachment Tracking:
+  bool is_attached;
+
+  // This is expressed in the number of seconds and microseconds since the epoch:
+  struct timeval attached_at;
+  struct timezone attached_at_tz;
+
   // Sample tracking.
-  double sample_rate;       // NOTE: These are in Hz
+  int sample_rate;       // NOTE: These are in Hz
   int samples_in_second;    // A counter which resets when the second changes
 
   // This is used for calculating deltas for both sample tracking, and gyro adjustment
-  int last_second;
-  int last_microsecond;
+  unsigned long last_second;
 
   // Used by the device drivers to track state:
   void *type_info;
@@ -47,6 +52,7 @@ typedef struct spatial_info {
 
   // Poll interval
   int data_rate;
+
 
   // Device limits:
   int accelerometer_axes;
@@ -67,6 +73,8 @@ typedef struct spatial_info {
   double *compass;
   double *gyroscope;
 
+  // This is used by the gyro:
+  unsigned int last_microsecond;
 } SpatialInfo;
 
 typedef struct gps_info {

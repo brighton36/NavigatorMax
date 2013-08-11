@@ -4,6 +4,10 @@ int CCONV gps_on_position_change(CPhidgetGPSHandle gps, void *userptr, double la
   PhidgetInfo *info = userptr;
   GpsInfo *gps_info = info->type_info;
 
+  // Calculate the sample time:
+  device_sample(info, NULL);
+
+  // Get the GPS time:
 	GPSDate date;
 	GPSTime time;
 
@@ -19,31 +23,8 @@ int CCONV gps_on_position_change(CPhidgetGPSHandle gps, void *userptr, double la
     gps_info->is_now_at_utc_known = true;
   } else
     gps_info->is_now_at_utc_known = false;
-
-  /*
-  struct tm now_at_utc;
-  now_at_utc.tm_sec = time.tm_sec;
-  now_at_utc.tm_min = time.tm_sec;
-  now_at_utc.tm_hour = time.tm_hour;
-  now_at_utc.tm_mday = date.tm_mday;
-  now_at_utc.tm_mon = date.tm_mon;
-  now_at_utc.tm_year = date.tm_year;
-
-  gps_info->now_at_utc = mktime(&now_at_utc);
-  if (gps_info->attached_at_utc == 0) {
-    printf("Setting attached at!");
-    gps_info->attached_at_utc = gps_info->now_at_utc;
-  }
-
-  CPhidget_Timestamp ts;
-  memset(&ts, 0, sizeof(CPhidget_Timestamp));
-
-  ts.seconds = difftime(gps_info->attached_at_utc,gps_info->now_at_utc);
-  printf("Diff seconds: %d\n", ts.seconds);
-  ts.microseconds = time.tm_ms * 1000;
-
-  device_sample(info, &ts);
-  */
+  
+  // Get Position values:
   if (gps_info->latitude != PUNK_DBL) {
     gps_info->is_latitude_known = true;
     gps_info->latitude = latitude;
@@ -81,6 +62,9 @@ int CCONV gps_on_position_change(CPhidgetGPSHandle gps, void *userptr, double la
 int CCONV gps_on_fix_change(CPhidgetGPSHandle gps, void *userptr, int status) {
   PhidgetInfo *info = userptr;
   GpsInfo *gps_info = info->type_info;
+
+  // Calculate the sample time:
+  device_sample(info, NULL);
 
   // I'm fairly certain that status is always either 1 or 0
   gps_info->is_fixed = (status) ? true : false;
