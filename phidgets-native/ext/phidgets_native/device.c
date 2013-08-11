@@ -49,7 +49,6 @@ void device_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
     info->samples_in_second = 0;
     info->last_second = now_seconds;
 
-    printf("Sample rate: %d\n", info->sample_rate);
   }
 
   return;

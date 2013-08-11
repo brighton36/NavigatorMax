@@ -62,7 +62,7 @@ p.reset_compass_correction!
 
 puts "Test:"+p.test_method.inspect
 poll_i = 0
-while sleep(5) do
+while sleep(1) do
   poll_i += 1
 
   if poll_i == 2

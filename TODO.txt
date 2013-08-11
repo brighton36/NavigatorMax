@@ -1,8 +1,11 @@
-* Test it out! I think the gyro calc is freaky-deeky somewhere
-  * Probably has to do with the fractional component
+* GPS: is_fixed needs a ? at the end
+
+* Clean up the spatial example
 
 * We may need to shy away from the ensures in our threaded handlers. 
   * Alternatively, we can just allow the unknownvals to slide...
+
+* Publish
 
 * Then implement the interfacekit in C
 * Then implement the servocontroller in C

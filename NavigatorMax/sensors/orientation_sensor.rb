@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-$: << '../ruby-phidget-native/lib/'
-require 'ruby_phidget_native.bundle'
-
 class OrientationSensor
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
@@ -13,16 +10,18 @@ class OrientationSensor
     # TODO:
     @compass_correction_params = compass_correction_params
 
-    @phidget = Phidget::Spatial.new(serial_number)
-    # TODO: Raise on error? I think we're currently returning a value...
+    @phidget = Phidgets::Spatial.new(serial_number)
     @phidget.wait_for_attachment 10000
+    @phidget.zero_gyro!
+    @phidget.data_rate = 8
+    @phidget.compass_correction = @compass_correction_params
 
-    @acceleration_max = @phidget.accelerometer_max
-    @acceleration_min = @phidget.accelerometer_min
-    @gyroscope_max = @phidget.gyro_max
-    @gyroscope_min = @phidget.gyro_min
-    @compass_max = @phidget.compass_max
-    @compass_min = @phidget.compass_min
+    @acceleration_max = @phidget.accelerometer_max[0]
+    @acceleration_min = @phidget.accelerometer_min[0]
+    @gyroscope_max = @phidget.gyro_max[0]
+    @gyroscope_min = @phidget.gyro_min[0]
+    @compass_max = @phidget.compass_max[0]
+    @compass_min = @phidget.compass_min[0]
   end
 
   def device_attributes

@@ -5,7 +5,9 @@ require 'rubygems'
 require 'em-websocket'
 require 'json'
 require 'matrix'
-#require 'phidgets-ffi'
+
+$: << '../phidgets-native/lib/'
+require 'phidgets_native.bundle'
 
 $: << 'lib'
 $: << 'sensors'
@@ -16,13 +18,15 @@ require 'orientation_sensor'
 require 'gps_sensor'
 require 'system_sensor'
 
-#puts "Library Version: #{Phidgets::FFI.library_version}"
-#Phidgets::Log.enable :verbose
+puts "Library Version: #{Phidgets::LIBRARY_VERSION}"
+Phidgets.enable_logging! :verbose
 
 system = SystemSensor.new (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
 orientation = OrientationSensor.new 302012, 
   [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
+puts "Down with orientation"
 gps = GpsSensor.new 284771
+puts "Down with gps"
 
 # TODO: orientation.zero_gyro!
 

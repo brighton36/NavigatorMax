@@ -6,7 +6,7 @@
 #include <ruby.h>
 #include <phidget21.h>
 
-static int const MICROSECONDS_IN_SECOND = 1000000;
+static double const MICROSECONDS_IN_SECOND = 1000000.0;
 static int const COMPASS_CORRECTION_LENGTH = 13;
 static int const DEGREES_IN_CIRCLE = 360;
 static int const DEFAULT_SPATIAL_DATA_RATE = 16;
@@ -53,7 +53,6 @@ typedef struct spatial_info {
   // Poll interval
   int data_rate;
 
-
   // Device limits:
   int accelerometer_axes;
   int compass_axes;
@@ -74,7 +73,7 @@ typedef struct spatial_info {
   double *gyroscope;
 
   // This is used by the gyro:
-  unsigned int last_microsecond;
+  double last_microsecond;
 } SpatialInfo;
 
 typedef struct gps_info {

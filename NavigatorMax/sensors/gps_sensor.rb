@@ -1,57 +1,59 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require 'phidget_sensor'
-require 'time'
-
-class GpsSensor < PhidgetSensor
-  attr_accessor :latitude, :longitude, :altitude
+class GpsSensor
 
   def initialize(serial_number)
-    super Phidgets::GPS.new(:serial_number => @serial_number)
+    @phidget = Phidgets::GPS.new(serial_number)
+    @phidget.wait_for_attachment 10000
   end
 
-  def on_attach(phidget)
-    super phidget
-    @phidget.on_position_change self 
+  def device_attributes
+    { :type=> @phidget.type, :name=> @phidget.name, 
+      :serial_number => @phidget.serial_number, :version => @phidget.version, 
+      :label => @phidget.label, :device_class => @phidget.device_class, 
+      :device_id => @phidget.device_id
+    } if connected?
   end
 
-  def on_position_change(lat, long, alt)
-    @latitude, @longitude, @altitude = lat, long, alt
+  def close
+    @phidget.close
+  end
 
-    sampled! Time.now.to_f
+  def updates_per_second
+    @phidget.sample_rate
+  end
+
+  def connected?
+    @phidget.is_attached?
   end
 
   def is_fixed?
-    @phidget.position_fix_status
+    @phidget.is_fixed
+  end
+
+  def latitude
+    @phidget.latitude
+  end
+
+  def longitude
+    @phidget.longitude
+  end
+
+  def altitude
+    @phidget.altitude
   end
 
   def heading
-    catch_unknown{ @phidget.heading }
+    @phidget.heading
   end
 
   def velocity
-    catch_unknown{ @phidget.velocity }
+    @phidget.velocity
   end
 
   def time
-    catch_unknown do 
-      # Note: I didn't think there was much need-for or ability to use microseconds
-      # though they are available from the phidget
-      time_parts = @phidget.time
-      date_parts = @phidget.date
-      Time.parse( '%s-%s-%s %s:%s:%s UTC' % [
-        date_parts[:year], date_parts[:month], date_parts[:day], 
-        time_parts[:hours], time_parts[:minutes], time_parts[:seconds] ] )
-    end
+    @phidget.now_at_utc
   end
 
-  private
-
-  def catch_unknown
-    yield
-
-	  rescue Phidgets::Error::UnknownVal => e
-      nil
-  end
 end

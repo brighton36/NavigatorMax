@@ -112,16 +112,6 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
   for(i = 0; i < count; i++) {
     device_sample(info, &data[i]->timestamp);
 
-    // Here's where we calculate how much time was between the last sample and
-    // this one, expressed as a percentage of a second:
-    double fractional_second = (double) ( 
-      (data[i]->timestamp.seconds - info->last_second) * MICROSECONDS_IN_SECOND + 
-      data[i]->timestamp.microseconds - 
-      spatial_info->last_microsecond) / MICROSECONDS_IN_SECOND;
-
-    // We need this for the next fractional calc:
-    spatial_info->last_microsecond = data[i]->timestamp.microseconds;
-
     // Set the values to where they need to be:
     for(int j=0; j < spatial_info->accelerometer_axes; j++)
       spatial_info->acceleration[j] = data[i]->acceleration[j];
@@ -136,8 +126,17 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
     // Gyros get handled slightly different:
     // NOTE: Other people may have a better way to do this, but this is the method
     // I grabbed from the phidget sample. Maybe I should report these in radians...
-    for(int j=0; j < spatial_info->gyro_axes; j++)
-      spatial_info->gyroscope[j] = fmod(spatial_info->gyroscope[j] + data[i]->angularRate[j] * fractional_second, DEGREES_IN_CIRCLE);
+    double timestamp = data[i]->timestamp.seconds + data[i]->timestamp.microseconds/MICROSECONDS_IN_SECOND;
+
+    if (spatial_info->last_microsecond > 0) {
+      double timechange = timestamp - spatial_info->last_microsecond;
+
+      for(int j=0; j < spatial_info->gyro_axes; j++)
+        spatial_info->gyroscope[j] += data[i]->angularRate[j] * timechange;
+    }
+
+    // We'll need this on the next go around:
+    spatial_info->last_microsecond = timestamp;
   }
 
   return 0;
@@ -213,7 +212,17 @@ VALUE spatial_accelerometer_max(VALUE self) {
 VALUE spatial_gyro(VALUE self) {
   SpatialInfo *spatial_info = device_type_info(self);
 
-  return double_array_to_rb(spatial_info->gyroscope, spatial_info->gyro_axes);
+  double *gyroscope_in_degrees;
+  VALUE ret; 
+
+  gyroscope_in_degrees = ALLOC_N(double, spatial_info->gyro_axes); 
+  for(int i=0; i < spatial_info->gyro_axes; i++)
+    gyroscope_in_degrees[i] = fmod(spatial_info->gyroscope[i], DEGREES_IN_CIRCLE); 
+
+  ret = double_array_to_rb(gyroscope_in_degrees, spatial_info->gyro_axes);
+  xfree(gyroscope_in_degrees);
+
+  return ret;
 }  
 
 VALUE spatial_gyro_min(VALUE self) {
