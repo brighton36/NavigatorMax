@@ -160,7 +160,7 @@
  * Document-class: Phidgets::Accelerometer
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -168,7 +168,7 @@
  * Document-class: Phidgets::AdvancedServo
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -176,7 +176,7 @@
  * Document-class: Phidgets::Encoder
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -184,7 +184,7 @@
  * Document-class: Phidgets::InterfaceKit
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -192,7 +192,7 @@
  * Document-class: Phidgets::IR
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -200,7 +200,7 @@
  * Document-class: Phidgets::LED
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -216,7 +216,7 @@
  * Document-class: Phidgets::MotorControl
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -224,7 +224,7 @@
  * Document-class: Phidgets::PHSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -232,7 +232,7 @@
  * Document-class: Phidgets::RFID
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -240,7 +240,7 @@
  * Document-class: Phidgets::Servo
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -248,7 +248,7 @@
  * Document-class: Phidgets::Stepper
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -256,7 +256,7 @@
  * Document-class: Phidgets::TemperatureSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -264,7 +264,7 @@
  * Document-class: Phidgets::TextLCD
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -272,7 +272,7 @@
  * Document-class: Phidgets::TextLED
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -280,7 +280,7 @@
  * Document-class: Phidgets::WeightSensor
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -288,7 +288,7 @@
  * Document-class: Phidgets::Analog
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -296,7 +296,7 @@
  * Document-class: Phidgets::Bridge
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -304,7 +304,7 @@
  * Document-class: Phidgets::FrequencyCounter
  *
  * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
+ * Nonetheless, all of the methods from its parent class Phidgets::Device are 
  * available.
  */
 
@@ -313,7 +313,8 @@ void Init_phidgets_native() {
 
   ensure(CPhidget_getLibraryVersion(&phidget_library_version));	
   /*
-   * Just a container module for all of our objects
+   * Mostly a container module for all of our objects. Singleton methods provide
+   * logging and enumeration features.
    */
   VALUE m_Phidget = rb_define_module("Phidgets");
 
