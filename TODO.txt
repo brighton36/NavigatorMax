@@ -19,6 +19,10 @@
     https://developers.google.com/maps/documentation/staticmaps/#quick_example
   and cache!
 
+* And about that gyroscope....
+  * I think that we need to compute a vector from the deltas on a tick, and rotate
+    the dcm by the angles of this vector on each axis
+
 * After testing....
   * GPS TODO:
     * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
