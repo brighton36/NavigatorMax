@@ -17,140 +17,140 @@
  */
 
 /*
- * Document-class: Phidgets::PhidgetNotFoundError
+ * Document-class: Phidgets::NotFoundError
  *
  * This exception is raised when the library receives a EPHIDGET_NOTFOUNDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetNoMemoryError
+ * Document-class: Phidgets::NoMemoryError
  *
  * This exception is raised when the library receives a EPHIDGET_NOMEMORYERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetUnexpectedError
+ * Document-class: Phidgets::UnexpectedError
  *
  * This exception is raised when the library receives a EPHIDGET_UNEXPECTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetInvalidArgError
+ * Document-class: Phidgets::InvalidArgError
  *
  * This exception is raised when the library receives a EPHIDGET_INVALIDARGERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetNotAttachedError
+ * Document-class: Phidgets::NotAttachedError
  *
  * This exception is raised when the library receives a EPHIDGET_NOTATTACHEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetInterruptedError
+ * Document-class: Phidgets::InterruptedError
  *
  * This exception is raised when the library receives a EPHIDGET_INTERRUPTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetInvalidError
+ * Document-class: Phidgets::InvalidError
  *
  * This exception is raised when the library receives a EPHIDGET_INVALIDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetNetworkError
+ * Document-class: Phidgets::NetworkError
  *
  * This exception is raised when the library receives a EPHIDGET_NETWORKERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetUnknownValError
+ * Document-class: Phidgets::UnknownValError
  *
  * This exception is raised when the library receives a EPHIDGET_UNKNOWNVALERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetBadPasswordError
+ * Document-class: Phidgets::BadPasswordError
  *
  * This exception is raised when the library receives a EPHIDGET_BADPASSWORDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetUnsupportedError
+ * Document-class: Phidgets::UnsupportedError
  *
  * This exception is raised when the library receives a EPHIDGET_UNSUPPORTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetDuplicateError
+ * Document-class: Phidgets::DuplicateError
  *
  * This exception is raised when the library receives a EPHIDGET_DUPLICATEERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetTimeoutError
+ * Document-class: Phidgets::TimeoutError
  *
  * This exception is raised when the library receives a EPHIDGET_TIMEOUTERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetOutOfBoundsError
+ * Document-class: Phidgets::OutOfBoundsError
  *
  * This exception is raised when the library receives a EPHIDGET_OUTOFBOUNDSERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetEventError
+ * Document-class: Phidgets::EventError
  *
  * This exception is raised when the library receives a EPHIDGET_EVENTERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetNetworkNotConnectedError
+ * Document-class: Phidgets::NetworkNotConnectedError
  *
  * This exception is raised when the library receives a EPHIDGET_NETWORKNOTCONNECTEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetWrongDeviceError
+ * Document-class: Phidgets::WrongDeviceError
  *
  * This exception is raised when the library receives a EPHIDGET_WRONGDEVICEERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetClosedError
+ * Document-class: Phidgets::ClosedError
  *
  * This exception is raised when the library receives a EPHIDGET_CLOSEDERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetBadVersionError
+ * Document-class: Phidgets::BadVersionError
  *
  * This exception is raised when the library receives a EPHIDGET_BADVERSIONERROR
  * error.
  */
 
 /*
- * Document-class: Phidgets::PhidgetUnhandledError
+ * Document-class: Phidgets::UnhandledError
  *
  * This exception is raised when the library receives a EPHIDGET_UNHANDLEDERROR
  * error.
@@ -371,26 +371,26 @@ void Init_phidgets_native() {
   rb_define_singleton_method(m_Phidget, "all", phidget_all, 0);
  
   // Phidget Library Exceptions : 
-  VALUE c_PhidgetNotFound = rb_define_class_under(m_Phidget, "PhidgetNotFoundError", rb_eStandardError);
-  VALUE c_PhidgetNoMemory = rb_define_class_under(m_Phidget, "PhidgetNoMemoryError", rb_eStandardError);
-  VALUE c_PhidgetUnexpected = rb_define_class_under(m_Phidget, "PhidgetUnexpectedError", rb_eStandardError);
-  VALUE c_PhidgetInvalidArg = rb_define_class_under(m_Phidget, "PhidgetInvalidArgError", rb_eStandardError);
-  VALUE c_PhidgetNotAttached = rb_define_class_under(m_Phidget, "PhidgetNotAttachedError", rb_eStandardError);
-  VALUE c_PhidgetInterrupted = rb_define_class_under(m_Phidget, "PhidgetInterruptedError", rb_eStandardError);
-  VALUE c_PhidgetInvalid = rb_define_class_under(m_Phidget, "PhidgetInvalidError", rb_eStandardError);
-  VALUE c_PhidgetNetwork = rb_define_class_under(m_Phidget, "PhidgetNetworkError", rb_eStandardError);
-  VALUE c_PhidgetUnknownVal = rb_define_class_under(m_Phidget, "PhidgetUnknownValError", rb_eStandardError);
-  VALUE c_PhidgetBadPassword = rb_define_class_under(m_Phidget, "PhidgetBadPasswordError", rb_eStandardError);
-  VALUE c_PhidgetUnsupported = rb_define_class_under(m_Phidget, "PhidgetUnsupportedError", rb_eStandardError);
-  VALUE c_PhidgetDuplicate = rb_define_class_under(m_Phidget, "PhidgetDuplicateError", rb_eStandardError);
-  VALUE c_PhidgetTimeout = rb_define_class_under(m_Phidget, "PhidgetTimeoutError", rb_eStandardError);
-  VALUE c_PhidgetOutOfBounds = rb_define_class_under(m_Phidget, "PhidgetOutOfBoundsError", rb_eStandardError);
-  VALUE c_PhidgetEvent = rb_define_class_under(m_Phidget, "PhidgetEventError", rb_eStandardError);
-  VALUE c_PhidgetNetworkNotConnected = rb_define_class_under(m_Phidget, "PhidgetNetworkNotConnectedError", rb_eStandardError);
-  VALUE c_PhidgetWrongDevice = rb_define_class_under(m_Phidget, "PhidgetWrongDeviceError", rb_eStandardError);
-  VALUE c_PhidgetClosed = rb_define_class_under(m_Phidget, "PhidgetClosedError", rb_eStandardError);
-  VALUE c_PhidgetBadVersion = rb_define_class_under(m_Phidget, "PhidgetBadVersionError", rb_eStandardError);
-  VALUE c_PhidgetUnhandled = rb_define_class_under(m_Phidget, "PhidgetUnhandledError", rb_eStandardError);
+  VALUE c_PhidgetNotFound = rb_define_class_under(m_Phidget, "NotFoundError", rb_eStandardError);
+  VALUE c_PhidgetNoMemory = rb_define_class_under(m_Phidget, "NoMemoryError", rb_eStandardError);
+  VALUE c_PhidgetUnexpected = rb_define_class_under(m_Phidget, "UnexpectedError", rb_eStandardError);
+  VALUE c_PhidgetInvalidArg = rb_define_class_under(m_Phidget, "InvalidArgError", rb_eStandardError);
+  VALUE c_PhidgetNotAttached = rb_define_class_under(m_Phidget, "NotAttachedError", rb_eStandardError);
+  VALUE c_PhidgetInterrupted = rb_define_class_under(m_Phidget, "InterruptedError", rb_eStandardError);
+  VALUE c_PhidgetInvalid = rb_define_class_under(m_Phidget, "InvalidError", rb_eStandardError);
+  VALUE c_PhidgetNetwork = rb_define_class_under(m_Phidget, "NetworkError", rb_eStandardError);
+  VALUE c_PhidgetUnknownVal = rb_define_class_under(m_Phidget, "UnknownValError", rb_eStandardError);
+  VALUE c_PhidgetBadPassword = rb_define_class_under(m_Phidget, "BadPasswordError", rb_eStandardError);
+  VALUE c_PhidgetUnsupported = rb_define_class_under(m_Phidget, "UnsupportedError", rb_eStandardError);
+  VALUE c_PhidgetDuplicate = rb_define_class_under(m_Phidget, "DuplicateError", rb_eStandardError);
+  VALUE c_PhidgetTimeout = rb_define_class_under(m_Phidget, "TimeoutError", rb_eStandardError);
+  VALUE c_PhidgetOutOfBounds = rb_define_class_under(m_Phidget, "OutOfBoundsError", rb_eStandardError);
+  VALUE c_PhidgetEvent = rb_define_class_under(m_Phidget, "EventError", rb_eStandardError);
+  VALUE c_PhidgetNetworkNotConnected = rb_define_class_under(m_Phidget, "NetworkNotConnectedError", rb_eStandardError);
+  VALUE c_PhidgetWrongDevice = rb_define_class_under(m_Phidget, "WrongDeviceError", rb_eStandardError);
+  VALUE c_PhidgetClosed = rb_define_class_under(m_Phidget, "ClosedError", rb_eStandardError);
+  VALUE c_PhidgetBadVersion = rb_define_class_under(m_Phidget, "BadVersionError", rb_eStandardError);
+  VALUE c_PhidgetUnhandled = rb_define_class_under(m_Phidget, "UnhandledError", rb_eStandardError);
 
   // Phidgets::Device
   VALUE c_Device = rb_define_class_under(m_Phidget,"Device",rb_cObject);
@@ -1062,159 +1062,4 @@ void Init_phidgets_native() {
    */
   rb_define_method(c_FrequencyCounter, "initialize", frequencycounter_initialize, 1);
 }
-
-VALUE interfacekit_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetInterfaceKitHandle interfacekit = 0;
-  ensure(CPhidgetInterfaceKit_create(&interfacekit));
-  info->handle = (CPhidgetHandle)interfacekit;
-  return rb_call_super(1, &serial);
-}
-
-VALUE gps_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetGPSHandle gps = 0;
-  ensure(CPhidgetGPS_create(&gps));
-  info->handle = (CPhidgetHandle)gps;
-  return rb_call_super(1, &serial);
-}
-
-VALUE accelerometer_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-
-  CPhidgetAccelerometerHandle accelerometer = 0;
-  ensure(CPhidgetAccelerometer_create(&accelerometer));
-
-  info->handle = (CPhidgetHandle)accelerometer;
-  return rb_call_super(1, &serial);
-}
-
-VALUE advancedservo_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetAdvancedServoHandle advancedservo = 0;
-  ensure(CPhidgetAdvancedServo_create(&advancedservo));
-  info->handle = (CPhidgetHandle)advancedservo;
-  return rb_call_super(1, &serial);
-}
-
-VALUE encoder_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetEncoderHandle encoder = 0;
-  ensure(CPhidgetEncoder_create(&encoder));
-  info->handle = (CPhidgetHandle)encoder;
-  return rb_call_super(1, &serial);
-}
-
-VALUE ir_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetIRHandle ir = 0;
-  ensure(CPhidgetIR_create(&ir));
-  info->handle = (CPhidgetHandle)ir;
-  return rb_call_super(1, &serial);
-}
-
-VALUE led_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetLEDHandle led = 0;
-  ensure(CPhidgetLED_create(&led));
-  info->handle = (CPhidgetHandle)led;
-  return rb_call_super(1, &serial);
-}
-
-VALUE motorcontrol_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetMotorControlHandle motorcontrol = 0;
-  ensure(CPhidgetMotorControl_create(&motorcontrol));
-  info->handle = (CPhidgetHandle)motorcontrol;
-  return rb_call_super(1, &serial);
-}
-
-VALUE phsensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetPHSensorHandle phsensor  = 0;
-  ensure(CPhidgetPHSensor_create(&phsensor));
-  info->handle = (CPhidgetHandle)phsensor ;
-  return rb_call_super(1, &serial);
-}
-
-VALUE rfid_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetRFIDHandle rfid = 0;
-  ensure(CPhidgetRFID_create(&rfid));
-  info->handle = (CPhidgetHandle)rfid;
-  return rb_call_super(1, &serial);
-}
-
-VALUE servo_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetServoHandle servo = 0;
-  ensure(CPhidgetServo_create(&servo));
-  info->handle = (CPhidgetHandle)servo;
-  return rb_call_super(1, &serial);
-}
-
-VALUE stepper_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetStepperHandle stepper = 0;
-  ensure(CPhidgetStepper_create(&stepper));
-  info->handle = (CPhidgetHandle)stepper;
-  return rb_call_super(1, &serial);
-}
-
-VALUE temperaturesensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetTemperatureSensorHandle temperaturesensor = 0;
-  ensure(CPhidgetTemperatureSensor_create(&temperaturesensor));
-  info->handle = (CPhidgetHandle)temperaturesensor;
-  return rb_call_super(1, &serial);
-}
-
-VALUE textlcd_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetTextLCDHandle textlcd = 0;
-  ensure(CPhidgetTextLCD_create(&textlcd));
-  info->handle = (CPhidgetHandle)textlcd;
-  return rb_call_super(1, &serial);
-}
-
-VALUE textled_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetTextLEDHandle textled = 0;
-  ensure(CPhidgetTextLED_create(&textled));
-  info->handle = (CPhidgetHandle)textled;
-  return rb_call_super(1, &serial);
-}
-
-VALUE weightsensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetWeightSensorHandle weightsensor = 0;
-  ensure(CPhidgetWeightSensor_create(&weightsensor));
-  info->handle = (CPhidgetHandle)weightsensor;
-  return rb_call_super(1, &serial);
-}
-
-VALUE analog_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetAnalogHandle analog = 0;
-  ensure(CPhidgetAnalog_create(&analog));
-  info->handle = (CPhidgetHandle)analog;
-  return rb_call_super(1, &serial);
-}
-
-VALUE bridge_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetBridgeHandle bridge = 0;
-  ensure(CPhidgetBridge_create(&bridge));
-  info->handle = (CPhidgetHandle)bridge;
-  return rb_call_super(1, &serial);
-}
-
-VALUE frequencycounter_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
-  CPhidgetFrequencyCounterHandle frequencycounter = 0;
-  ensure(CPhidgetFrequencyCounter_create(&frequencycounter));
-  info->handle = (CPhidgetHandle)frequencycounter;
-  return rb_call_super(1, &serial);
-}
-
 

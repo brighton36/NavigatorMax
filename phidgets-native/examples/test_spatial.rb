@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require './lib/phidgets_native.bundle'
+$: << '%s/../lib/' % File.dirname(__FILE__)
+require 'phidgets_native'
 
 class Phidgets::Spatial
   def test_method

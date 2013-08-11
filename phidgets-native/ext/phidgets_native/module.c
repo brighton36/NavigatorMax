@@ -126,7 +126,7 @@ VALUE phidget_all(VALUE class) {
     else if (strcmp("PhidgetGPS", device_type[i]) == 0)
       class_const = rb_intern("GPS");
     else {
-      VALUE c_Exception = rb_const_get(phidget_module, rb_intern("PhidgetUnsupportedError"));
+      VALUE c_Exception = rb_const_get(phidget_module, rb_intern("UnsupportedError"));
       rb_raise(c_Exception, "%s \"%s\"", MSG_UNSUPPORTED_DEVICE_ENUMERATED, device_type[i]);
     }
 
