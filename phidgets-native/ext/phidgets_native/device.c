@@ -39,7 +39,6 @@ int CCONV device_on_attach(CPhidgetHandle phid, void *userptr)
 {
   int serialNo;
   ensure(CPhidget_getSerialNumber(phid, &serialNo));
-  printf("Phidget %10d attached!\n", serialNo);
 
   // Populate our data structures with what we know about this device:
   PhidgetInfo *info = userptr;
@@ -59,11 +58,9 @@ int CCONV device_on_attach(CPhidgetHandle phid, void *userptr)
 int CCONV device_on_detach(CPhidgetHandle phid, void *userptr) {
   int serialNo;
   ensure(CPhidget_getSerialNumber(phid, &serialNo));
-  printf("Phidget %10d detached! \n", serialNo);
 
   PhidgetInfo *info = userptr;
   info->is_attached = false;
-  printf("User ptr serial %10d!", info->serial);
 
   // These would be misleading to report if there's no device:
   info->sample_rate = 0;
@@ -80,7 +77,6 @@ int CCONV device_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, con
 }
 
 void device_free(PhidgetInfo *info) {
-  printf("Inside device_free\n");
   if (info) {
     if (info->handle) {
 	    ensure(CPhidget_close((CPhidgetHandle)info->handle));
@@ -95,7 +91,6 @@ void device_free(PhidgetInfo *info) {
 }
 
 VALUE device_allocate(VALUE class) {
-  printf("Inside device_allocate\n");
 
   // We'll need this all over the place later:
   PhidgetInfo *info;
@@ -108,8 +103,6 @@ VALUE device_allocate(VALUE class) {
 
 VALUE device_initialize(VALUE self, VALUE serial) {
   PhidgetInfo *info = device_info(self);
-
-  printf("Inside device_init\n");
 
   if (TYPE(serial) != T_FIXNUM) {
     rb_raise(rb_eTypeError, MSG_SERIAL_MUST_BE_FIX);
@@ -136,8 +129,6 @@ VALUE device_initialize(VALUE self, VALUE serial) {
 VALUE device_close(VALUE self) {
   PhidgetInfo *info = device_info(self);
 
-  printf("Inside device_close \n");
-
   ensure(CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, NULL, NULL));
   ensure(CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, NULL, NULL));
   ensure(CPhidget_set_OnError_Handler((CPhidgetHandle)info->handle, NULL, NULL));
@@ -152,8 +143,6 @@ VALUE device_wait_for_attachment(VALUE self, VALUE timeout) {
     rb_raise(rb_eTypeError, MSG_TIMEOUT_MUST_BE_FIX);
     return Qnil;
   }
-	//get the program to wait for a phidget device to be attached
-	printf("Waiting for phidget to be attached.... \n");
 
   ensure(CPhidget_waitForAttachment((CPhidgetHandle)info->handle, FIX2UINT(timeout)));
    

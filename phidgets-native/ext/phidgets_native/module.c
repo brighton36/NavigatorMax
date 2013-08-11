@@ -92,8 +92,6 @@ VALUE phidget_all(VALUE class) {
 
   ensure(CPhidgetManager_getAttachedDevices(man_handle, &handles, &num_devices));
 
-  printf("We found %d devices\n", num_devices);
-
   serial_number = ALLOC_N(int, num_devices);
   device_type = ALLOC_N(const char*, num_devices);
 

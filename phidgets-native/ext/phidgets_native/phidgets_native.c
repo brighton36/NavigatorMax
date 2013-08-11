@@ -207,9 +207,9 @@
 /* 
  * Document-class: Phidgets::GPS
  *
- * This class is a stub, and is currently in need of an actual implementation.
- * Nontheless, all of the methods from its parent class Phidgets::Device are 
- * available.
+ * This class provides functionality specific to the "GPS" device class. 
+ * Primarily, this includes reporting of latitude/longitude, velocity/heading 
+ * and time.
  */
 
 /* 
@@ -331,7 +331,12 @@ void Init_phidgets_native() {
    * parameter indicates the highest degree of desired output verbosity. Logged
    * data will be that which is less than or equal to this level. Currently, the
    * supported verbosity levels, in ascending order of verbosity are as follows:
-   *  :critical, :error, :warning, :debug, :info, :verbose
+   * * :critical
+   * * :error
+   * * :warning
+   * * :debug
+   * * :info
+   * * :verbose
    * Be sure to specify a symbol, and not a string.
    *
    * The optional file_path parameter can be used to divert logging output to a
@@ -827,6 +832,60 @@ void Init_phidgets_native() {
    * are required to be Fixnums (aka "unsigned integers").
    */
   rb_define_method(c_Gps, "initialize", gps_initialize, 1);
+
+  /*
+   * Document-method: latitude
+   * call-seq:
+   *   latitude -> Float
+   *
+   * Returns the current latititude, as reported by the most recent gps update.
+   */
+  rb_define_method(c_Gps, "latitude", gps_latitude, 0);
+  
+  /*
+   * Document-method: longitude
+   * call-seq:
+   *   longitude -> Float
+   *
+   * Returns the current longitude, as reported by the most recent gps update.
+   */
+  rb_define_method(c_Gps, "longitude", gps_longitude, 0);
+
+  /*
+   * Document-method: altitude
+   * call-seq:
+   *   altitude -> Float
+   *
+   * Returns the current altitude, as reported by the most recent gps update.
+   */
+  rb_define_method(c_Gps, "altitude", gps_altitude, 0);
+
+  /*
+   * Document-method: heading
+   * call-seq:
+   *   heading -> Float
+   *
+   * Returns the current heading, as reported by the most recent gps update.
+   */
+  rb_define_method(c_Gps, "heading", gps_heading, 0);
+
+  /*
+   * Document-method: velocity
+   * call-seq:
+   *   velocity -> Float
+   *
+   * Returns the current heading, as reported by the most recent gps update.
+   */
+  rb_define_method(c_Gps, "velocity", gps_velocity, 0);
+
+  /*
+   * Document-method: is_fixed
+   * call-seq:
+   *   is_fixed -> Boolean
+   *
+   * Returns true or false, indicating whether the gps is fixed (aka "locked").
+   */
+  rb_define_method(c_Gps, "is_fixed", gps_is_fixed, 0);
 
   // Phidgets::InterfaceKit
   VALUE c_InterfaceKit = rb_define_class_under(m_Phidget,"InterfaceKit",c_Device);

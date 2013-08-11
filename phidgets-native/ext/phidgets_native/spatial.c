@@ -5,8 +5,6 @@ const char MSG_COMPASS_CORRECTION_MUST_BE_FLOAT[] = "compass correction elements
 const char MSG_DATA_RATE_MUST_BE_NUM[] = "data rate must be fixnum";
 
 void spatial_on_free(void *type_info) {
-  printf("here in the spatial free\n");
-
   SpatialInfo *spatial_info = type_info;
   xfree(spatial_info->acceleration);
   xfree(spatial_info->acceleration_min);
@@ -29,8 +27,6 @@ int spatial_set_compass_correction_by_array(CPhidgetSpatialHandle phid, double *
 }
 
 int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
-  printf("spatial_on_attach\n");
-
   PhidgetInfo *info = userptr;
   SpatialInfo *spatial_info = info->type_info;
 
@@ -92,7 +88,6 @@ int CCONV spatial_on_attach(CPhidgetHandle phid, void *userptr) {
 
 
 int CCONV spatial_on_detach(CPhidgetHandle phidget, void *userptr) {
-  printf("Spatial_on_detach\n");
   PhidgetInfo *info = userptr;
   SpatialInfo *spatial_info = info->type_info;
 
@@ -149,8 +144,6 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
 }
 
 VALUE spatial_initialize(VALUE self, VALUE serial) {
-  printf("Inside spatial_init\n");
-
   PhidgetInfo *info = device_info(self);
 
   SpatialInfo *spatial_info = ALLOC(SpatialInfo); 
@@ -174,8 +167,6 @@ VALUE spatial_initialize(VALUE self, VALUE serial) {
 
 VALUE spatial_close(VALUE self) {
   PhidgetInfo *info = device_info(self);
-
-  printf("Inside spatial_close \n");
 
   ensure(CPhidgetSpatial_set_OnSpatialData_Handler((CPhidgetSpatialHandle)info->handle, NULL, NULL));
 
@@ -339,10 +330,10 @@ VALUE spatial_data_rate_set(VALUE self, VALUE data_rate) {
   }
 
   return data_rate;
-};
+}
 
 VALUE spatial_data_rate_get(VALUE self) {
   SpatialInfo *spatial_info = device_type_info(self);
 
   return INT2FIX(spatial_info->data_rate);
-};
+}

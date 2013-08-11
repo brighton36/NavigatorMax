@@ -1,4 +1,9 @@
 * Then implement the gps in C
+  * Write a gps_test
+  * Address the TODOs in the gps.c and test
+  * Then work through sample! 
+  * Time functions should be labeled in UTC
+
 * Then implement the interfacekit in C
 * Then implement the servocontroller in C
 

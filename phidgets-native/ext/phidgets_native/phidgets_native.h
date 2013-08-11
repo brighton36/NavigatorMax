@@ -67,6 +67,15 @@ typedef struct spatial_info {
 
 } SpatialInfo;
 
+typedef struct gps_info {
+  bool is_fixed;
+  double latitude;
+  double longitude;
+  double altitude;
+  double heading;
+  double velocity;
+} GpsInfo;
+
 void Init_phidgets_native();
 
 // Common:
@@ -140,7 +149,16 @@ VALUE interfacekit_initialize(VALUE self, VALUE serial);
 
 // Phidget::Gps
 VALUE gps_initialize(VALUE self, VALUE serial);
-
+int CCONV gps_on_attach(CPhidgetHandle phid, void *userptr);
+int CCONV gps_on_detach(CPhidgetHandle phidget, void *userptr);
+void gps_on_free(void *type_info);
+VALUE gps_latitude(VALUE self);
+VALUE gps_longitude(VALUE self);
+VALUE gps_altitude(VALUE self);
+VALUE gps_heading(VALUE self);
+VALUE gps_velocity(VALUE self);
+VALUE gps_is_fixed(VALUE self);
+ 
 // Stub initializers:
 VALUE accelerometer_initialize(VALUE self, VALUE serial);
 VALUE advancedservo_initialize(VALUE self, VALUE serial);
