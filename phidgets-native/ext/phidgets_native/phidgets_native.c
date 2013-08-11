@@ -394,7 +394,7 @@ void Init_phidgets_native() {
 
   // Phidgets::Device
   VALUE c_Device = rb_define_class_under(m_Phidget,"Device",rb_cObject);
-  rb_define_alloc_func(c_Device, phidget_allocate);
+  rb_define_alloc_func(c_Device, device_allocate);
 
   /*
    * Document-method: new
@@ -404,7 +404,7 @@ void Init_phidgets_native() {
    * All phidget objects are created from the device serial number. Serial numbers
    * are required to be Fixnums (aka "unsigned integers").
    */
-  rb_define_method(c_Device, "initialize", phidget_initialize, 1);
+  rb_define_method(c_Device, "initialize", device_initialize, 1);
 
   /*
    * Document-method: close
@@ -416,7 +416,7 @@ void Init_phidgets_native() {
    * way to remove the object's overhead before the GC kicks in and actually 
    * frees the resource.
    */
-  rb_define_method(c_Device, "close", phidget_close, 0);
+  rb_define_method(c_Device, "close", device_close, 0);
 
   /*
    * Document-method: wait_for_attachment
@@ -428,7 +428,7 @@ void Init_phidgets_native() {
    * execution until this device is attached, or timeout milliseconds expires.
    * The method returns the provided timeout parameter.
    */
-  rb_define_method(c_Device, "wait_for_attachment", phidget_wait_for_attachment, 1);
+  rb_define_method(c_Device, "wait_for_attachment", device_wait_for_attachment, 1);
 
   /*
    * Document-method: is_attached?
@@ -437,7 +437,7 @@ void Init_phidgets_native() {
    *
    * Returns true if the device is connected, false if otherwise. 
    */
-  rb_define_method(c_Device, "is_attached?", phidget_is_attached, 0);
+  rb_define_method(c_Device, "is_attached?", device_is_attached, 0);
 
   /*
    * Document-method: device_class
@@ -448,7 +448,7 @@ void Init_phidgets_native() {
    * directly from the CPhidget_getDeviceClass[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "device_class", phidget_device_class, 0);
+  rb_define_method(c_Device, "device_class", device_device_class, 0);
 
   /*
    * Document-method: device_id
@@ -460,7 +460,7 @@ void Init_phidgets_native() {
    * CPhidget_getDeviceID[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "device_id", phidget_device_id, 0);
+  rb_define_method(c_Device, "device_id", device_device_id, 0);
 
   /*
    * Document-method: type
@@ -472,7 +472,7 @@ void Init_phidgets_native() {
    * CPhidget_getDeviceType[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "type", phidget_type, 0);
+  rb_define_method(c_Device, "type", device_type, 0);
 
   /*
    * Document-method: name
@@ -484,7 +484,7 @@ void Init_phidgets_native() {
    * CPhidget_getDeviceName[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "name", phidget_name, 0);
+  rb_define_method(c_Device, "name", device_name, 0);
 
   /*
    * Document-method: label
@@ -495,7 +495,7 @@ void Init_phidgets_native() {
    * from the CPhidget_getDeviceLabel[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "label", phidget_label, 0);
+  rb_define_method(c_Device, "label", device_label, 0);
 
   /*
    * Document-method: serial_number
@@ -505,7 +505,7 @@ void Init_phidgets_native() {
    * Returns a string which contains the device's serial number. This string comes 
    * from what was provided in the object initializer
    */
-  rb_define_method(c_Device, "serial_number", phidget_serial_number, 0);
+  rb_define_method(c_Device, "serial_number", device_serial_number, 0);
 
   /*
    * Document-method: version
@@ -516,7 +516,7 @@ void Init_phidgets_native() {
    * from the CPhidget_getDeviceVersion[http://www.phidgets.com/documentation/web/cdoc/group__phidcommon.html] 
    * function.
    */
-  rb_define_method(c_Device, "version", phidget_version, 0);
+  rb_define_method(c_Device, "version", device_version, 0);
 
   /*
    * Document-method: version
@@ -527,7 +527,7 @@ void Init_phidgets_native() {
    * some regular interval. For these devices, this method will return the rate
    * of state changes measured in Hz.
    */
-  rb_define_method(c_Device, "sample_rate", phidget_sample_rate, 0);
+  rb_define_method(c_Device, "sample_rate", device_sample_rate, 0);
   
   // Phidgets::Spatial
   VALUE c_Spatial = rb_define_class_under(m_Phidget,"Spatial",c_Device);

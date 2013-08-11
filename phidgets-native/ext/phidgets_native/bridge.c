@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE bridge_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   CPhidgetBridgeHandle bridge = 0;
   ensure(CPhidgetBridge_create(&bridge));
   info->handle = (CPhidgetHandle)bridge;

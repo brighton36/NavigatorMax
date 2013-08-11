@@ -1,9 +1,6 @@
-* We may need common stuff in a common.c
-* We shouldn't Prefix the Errors with Phidget
-
-* We should probably not register the handlers until open() is called
-
 * Then implement the gps in C
+* Then implement the interfacekit in C
+* Then implement the servocontroller in C
 
 * Decide if we should do something about phidget_on_error either raise an error or do nothing...
   * I'm thinking nothing...

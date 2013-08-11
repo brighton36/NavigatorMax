@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE weightsensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   CPhidgetWeightSensorHandle weightsensor = 0;
   ensure(CPhidgetWeightSensor_create(&weightsensor));
   info->handle = (CPhidgetHandle)weightsensor;

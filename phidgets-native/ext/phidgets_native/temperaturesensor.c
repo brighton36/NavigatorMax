@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE temperaturesensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   CPhidgetTemperatureSensorHandle temperaturesensor = 0;
   ensure(CPhidgetTemperatureSensor_create(&temperaturesensor));
   info->handle = (CPhidgetHandle)temperaturesensor;

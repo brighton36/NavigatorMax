@@ -4,13 +4,6 @@ const char MSG_COMPASS_CORRECTION_NOT_ARRAY[] = "compass correction must be a 13
 const char MSG_COMPASS_CORRECTION_MUST_BE_FLOAT[] = "compass correction elements must be float or fixnum";
 const char MSG_DATA_RATE_MUST_BE_NUM[] = "data rate must be fixnum";
 
-void *get_type_info(VALUE self) {
-  PhidgetInfo *info;
-  Data_Get_Struct( self, PhidgetInfo, info );
-
-  return info->type_info;
-}
-
 void spatial_on_free(void *type_info) {
   printf("here in the spatial free\n");
 
@@ -121,7 +114,7 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
 
   int i;
   for(i = 0; i < count; i++) {
-    phidget_sample(info, &data[i]->timestamp);
+    device_sample(info, &data[i]->timestamp);
 
     // Here's where we calculate how much time was between the last sample and
     // this one, expressed as a percentage of a second:
@@ -158,7 +151,7 @@ int CCONV spatial_on_data(CPhidgetSpatialHandle spatial, void *userptr, CPhidget
 VALUE spatial_initialize(VALUE self, VALUE serial) {
   printf("Inside spatial_init\n");
 
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
 
   SpatialInfo *spatial_info = ALLOC(SpatialInfo); 
   memset(spatial_info, 0, sizeof(SpatialInfo));
@@ -180,7 +173,7 @@ VALUE spatial_initialize(VALUE self, VALUE serial) {
 }
 
 VALUE spatial_close(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
 
   printf("Inside spatial_close \n");
 
@@ -190,80 +183,80 @@ VALUE spatial_close(VALUE self) {
 }
 
 VALUE spatial_accelerometer_axes(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->accelerometer_axes) ? 
     INT2FIX(spatial_info->accelerometer_axes) : Qnil;
 }  
 
 VALUE spatial_compass_axes(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->compass_axes) ? INT2FIX(spatial_info->compass_axes) : Qnil;
 }  
 
 VALUE spatial_gyro_axes(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->gyro_axes) ? INT2FIX(spatial_info->gyro_axes) : Qnil;
 }  
 
 VALUE spatial_accelerometer(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->acceleration, spatial_info->accelerometer_axes);
 }  
 
 VALUE spatial_accelerometer_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->acceleration_min, spatial_info->accelerometer_axes);
 }  
 
 VALUE spatial_accelerometer_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->acceleration_max, spatial_info->accelerometer_axes);
 }  
 
 VALUE spatial_gyro(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->gyroscope, spatial_info->gyro_axes);
 }  
 
 VALUE spatial_gyro_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->gyroscope_min, spatial_info->gyro_axes);
 }  
 
 VALUE spatial_gyro_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->gyroscope_max, spatial_info->gyro_axes);
 }  
 
 VALUE spatial_compass(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->compass, spatial_info->compass_axes);
 }  
 
 VALUE spatial_compass_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->compass_min, spatial_info->compass_axes);
 }  
 
 VALUE spatial_compass_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return double_array_to_rb(spatial_info->compass_max, spatial_info->compass_axes);
 }  
 
 VALUE spatial_zero_gyro(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   SpatialInfo *spatial_info = info->type_info;
 
   ensure(CPhidgetSpatial_zeroGyro((CPhidgetSpatialHandle) info->handle));
@@ -273,7 +266,7 @@ VALUE spatial_zero_gyro(VALUE self) {
 }
 
 VALUE spatial_reset_compass_correction(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   SpatialInfo *spatial_info = info->type_info;
 
   ensure(CPhidgetSpatial_resetCompassCorrectionParameters((CPhidgetSpatialHandle) info->handle));
@@ -284,7 +277,7 @@ VALUE spatial_reset_compass_correction(VALUE self) {
 }
 
 VALUE spatial_compass_correction_set(VALUE self, VALUE compass_correction) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   SpatialInfo *spatial_info = info->type_info;
 
   if ( (TYPE(compass_correction) != T_ARRAY) || (RARRAY_LEN(compass_correction) != COMPASS_CORRECTION_LENGTH) ) {
@@ -312,26 +305,26 @@ VALUE spatial_compass_correction_set(VALUE self, VALUE compass_correction) {
 }
 
 VALUE spatial_compass_correction_get(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->has_compass_correction) ? 
     double_array_to_rb(spatial_info->compass_correction, COMPASS_CORRECTION_LENGTH) : Qnil;
 }
 
 VALUE spatial_data_rate_max(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->data_rate_max) ? INT2FIX(spatial_info->data_rate_max) : Qnil;
 }  
 
 VALUE spatial_data_rate_min(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return (spatial_info->data_rate_min) ? INT2FIX(spatial_info->data_rate_min) : Qnil;
 }  
 
 VALUE spatial_data_rate_set(VALUE self, VALUE data_rate) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   SpatialInfo *spatial_info = info->type_info;
 
   if ( TYPE(data_rate) != T_FIXNUM ) {
@@ -349,7 +342,7 @@ VALUE spatial_data_rate_set(VALUE self, VALUE data_rate) {
 };
 
 VALUE spatial_data_rate_get(VALUE self) {
-  SpatialInfo *spatial_info = get_type_info(self);
+  SpatialInfo *spatial_info = device_type_info(self);
 
   return INT2FIX(spatial_info->data_rate);
 };

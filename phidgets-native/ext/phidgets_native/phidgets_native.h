@@ -68,36 +68,39 @@ typedef struct spatial_info {
 } SpatialInfo;
 
 void Init_phidgets_native();
+
+// Common:
 VALUE double_array_to_rb(double *dbl_array, int length);
 int ensure(int result);
 
-// Phidget (Module)
+// Phidget Module
 VALUE phidget_enable_logging(int argc, VALUE *argv, VALUE class);
 VALUE phidget_disable_logging(VALUE class);
 VALUE phidget_log(VALUE class, VALUE log_level, VALUE message);
 VALUE phidget_all(VALUE class);
 
 // Phidget::Device
-PhidgetInfo *get_info(VALUE self);
-void phidget_free(PhidgetInfo *info);
-void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts);
-int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr);
-int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr);
-int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown);
+PhidgetInfo *device_info(VALUE self);
+void *device_type_info(VALUE self);
+void device_free(PhidgetInfo *info);
+void device_sample(PhidgetInfo *info, CPhidget_Timestamp *ts);
+int CCONV device_on_attach(CPhidgetHandle phid, void *userptr);
+int CCONV device_on_detach(CPhidgetHandle phid, void *userptr);
+int CCONV device_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown);
 
-VALUE phidget_allocate(VALUE class);
-VALUE phidget_initialize(VALUE self, VALUE serial);
-VALUE phidget_close(VALUE self);
-VALUE phidget_wait_for_attachment(VALUE self, VALUE timeout);
-VALUE phidget_is_attached(VALUE self);
-VALUE phidget_device_class(VALUE self);
-VALUE phidget_device_id(VALUE self);
-VALUE phidget_type(VALUE self);
-VALUE phidget_name(VALUE self);
-VALUE phidget_label(VALUE self);
-VALUE phidget_serial_number(VALUE self);
-VALUE phidget_version(VALUE self);
-VALUE phidget_sample_rate(VALUE self);
+VALUE device_allocate(VALUE class);
+VALUE device_initialize(VALUE self, VALUE serial);
+VALUE device_close(VALUE self);
+VALUE device_wait_for_attachment(VALUE self, VALUE timeout);
+VALUE device_is_attached(VALUE self);
+VALUE device_device_class(VALUE self);
+VALUE device_device_id(VALUE self);
+VALUE device_type(VALUE self);
+VALUE device_name(VALUE self);
+VALUE device_label(VALUE self);
+VALUE device_serial_number(VALUE self);
+VALUE device_version(VALUE self);
+VALUE device_sample_rate(VALUE self);
 
 // Phidget::Spatial
 void spatial_on_free(void *type_info);

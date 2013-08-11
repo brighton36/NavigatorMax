@@ -4,26 +4,22 @@ const char MSG_SERIAL_MUST_BE_FIX[] = "serial number must be a fixnum";
 const char MSG_TIMEOUT_MUST_BE_FIX[] = "timeout must be a fixnum";
 const char MSG_UNSUPPORTED_INITIALIZATION[] = "device cannot be directly instantiated, please instantiate an inherited class";
 
-PhidgetInfo *get_info(VALUE self) {
+PhidgetInfo *device_info(VALUE self) {
   PhidgetInfo *info;
   Data_Get_Struct( self, PhidgetInfo, info );
 
   return info;
 }
 
-// This converts an array of doubles into a ruby array of numbers, or into
-// nil for the case of an invalid dbl_array
-VALUE double_array_to_rb(double *dbl_array, int length) {
-  if (!dbl_array) return Qnil;
+void *device_type_info(VALUE self) {
+  PhidgetInfo *info;
+  Data_Get_Struct( self, PhidgetInfo, info );
 
-  VALUE rb_ary = rb_ary_new2(length);
-
-  for(int i=0; i<length; i++) rb_ary_store(rb_ary, i, DBL2NUM(dbl_array[i]));
-
-  return rb_ary;
+  return info->type_info;
 }
 
-void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
+
+void device_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
   info->samples_in_second++;
 
   // Sample tracking
@@ -39,7 +35,7 @@ void phidget_sample(PhidgetInfo *info, CPhidget_Timestamp *ts) {
   return;
 }
 
-int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr)
+int CCONV device_on_attach(CPhidgetHandle phid, void *userptr)
 {
   int serialNo;
   ensure(CPhidget_getSerialNumber(phid, &serialNo));
@@ -60,7 +56,7 @@ int CCONV phidget_on_attach(CPhidgetHandle phid, void *userptr)
   return (info->on_type_attach) ? (*info->on_type_attach)(phid, info) : 0;
 }
 
-int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr) {
+int CCONV device_on_detach(CPhidgetHandle phid, void *userptr) {
   int serialNo;
   ensure(CPhidget_getSerialNumber(phid, &serialNo));
   printf("Phidget %10d detached! \n", serialNo);
@@ -78,13 +74,13 @@ int CCONV phidget_on_detach(CPhidgetHandle phid, void *userptr) {
   return (info->on_type_detach) ? (*info->on_type_detach)(phid, info) : 0;
 }
 
-int CCONV phidget_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown) {
+int CCONV device_on_error(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *unknown) {
   printf("Error handled. %d - %s \n", ErrorCode, unknown);
   return 0;
 }
 
-void phidget_free(PhidgetInfo *info) {
-  printf("Inside phidget_free\n");
+void device_free(PhidgetInfo *info) {
+  printf("Inside device_free\n");
   if (info) {
     if (info->handle) {
 	    ensure(CPhidget_close((CPhidgetHandle)info->handle));
@@ -98,22 +94,22 @@ void phidget_free(PhidgetInfo *info) {
   }
 }
 
-VALUE phidget_allocate(VALUE class) {
-  printf("Inside phidget_allocate\n");
+VALUE device_allocate(VALUE class) {
+  printf("Inside device_allocate\n");
 
   // We'll need this all over the place later:
   PhidgetInfo *info;
-  VALUE self = Data_Make_Struct(class, PhidgetInfo, 0, phidget_free, info);
+  VALUE self = Data_Make_Struct(class, PhidgetInfo, 0, device_free, info);
   memset(info, 0, sizeof(PhidgetInfo));
   info->is_attached = false;
 
   return self;
 }
 
-VALUE phidget_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_initialize(VALUE self, VALUE serial) {
+  PhidgetInfo *info = device_info(self);
 
-  printf("Inside phidget_init\n");
+  printf("Inside device_init\n");
 
   if (TYPE(serial) != T_FIXNUM) {
     rb_raise(rb_eTypeError, MSG_SERIAL_MUST_BE_FIX);
@@ -128,19 +124,19 @@ VALUE phidget_initialize(VALUE self, VALUE serial) {
     rb_raise(rb_eTypeError, MSG_UNSUPPORTED_INITIALIZATION);
 
   // Register the event handlers:
-	ensure(CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, phidget_on_attach, info));
-	ensure(CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, phidget_on_detach, info));
-	ensure(CPhidget_set_OnError_Handler((CPhidgetHandle)info->handle, phidget_on_error, info));
+	ensure(CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, device_on_attach, info));
+	ensure(CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, device_on_detach, info));
+	ensure(CPhidget_set_OnError_Handler((CPhidgetHandle)info->handle, device_on_error, info));
 
 	ensure(CPhidget_open((CPhidgetHandle)info->handle, FIX2INT(serial)));
   
   return self;
 }
 
-VALUE phidget_close(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_close(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
-  printf("Inside phidget_close \n");
+  printf("Inside device_close \n");
 
   ensure(CPhidget_set_OnAttach_Handler((CPhidgetHandle)info->handle, NULL, NULL));
   ensure(CPhidget_set_OnDetach_Handler((CPhidgetHandle)info->handle, NULL, NULL));
@@ -149,8 +145,8 @@ VALUE phidget_close(VALUE self) {
   return Qnil;
 }
 
-VALUE phidget_wait_for_attachment(VALUE self, VALUE timeout) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_wait_for_attachment(VALUE self, VALUE timeout) {
+  PhidgetInfo *info = device_info(self);
 
   if (TYPE(timeout) != T_FIXNUM) {
     rb_raise(rb_eTypeError, MSG_TIMEOUT_MUST_BE_FIX);
@@ -164,14 +160,14 @@ VALUE phidget_wait_for_attachment(VALUE self, VALUE timeout) {
   return timeout;
 }
 
-VALUE phidget_is_attached(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_is_attached(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->is_attached) ? Qtrue : Qfalse;
 }
 
-VALUE phidget_device_class(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_device_class(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   switch (info->device_class) {
     case PHIDCLASS_ACCELEROMETER:
@@ -222,8 +218,8 @@ VALUE phidget_device_class(VALUE self) {
   return (info->device_class == 0) ? Qnil : Qnil;
 }
 
-VALUE phidget_device_id(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_device_id(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   switch (info->device_id) {
     case PHIDID_ACCELEROMETER_3AXIS:
@@ -329,119 +325,39 @@ VALUE phidget_device_id(VALUE self) {
   }
 }
 
-VALUE phidget_type(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_type(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->type == NULL) ? Qnil : rb_str_new2(info->type);
 }
 
-VALUE phidget_name(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_name(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->name == NULL) ? Qnil : rb_str_new2(info->name);
 }
 
-VALUE phidget_label(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_label(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->label == NULL) ? Qnil : rb_str_new2(info->label);
 }
 
-VALUE phidget_serial_number(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_serial_number(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->serial == 0) ? Qnil : INT2FIX(info->serial);
 }  
 
-VALUE phidget_version(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_version(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return (info->version == 0) ? Qnil : INT2FIX(info->version);
 }  
 
-VALUE phidget_sample_rate(VALUE self) {
-  PhidgetInfo *info = get_info(self);
+VALUE device_sample_rate(VALUE self) {
+  PhidgetInfo *info = device_info(self);
 
   return DBL2NUM(info->sample_rate);
 }  
 
-// The name is ambiguous, but the main purpose here is dry things out a bit
-// and let us do a better job of reporting errors to ruby
-int ensure(int result) {
-  if ( result == EPHIDGET_OK ) return 0;
-
-  const char *exception_name;
-
-  switch(result) {
-    case EPHIDGET_NOTFOUND:
-      exception_name = "NotFoundError";
-      break;
-    case EPHIDGET_NOMEMORY:
-      exception_name = "NoMemoryError";
-      break;
-    case EPHIDGET_UNEXPECTED:
-      exception_name = "UnexpectedError";
-      break;
-    case EPHIDGET_INVALIDARG:
-      exception_name = "InvalidArgError";
-      break;
-    case EPHIDGET_NOTATTACHED:
-      exception_name = "NotAttachedError";
-      break;
-    case EPHIDGET_INTERRUPTED:
-      exception_name = "InterruptedError";
-      break;
-    case EPHIDGET_INVALID:
-      exception_name = "InvalidError";
-      break;
-    case EPHIDGET_NETWORK:
-      exception_name = "NetworkError";
-      break;
-    case EPHIDGET_UNKNOWNVAL:
-      exception_name = "UnknownValError";
-      break;
-    case EPHIDGET_BADPASSWORD:
-      exception_name = "BadPasswordError";
-      break;
-    case EPHIDGET_UNSUPPORTED:
-      exception_name = "UnsupportedError";
-      break;
-    case EPHIDGET_DUPLICATE:
-      exception_name = "DuplicateError";
-      break;
-    case EPHIDGET_TIMEOUT:
-      exception_name = "TimeoutError";
-      break;
-    case EPHIDGET_OUTOFBOUNDS:
-      exception_name = "OutOfBoundsError";
-      break;
-    case EPHIDGET_EVENT:
-      exception_name = "EventError";
-      break;
-    case EPHIDGET_NETWORK_NOTCONNECTED:
-      exception_name = "NetworkNotConnectedError";
-      break;
-    case EPHIDGET_WRONGDEVICE:
-      exception_name = "WrongDeviceError";
-      break;
-    case EPHIDGET_CLOSED:
-      exception_name = "ClosedError";
-      break;
-    case EPHIDGET_BADVERSION:
-      exception_name = "BadVersionError";
-      break;
-    default:
-      exception_name = "UnhandledError";
-      break;
-  }
-
-  const char *description;
-  CPhidget_getErrorDescription(result, &description);
-
-  VALUE m_Phidget = rb_const_get(rb_cObject, rb_intern("Phidgets"));  
-  VALUE c_Exception = rb_const_get(m_Phidget, rb_intern(exception_name));
-
-  rb_raise(c_Exception, "%s", description);
-
-  return result;
-}

@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE accelerometer_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
 
   CPhidgetAccelerometerHandle accelerometer = 0;
   ensure(CPhidgetAccelerometer_create(&accelerometer));

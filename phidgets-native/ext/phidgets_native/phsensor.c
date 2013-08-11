@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE phsensor_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   CPhidgetPHSensorHandle phsensor  = 0;
   ensure(CPhidgetPHSensor_create(&phsensor));
   info->handle = (CPhidgetHandle)phsensor ;

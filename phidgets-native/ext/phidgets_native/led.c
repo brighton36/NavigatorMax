@@ -1,7 +1,7 @@
 #include "phidgets_native.h"
 
 VALUE led_initialize(VALUE self, VALUE serial) {
-  PhidgetInfo *info = get_info(self);
+  PhidgetInfo *info = device_info(self);
   CPhidgetLEDHandle led = 0;
   ensure(CPhidgetLED_create(&led));
   info->handle = (CPhidgetHandle)led;
