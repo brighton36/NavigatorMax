@@ -6,8 +6,11 @@
 #include <ruby.h>
 #include <phidget21.h>
 
+// We needed a define here since some compilers won't let you set an array size
+// via a const.
+#define COMPASS_CORRECTION_LENGTH 13
+
 static double const MICROSECONDS_IN_SECOND = 1000000.0;
-static int const COMPASS_CORRECTION_LENGTH = 13;
 static int const DEGREES_IN_CIRCLE = 360;
 static int const DEFAULT_SPATIAL_DATA_RATE = 16;
 
@@ -48,7 +51,7 @@ typedef struct phidget_info {
 typedef struct spatial_info {
   // Compass Correction Params:
   bool has_compass_correction;
-  double compass_correction[COMPASS_CORRECTION_LENGTH];
+  double compass_correction[COMPASS_CORRECTION_LENGTH]; // aka: COMPASS_CORRECTION_LENGTH
 
   // Poll interval
   int data_rate;

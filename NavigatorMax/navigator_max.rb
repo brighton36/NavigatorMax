@@ -7,7 +7,7 @@ require 'json'
 require 'matrix'
 
 $: << '../phidgets-native/lib/'
-require 'phidgets_native.bundle'
+require 'phidgets_native'
 
 $: << 'lib'
 $: << 'sensors'
