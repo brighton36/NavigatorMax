@@ -1,9 +1,14 @@
+* Start to package this - and see why we have an underscore in the gem instead of a -
+
+
 * GPS: is_fixed needs a ? at the end
 
 * Clean up the spatial example
 
+
 * We may need to shy away from the ensures in our threaded handlers. 
   * Alternatively, we can just allow the unknownvals to slide...
+
 
 * Publish
 
