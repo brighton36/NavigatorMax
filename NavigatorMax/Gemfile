@@ -1,8 +1,10 @@
 source 'https://rubygems.org'
 
 gem 'rspec'
-gem 'phidgets-ffi'
 gem 'em-websocket'
 
 gem 'vmstat'
 gem 'rusage'
+
+gem 'phidgets_native', :git => 'git://github.com/brighton36/phidgets_native.git'
+

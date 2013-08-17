@@ -10,7 +10,7 @@ class OrientationSensor
     # TODO:
     @compass_correction_params = compass_correction_params
 
-    @phidget = Phidgets::Spatial.new(serial_number)
+    @phidget = PhidgetsNative::Spatial.new(serial_number)
     @phidget.wait_for_attachment 10000
     @phidget.zero_gyro!
     @phidget.data_rate = 8
@@ -51,7 +51,11 @@ class OrientationSensor
   end
 
   def compass
-    v3(*@phidget.compass)
+    if @phidget.compass
+      @compass_last = v3(*@phidget.compass)
+    else
+      @compass_last
+    end
   end
 
   def gyroscope

@@ -4,7 +4,7 @@
 class GpsSensor
 
   def initialize(serial_number)
-    @phidget = Phidgets::GPS.new(serial_number)
+    @phidget = PhidgetsNative::GPS.new(serial_number)
     @phidget.wait_for_attachment 10000
   end
 
@@ -29,7 +29,7 @@ class GpsSensor
   end
 
   def is_fixed?
-    @phidget.is_fixed
+    @phidget.is_fixed?
   end
 
   def latitude

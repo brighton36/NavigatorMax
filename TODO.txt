@@ -1,19 +1,10 @@
-* Start to package this - and see why we have an underscore in the gem instead of a -
-
-
-* GPS: is_fixed needs a ? at the end
-
-* Clean up the spatial example
-
-
-* We may need to shy away from the ensures in our threaded handlers. 
-  * Alternatively, we can just allow the unknownvals to slide...
-
-
-* Publish
+* Publish a gem
+  * Get the navigator using it
 
 * Then implement the interfacekit in C
 * Then implement the servocontroller in C
+
+* Promote the lib
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
@@ -32,3 +23,19 @@
   * GPS TODO:
     * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
   * GUI : On commloss should retry connection
+
+* Down the line on the phidgets gem:
+  * Remove the type_info and replace with extended_attributes and polled_attributes
+    basic attributes (these stay in the struct)
+    extended_attributes (these are pointed to and are device specific)
+    polled_attriubutes these are the running state variables
+
+    It'd be nice if we alloc'd a struct during the poll interval, and passed that
+    to a method for storage, this way we could implement our sequencing code down
+    the line. However, I don't think this is practical without some fancy locking,
+    as we could end up free'ing the struct before it's done in the ruby thread
+  * It would then be nice to have a basic_attributes, extended_attributes, and 
+    polled_attributes for each class
+
+
+

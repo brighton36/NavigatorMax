@@ -5,28 +5,24 @@ require 'rubygems'
 require 'em-websocket'
 require 'json'
 require 'matrix'
-
-$: << '../phidgets-native/lib/'
 require 'phidgets_native'
 
 $: << 'lib'
 $: << 'sensors'
 require 'sensor'
-#require 'phidgets_overides'
 require 'core_overides'
 require 'orientation_sensor'
 require 'gps_sensor'
 require 'system_sensor'
 
-puts "Library Version: #{Phidgets::LIBRARY_VERSION}"
-Phidgets.enable_logging! :verbose
+puts "Library Version: #{PhidgetsNative::LIBRARY_VERSION}"
+PhidgetsNative.enable_logging! :verbose
 
 system = SystemSensor.new (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
 orientation = OrientationSensor.new 302012, 
   [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 0.009283]
 gps = GpsSensor.new 284771
 
-# TODO: orientation.zero_gyro!
 
 # We'll use this to block the execution. Phidget seems to run as an 'interrupt' 
 # to this proc:
@@ -34,7 +30,7 @@ EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080, :debug => false
   Signal.trap("INT")  { puts "Handling INT"; gps.close; orientation.close; EventMachine.stop }
   Signal.trap("TERM") { puts "Handling TERM"; gps.close; orientation.close; EventMachine.stop }
   
-  ws.onerror   { |e| puts "Error: #{e.message}" }
+  #ws.onerror   { |e| puts "Error: #{e.message}" }
 
   ws.onmessage do |req| 
     ret = {:ts => Time.new.strftime('%H:%M:%S.%L'), :request => req }

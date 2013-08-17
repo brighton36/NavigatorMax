@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/brighton36/phidgets_native.git
+  revision: 02411729f3d0639749077854e5a340fe667762a1
+  specs:
+    phidgets_native (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -7,9 +13,6 @@ GEM
       addressable (>= 2.1.1)
       eventmachine (>= 0.12.9)
     eventmachine (1.0.0)
-    ffi (1.2.0)
-    phidgets-ffi (0.1.2)
-      ffi (>= 1.0.9)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
       rspec-expectations (~> 2.12.0)
@@ -26,7 +29,7 @@ PLATFORMS
 
 DEPENDENCIES
   em-websocket
-  phidgets-ffi
+  phidgets_native!
   rspec
   rusage
   vmstat
