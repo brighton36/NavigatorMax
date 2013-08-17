@@ -56,7 +56,7 @@ $(document).ready ->
     data = $.parseJSON(evt.data)
 
     if data.request == 'get application_state'
-      window.active_controller.tick(data) if window.active_controller
+      controller.tick data for label, controller of window.controllers
     else if data.request == 'get application_metadata'
       controller.set_metadata data for label, controller of window.controllers
         

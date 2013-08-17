@@ -1,6 +1,3 @@
-* Publish a gem
-  * Get the navigator using it
-
 * Then implement the interfacekit in C
 * Then implement the servocontroller in C
 
