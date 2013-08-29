@@ -35,5 +35,10 @@ class Sensor
     @last_data_at = now
   end
 
+  private
+
+  def hashify_attributes(attrs)
+    Hash.new.tap{ |h| attrs.each{|a| h[a] = self.send(a)} }
+  end
 end
 

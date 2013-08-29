@@ -31,7 +31,26 @@ class OrientationSensor
       :device_id => @phidget.device_id, 
       :accelerometer_axes => @phidget.accelerometer_axes, 
       :compass_axes => @phidget.compass_axes, :gyro_axes => @phidget.gyro_axes
-    } if connected?
+    }.merge( { :acceleration_max => acceleration_max, 
+      :acceleration_max => acceleration_max, :acceleration_min => acceleration_min,
+      :gyroscope_max => gyroscope_max, :gyroscope_min => gyroscope_min,
+      :compass_max => compass_max, :compass_min => compass_min } ) if connected?
+  end
+
+  def polled_attributes
+    { :updates_per_second => updates_per_second,
+      :raw => { 
+        :acceleration => acceleration.to_a,  
+        :gyroscope    => gyroscope.to_a, 
+        :compass      => compass.to_a },
+      :euler_angles => {
+        :acceleration => acceleration_to_euler.to_a,
+        :gyroscope    => gyroscope_to_euler.to_a,
+        :compass      => compass_bearing_to_euler.to_a},
+      :direction_cosine_matrix => {
+        :acceleration => acceleration_dcm.to_a,
+        :gyroscope    => gyroscope_dcm.to_a,
+        :compass      => compass_bearing_dcm.to_a } }
   end
 
   def updates_per_second

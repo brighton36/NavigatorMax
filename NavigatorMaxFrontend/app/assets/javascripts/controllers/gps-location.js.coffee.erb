@@ -1,4 +1,4 @@
-window.GpsLocation = class
+window.GpsLocationController = class
   constructor:  ->
     @gps_table = new DataTableView '#gps_sensor'
 
@@ -12,7 +12,7 @@ window.GpsLocation = class
       "Heading", 'E', 'N', COLORS
 
   set_metadata: (data) -> 
-    attribs = data.gps_attributes
+    attribs = data.gps
     $('#gps-location .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
     
   tick: (data) ->

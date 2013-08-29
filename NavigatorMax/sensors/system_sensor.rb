@@ -5,6 +5,11 @@ require 'rusage'
 class SystemSensor < Sensor
   DEVICE_ATTRIBUTES = [:hostname, :uname, :boot_time, :cpu_arch, :serial_number, 
     :ruby_description, :primary_interface, :memory_total, :root_filesystem]
+  POLLED_ATTRIBUTES = [:updates_per_second, :snapshot_at, :memory_free,
+    :memory_swaprates, :root_filesystem_free, :load_avg, :uptime, :gc_rate,
+    :cpu_percent_user, :cpu_percent_system, :cpu_percent_idle, :network_send_rate,
+    :network_recv_rate, :process_resident_memory, :process_percent_user,
+    :process_percent_system, :wifi_network, :wifi_signal, :wifi_noise ]
 
   attr_accessor *DEVICE_ATTRIBUTES
 
@@ -31,13 +36,21 @@ class SystemSensor < Sensor
     @poller = Thread.new(self){|sensor| sensor.on_poll while sleep(1) }
   end
 
+  def device_attributes
+    hashify_attributes DEVICE_ATTRIBUTES
+  end
+
+  def polled_attributes
+    hashify_attributes POLLED_ATTRIBUTES
+  end
+
   def close
     Thread.kill @poller if @poller
     @poller = nil
   end
 
-  def device_attributes
-    Hash[*DEVICE_ATTRIBUTES.collect{|a| [a,self.send(a)]}.flatten]
+  def connected?
+    (!@poller.nil?)
   end
 
   def on_poll

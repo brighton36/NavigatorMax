@@ -1,4 +1,4 @@
-window.System = class
+window.SystemController = class
   constructor: () ->
     @last_snapshot_at = null
 
@@ -57,7 +57,7 @@ window.System = class
     
 
   set_metadata: (data) -> 
-    attribs = data.system_attributes
+    attribs = data.system
     $('#system .title_annotation').html("#{attribs.hostname} (serial #{attribs.serial_number})")
 
     @tables.system.set(property, value) for property, value of { 
@@ -75,7 +75,6 @@ window.System = class
     
   tick: (data) ->
     system = data.system
-    
     if system.snapshot_at != @last_snapshot_at
       @last_snapshot_at = system.snapshot_at
 

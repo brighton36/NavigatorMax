@@ -18,6 +18,10 @@ class AnalogSensor
     } if connected?
   end
 
+  def polled_attributes
+    nil # TODO
+  end
+
   def close
     @phidget.close
   end

@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-class GpsSensor
+class GpsSensor < Sensor
+  POLLED_ATTRIBUTES = [ :updates_per_second, :is_fixed, :latitude, :longitude, 
+    :altitude, :heading, :velocity, :time]
 
   def initialize(serial_number)
     @phidget = PhidgetsNative::GPS.new(serial_number)
@@ -14,6 +16,10 @@ class GpsSensor
       :label => @phidget.label, :device_class => @phidget.device_class, 
       :device_id => @phidget.device_id
     } if connected?
+  end
+
+  def polled_attributes
+    hashify_attributes POLLED_ATTRIBUTES
   end
 
   def close
@@ -31,6 +37,8 @@ class GpsSensor
   def is_fixed?
     @phidget.is_fixed?
   end
+
+  alias is_fixed is_fixed?
 
   def latitude
     @phidget.latitude

@@ -1,9 +1,17 @@
+* Clean up the ruby code
+  * I might have borked the GPS - test it out, as it wasn't locking in the living room
+
 * Then work through the temp / / humidity charts
-  * Let's create a static_attributes and state collection for each object
-  * Rename the javascript controllers to have Controller at the end of their names
   * Then start sending temperatures out
+  * The cpu temps should be a different sensor - not an analog sensor
 
 * On the interfacekit, It'd be nice to set some ports as ratiometric, and some as not-ratio
+  * While we're in there, let's show a device class and serial on these:
+    ERR: PhidgetNative OnError: Channel 6: 1 sample overrun detected.
+    ERR: PhidgetNative OnError: Channel 7: 1 sample overrun detected.
+    ERR: PhidgetNative OnError: Channel 6: 1 sample overrun detected.
+    ERR: PhidgetNative OnError: Channel 7: 1 sample overrun detected.
+
   * And then switch the device around after a set of sampels
   * This will only support the data_rate method
 

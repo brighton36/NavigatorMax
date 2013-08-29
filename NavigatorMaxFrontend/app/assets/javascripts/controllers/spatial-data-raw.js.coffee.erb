@@ -48,54 +48,55 @@ window.SpatialDataRawController = class
 
 
   set_metadata: (data) -> 
-    attribs = data.spatial_attributes
+    attribs = data.orientation
     $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
 
     for sensor in ['acceleration', 'gyroscope', 'compass']
       for ext in ['min', 'max']
-        @data_tables.extents.set "#{sensor}_#{ext}", data.spatial_attributes.extents["#{sensor}_#{ext}"]
+        @data_tables.extents.set "#{sensor}_#{ext}", attribs["#{sensor}_#{ext}"]
     @data_tables.extents.render()
 
   tick: (data) ->
-    if data.spatial_data
+    orientation = data.orientation
+    if data.orientation
       @data_tables.runtime.set(property, value) for property, value of { 
-        spatial_comm_rate: "#{data.spatial_data.updates_per_second}  hz",
+        spatial_comm_rate: "#{orientation.updates_per_second}  hz",
         last_gui_poll: data.ts}
 
       for sensor in ['acceleration', 'gyroscope', 'compass']
         for i, coord of ['x', 'y', 'z']
-          @data_tables.coords.set "#{sensor}_#{coord}coord", data.spatial_data.raw[sensor][i].toFixed(2)
+          @data_tables.coords.set "#{sensor}_#{coord}coord", orientation.raw[sensor][i].toFixed(2)
 
       # Update the 2d planes:
-      norm_accel = new THREE.Vector3().fromArray( data.spatial_data.raw['acceleration'] ).normalize()
+      norm_accel = new THREE.Vector3().fromArray( orientation.raw['acceleration'] ).normalize()
       @plane_vectors['xy_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
       @plane_vectors['yz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
       @plane_vectors['xz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
 
       # Update the 2d planes:
-      norm_compass = new THREE.Vector3().fromArray( data.spatial_data.raw['compass'] ).normalize()
+      norm_compass = new THREE.Vector3().fromArray( orientation.raw['compass'] ).normalize()
       @plane_vectors['xy_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
       @plane_vectors['yz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
       @plane_vectors['xz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
 
       # Update the 2d planes:
       gyroscope = new THREE.Vector3().fromArray( 
-        $(data.spatial_data.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
+        $(orientation.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
       @plane_vectors['xy_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
       @plane_vectors['yz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
       @plane_vectors['xz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
 
       # Let's try out our rotation matrix:
-      if data.spatial_data.euler_angles
-        euler_accel = data.spatial_data.euler_angles['acceleration']
-        dcm_accel = data.spatial_data.direction_cosine_matrix['acceleration']
-        euler_compass = data.spatial_data.euler_angles['compass']
-        dcm_compass = data.spatial_data.direction_cosine_matrix['compass']
-        dcm_gyro = data.spatial_data.direction_cosine_matrix['gyroscope']
+      if orientation.euler_angles
+        euler_accel = orientation.euler_angles['acceleration']
+        dcm_accel = orientation.direction_cosine_matrix['acceleration']
+        euler_compass = orientation.euler_angles['compass']
+        dcm_compass = orientation.direction_cosine_matrix['compass']
+        dcm_gyro = orientation.direction_cosine_matrix['gyroscope']
 
         for sensor in ['acceleration','gyroscope', 'compass']
           for i, coord of ['heading','pitch','bank']
-            @data_tables.orientation.set "#{sensor}_#{coord}", data.spatial_data.euler_angles[sensor][i].toFixed(2)
+            @data_tables.orientation.set "#{sensor}_#{coord}", orientation.euler_angles[sensor][i].toFixed(2)
         
         # We can take the rotation from the eular 
         #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
