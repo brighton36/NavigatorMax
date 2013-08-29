@@ -51,8 +51,9 @@ class OrientationSensor
   end
 
   def compass
-    if @phidget.compass
-      @compass_last = v3(*@phidget.compass)
+    compass = @phidget.compass
+    if compass
+      @compass_last = v3(*compass)
     else
       @compass_last
     end

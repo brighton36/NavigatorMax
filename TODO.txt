@@ -1,7 +1,20 @@
-* Then implement the interfacekit in C
-* Then implement the servocontroller in C
+* Then work through the temp / / humidity charts
+  * Let's create a static_attributes and state collection for each object
+  * Rename the javascript controllers to have Controller at the end of their names
+  * Then start sending temperatures out
 
-* Promote the lib
+* On the interfacekit, It'd be nice to set some ports as ratiometric, and some as not-ratio
+  * And then switch the device around after a set of sampels
+  * This will only support the data_rate method
+
+* Then work on voltage charts
+
+* Fix the gyro in 3d
+* Do something nicer on the gps
+
+* Implement the controllers and servos
+
+-- Test run!
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html

@@ -1,0 +1,10 @@
+window.AnalogSensorsController = class
+  constructor: () ->
+
+  set_metadata: (data) -> 
+    attribs = data.analog_attributes
+    $('#analog-sensors .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+
+  tick: (data) ->
+    
+  render: ->

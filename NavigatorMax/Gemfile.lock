@@ -1,8 +1,8 @@
 GIT
   remote: git://github.com/brighton36/phidgets_native.git
-  revision: 02411729f3d0639749077854e5a340fe667762a1
+  revision: df731ba95457ae93833977b4f7c269ff36c97c5e
   specs:
-    phidgets_native (0.1.0)
+    phidgets_native (0.2.0)
 
 GEM
   remote: https://rubygems.org/
