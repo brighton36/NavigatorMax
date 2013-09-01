@@ -1,10 +1,129 @@
 window.AnalogSensorsController = class
+  SENSORS = [ 'humidities', 'temperatures', 'voltages']
+  DATA_POINTS = 300
+  PLOT_OPTIONS = {
+    grid: {
+      borderWidth: 1, minBorderMargin: 20, labelMargin: 10,
+      backgroundColor: { colors: ["#fff", "#fafafa"] },
+      margin: { top: 4, bottom: 4, left: 36 }
+      markings: (axes) ->
+        markings = []
+        xaxis = axes.xaxis
+        for x in [Math.floor(xaxis.min)..xaxis.max] by xaxis.tickSize * 2
+          markings.push({ xaxis: { from: x, to: x + xaxis.tickSize }, color: "rgba(222, 222, 255, 0.6)" })
+        markings
+    },
+    series: {lines: { show: true, fill: false} , shadowSize: 0}, 
+    xaxis: {tickFormatter: (i) => "-#{DATA_POINTS - i} sec"},
+    yaxis: {tickFormatter: (i) -> "<span style='margin-left: -15px'>#{i}</span>"},
+    legend: { show: true, position: "nw", backgroundOpacity:0.5 }
+  }
+  YAXIS_EXTENTS = {
+    humidities: {min: 0, max: 100 },
+    temperatures: {min: 20, max: 60 },
+    voltages: {min: 0, max: 30 } }
+
   constructor: () ->
+    @tables = {ifkit_stats: new DataTableView('#interface_kit_stats')}
+    @series_data = {}
+    @graphs = {}
+    @colors = {}
+
+    for sensor in SENSORS
+      @tables[sensor] = new DataTableView("##{sensor}")
+      @graphs[sensor] = null
+      @colors[sensor] = {}
+      @series_data[sensor] = {}
 
   set_metadata: (data) -> 
     attribs = data.analog
     $('#analog-sensors .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
 
+    # This makes things easier/faster to initialize down below
+    empty_series = []
+    empty_series.push 1 for i in [0..DATA_POINTS-1] by 1
+
+    # Now Let's create the charts:
+    for sensor in SENSORS
+      for location in data.analog[sensor]
+        # Setup our colors:
+        color = COLORS["#{sensor}_#{classify(location)}"]
+        color = 0x333333 unless color?
+        @colors[sensor][location] = '#'+decimal_to_hex_string(color)
+        
+        # Setup our tables:
+        sensor_color_class = "#{sensor}_#{classify(location)}"
+        css_classes = ['legend_indicator', sensor_color_class]
+        sensor_header = "<div class=\"#{css_classes.join(' ')}\"></div> #{location}"
+
+        @tables[sensor].add_row sensor_header, [classify(location)]
+        $(".#{sensor_color_class}").css('background-color', @colors[sensor][location])
+
+        # Setup our plot data:
+        # NOTE: slice(0) returns a clone, instead of a reference, which is what we need:
+        @series_data[sensor][location] = empty_series.slice(0)
+
+      # And now intstantiate a graph:
+      container = $("##{sensor}_graph")
+      @graphs[sensor] = $.plot(container, @_formatted_series_for(sensor), 
+        $.extend( {}, PLOT_OPTIONS, { yaxis: YAXIS_EXTENTS[sensor] } ) )
+
+      yaxisLabel = $('<div class="axisLabel yaxisLabel">'+@_yaxis_label_for(sensor)+"</div>")
+      yaxisLabel.appendTo(container)
+      width = $(container).find('.yaxisLabel').width()
+      width =  90 # TODO! this needs to calculate on the first render
+      yaxisLabel.css("margin-top", width / 2 - 20)
+
   tick: (data) ->
+    # We only want to perform updates at a rate of 1 Hz. This is an easy way to 
+    # do that
+    if @_is_new_second()
+      comm_rates = []
+      comm_rates.push "#{rate} Hz" for rate in data.analog.updates_per_second
+      @tables.ifkit_stats.set 'comm_rate', comm_rates.join(', ')
+
+      for sensor in SENSORS
+        for location, value of data.analog[sensor]
+          @tables[sensor].set classify(location), @_value_to_s_for(sensor, value)
+          @series_data[sensor][location] = @series_data[sensor][location].slice(1) 
+          @series_data[sensor][location].push parseInt(value)
+
+        @graphs[sensor].setData(@_formatted_series_for(sensor))
     
   render: ->
+    @tables.ifkit_stats.render()
+    for sensor in SENSORS
+      @tables[sensor].render()
+      @graphs[sensor].draw() if @graphs[sensor]
+
+  _to_plot_format: (data) ->
+    ret = []
+    ret.push([i, value]) for value,i in data
+    ret
+
+  _formatted_series_for: (sensor) ->
+    ret = []
+    for location, series of @series_data[sensor]
+      ret.push { label: location, color: @colors[sensor][location], data: @_to_plot_format(series) }
+    ret
+
+  _is_new_second: ->
+    this_second = (new Date()).getSeconds()
+    if @last_second != this_second
+      @last_second = this_second
+      return true
+    else
+      return false
+
+  _yaxis_label_for: (sensor) ->
+    switch sensor
+      when 'humidities' then "RH (%)"
+      when 'temperatures' then "Degrees (C)"
+      when 'voltages' then "Volts (V)"
+
+  _value_to_s_for: (sensor, val) ->
+    return "" unless val?
+    switch sensor
+      when 'humidities' then "#{val.toFixed(1)}%"
+      when 'temperatures' then "#{val.toFixed(1)}&deg; C"
+      when 'voltages' then "TODO: #{val}"

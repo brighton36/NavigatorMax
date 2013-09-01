@@ -1,20 +1,16 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-class OrientationSensor
+class OrientationSensor < PhidgetSensor
   attr_accessor :acceleration_min, :acceleration_max, :gyroscope_min, 
     :gyroscope_max, :compass_min, :compass_max, 
     :acceleration, :compass, :gyroscope
 
-  def initialize(serial_number, compass_correction_params)
-    # TODO:
-    @compass_correction_params = compass_correction_params
-
-    @phidget = PhidgetsNative::Spatial.new(serial_number)
-    @phidget.wait_for_attachment 10000
+  def initialize(serial_number, options)
+    super(PhidgetsNative::Spatial, serial_number)
     @phidget.zero_gyro!
     @phidget.data_rate = 8
-    @phidget.compass_correction = @compass_correction_params
+    @phidget.compass_correction = options[:compass_correction] if options.has_key? :compass_correction
 
     @acceleration_max = @phidget.accelerometer_max[0]
     @acceleration_min = @phidget.accelerometer_min[0]
@@ -25,16 +21,12 @@ class OrientationSensor
   end
 
   def device_attributes
-    { :type=> @phidget.type, :name=> @phidget.name, 
-      :serial_number => @phidget.serial_number, :version => @phidget.version, 
-      :label => @phidget.label, :device_class => @phidget.device_class, 
-      :device_id => @phidget.device_id, 
+    super.merge( {
       :accelerometer_axes => @phidget.accelerometer_axes, 
-      :compass_axes => @phidget.compass_axes, :gyro_axes => @phidget.gyro_axes
-    }.merge( { :acceleration_max => acceleration_max, 
+      :compass_axes => @phidget.compass_axes, :gyro_axes => @phidget.gyro_axes,
       :acceleration_max => acceleration_max, :acceleration_min => acceleration_min,
       :gyroscope_max => gyroscope_max, :gyroscope_min => gyroscope_min,
-      :compass_max => compass_max, :compass_min => compass_min } ) if connected?
+      :compass_max => compass_max, :compass_min => compass_min } )
   end
 
   def polled_attributes
@@ -51,18 +43,6 @@ class OrientationSensor
         :acceleration => acceleration_dcm.to_a,
         :gyroscope    => gyroscope_dcm.to_a,
         :compass      => compass_bearing_dcm.to_a } }
-  end
-
-  def updates_per_second
-    @phidget.sample_rate
-  end
-
-  def connected?
-    @phidget.is_attached?
-  end
-
-  def close
-    @phidget.close
   end
 
   def acceleration

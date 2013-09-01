@@ -36,6 +36,9 @@ canvas {
 .nav_pane{ 
   display: none;
 }
+
+table tr th{ white-space: nowrap; }
+
 #gps_map {
   border: 1px solid #dddddd;
   border-collapse: separate;
@@ -46,10 +49,11 @@ canvas {
   height:556px
 }
 
-table tr th{ white-space: nowrap; }
 
-#navigatormax_process{
-  th{width:140px}
+#system{
+  #navigatormax_process{
+    th{width:140px}
+  }
 }
 
 .graph_container {
@@ -74,3 +78,4 @@ table tr th{ white-space: nowrap; }
   -moz-transform-origin: 0 0;
   -webkit-transform-origin: 0 0;
 }
+

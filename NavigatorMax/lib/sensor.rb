@@ -42,3 +42,28 @@ class Sensor
   end
 end
 
+class PhidgetSensor < Sensor
+  def initialize(klass, serial)
+    @phidget = klass.new serial
+    @phidget.wait_for_attachment 10000
+  end
+
+  def close
+    @phidget.close
+  end
+
+  def updates_per_second
+    @phidget.sample_rate
+  end
+
+  def connected?
+    @phidget.is_attached?
+  end
+
+  def device_attributes
+    {:type=> @phidget.type, :name=> @phidget.name, 
+      :serial_number => @phidget.serial_number, :version => @phidget.version, 
+      :label => @phidget.label, :device_class => @phidget.device_class, 
+      :device_id => @phidget.device_id}
+  end
+end

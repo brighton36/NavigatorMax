@@ -3,7 +3,7 @@ module ApplicationHelper
     t ['pages',fragment.tr(*%w(- _)),'title'].join('.')
   end
 
-  def data_table( title, rows, options = {})
+  def data_table( title, rows = [], options = {})
     legends_for = options[:legends] || []
     columns = options[:columns] || ['Value'] 
     row_header = ''

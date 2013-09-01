@@ -28,3 +28,7 @@ window.projection_in_2d = (camera, pos, canvas) ->
 window.format_number = (x, fixed_digits = null) ->
   x = x.toFixed(fixed_digits) if fixed_digits?
   x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+# This helps us turn strings into classes and ids
+window.classify = (str) ->
+  str.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/[ ]+/,'_')

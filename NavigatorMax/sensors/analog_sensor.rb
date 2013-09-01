@@ -1,36 +1,60 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-class AnalogSensor
+class AnalogSensor < PhidgetSensor
+  POLLED_ATTRIBUTES = [ :temperatures, :humidities, :voltages, :updates_per_second ]
 
   def initialize(serial_number, options ={})
-    @phidget = PhidgetsNative::InterfaceKit.new(serial_number)
-    @phidget.wait_for_attachment 10000
-
-    # TODO: Handle the options[:types]
+    super(PhidgetsNative::InterfaceKit, serial_number)
+    @definitions = options[:sensors]
   end
 
   def device_attributes
-    { :type=> @phidget.type, :name=> @phidget.name, 
-      :serial_number => @phidget.serial_number, :version => @phidget.version, 
-      :label => @phidget.label, :device_class => @phidget.device_class, 
-      :device_id => @phidget.device_id
-    } if connected?
+    super.merge({
+      :temperatures => labels_for(:temperature), 
+      :humidities => labels_for(:humidity), 
+      :voltages => labels_for(:voltage)
+    })
   end
 
   def polled_attributes
-    nil # TODO
-  end
-
-  def close
-    @phidget.close
+    hashify_attributes POLLED_ATTRIBUTES
   end
 
   def updates_per_second
-    @phidget.sample_rate
+    @phidget.sensor_sample_rates
   end
 
-  def connected?
-    @phidget.is_attached?
+  # Returns the temperature is celsius
+  def temperatures
+    # These magic numbers come from the phidget documentation
+    collect_type(:temperature){ |i| sensor(i).to_f * 0.22222 - 61.111 if sensor(i) > 0}
+  end
+
+  # Returns the relative humidity (0-100%)
+  def humidities
+    # These magic numbers come from the phidget documentation
+    collect_type(:humidity){ |i| sensor(i).to_f * 0.1906 - 40.2 if sensor(i) > 0} 
+  end
+
+  def voltages
+    collect_type(:voltage){ |i| sensor(i) if sensor(i) > 0} 
+  end
+
+  # Just a shortcut:
+  def sensor(offset)
+    @phidget.sensors[offset] 
+  end
+
+  private
+
+  def collect_type(type, &block)
+    Hash[*@definitions.to_enum(:each_with_index).collect{|d,i| 
+      [d[:location], block.call(i, d)] if d[:type] == type 
+    }.compact.flatten]
+  end
+
+  def labels_for(type)
+    @definitions.collect{|d| d[:location] if d[:type] == type}.compact
   end
 end
