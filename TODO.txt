@@ -1,15 +1,10 @@
 * On the interfacekit, It'd be nice to set some ports as ratiometric, and some as not-ratio
-  * maybe... debating what I want to do here... I do think I need the humidity,
-    so probably we need this feature
-  * While we're in there, let's show a device class and serial on these:
-    ERR: PhidgetNative OnError: Channel 6: 1 sample overrun detected.
-    ERR: PhidgetNative OnError: Channel 7: 1 sample overrun detected.
-    ERR: PhidgetNative OnError: Channel 6: 1 sample overrun detected.
-    ERR: PhidgetNative OnError: Channel 7: 1 sample overrun detected.
-  * And then switch the device around after a set of sampels
-  * This will only support the data_rate method
+  * Test an unplug too btw
+  * Compare the dual -mode output to a version of the nonuniformratio example which keeps it in single mode
+  * Update the documentation a bit - mention that the data rate goes to 15.5 samples (figure it out backward)
 
 * Then work on voltage charts
+  * Much of this is already done. 
 
 * The cpu temps should be a different sensor - not an analog sensor
   * These may belong in a different tab, along with system voltages and the like

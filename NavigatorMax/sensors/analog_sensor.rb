@@ -38,7 +38,7 @@ class AnalogSensor < PhidgetSensor
   end
 
   def voltages
-    collect_type(:voltage){ |i| sensor(i) if sensor(i) > 0} 
+    collect_type(:voltage){ |i| (sensor(i).to_f / 200 - 2.5) / 0.0681 if sensor(i) > 0} 
   end
 
   # Just a shortcut:
