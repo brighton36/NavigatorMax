@@ -7,6 +7,17 @@ class AnalogSensor < PhidgetSensor
   def initialize(serial_number, options ={})
     super(PhidgetsNative::InterfaceKit, serial_number)
     @definitions = options[:sensors]
+
+    @definitions.each_with_index do |definition, i|
+      case definition[:type]
+        when :temperature
+          @phidget.ratiometric i, true
+        when :humidity
+          @phidget.ratiometric i, true
+        when :voltage
+          @phidget.ratiometric i, false
+      end
+    end
   end
 
   def device_attributes

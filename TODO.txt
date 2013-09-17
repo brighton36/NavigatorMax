@@ -1,20 +1,12 @@
-* On the interfacekit, It'd be nice to set some ports as ratiometric, and some as not-ratio
-  * Test an unplug too btw
-  * Compare the dual -mode output to a version of the nonuniformratio example which keeps it in single mode
-  * Update the documentation a bit - mention that the data rate goes to 15.5 samples (figure it out backward)
-
-* Then work on voltage charts
-  * Much of this is already done. 
-
-* The cpu temps should be a different sensor - not an analog sensor
-  * These may belong in a different tab, along with system voltages and the like
-  * Let's not do anything here until we boot up the minnowboard
-
 * Fix the gyro in 3d
 * Do something nicer on the gps
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
+
+* The cpu temps should be a different sensor - not an analog sensor
+  * These may belong in a different tab, along with system voltages and the like
+  * Let's not do anything here until we boot up the minnowboard
 
 -- Test run!
 
