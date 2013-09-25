@@ -1,26 +1,34 @@
 window.GpsMapView = class
   STATICMAP_URL = "http://maps.googleapis.com/maps/api/staticmap"
 
-  TILE_SIZE = 256
-  INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / TILE_SIZE
+  GOOGLE_TILE_SIZE = 256
+  INITIAL_RESOLUTION = 2 * Math.PI * 6378137 / GOOGLE_TILE_SIZE
   ORIGIN_SHIFT = 2 * Math.PI * 6378137 / 2.0
+  
+  # Since 640x640 is the max size that google static supports, we take the largest
+  # 'even' alignment for our tiles
+  RENDER_TILE_SIZE = 512
 
   constructor: (dom_id) ->
     @ctx = dom_id.getContext("2d")
 
     @zoom = 21
-    longitude = 40.6892
-    latitude = -74.0447
+    @focus_lon = 40.6892
+    @focus_lat= -74.0447
 
     # Dont forget you have to convert your projection to EPSG:900913
-    meters = @latlon_to_meters longitude, latitude
+    meters = @latlon_to_meters @focus_lon, @focus_lat
     console.log meters
-    mx = meters[0]  # 40.714728
+    mx = meters[0] # 40.714728
     my = meters[1] #-73.998672
+
+    console.log "Canvas dimensions: #{@ctx.canvas.width}x#{@ctx.canvas.height}"
 
     pixels = @meters_to_pixels(mx, my, @zoom)
     #meter = @latlon_to_meters(pixels[0], pixels[1])
-    console.log "X: #{pixels[0]} Y: #{pixels[1]}"
+    console.log "Center Pixels X: #{pixels[0]} Y: #{pixels[1]}"
+    console.log "UL Pixels X: #{pixels[0]-256} Y: #{pixels[1]+256}"
+    console.log "LR Pixels X: #{pixels[0]+256} Y: #{pixels[1]-256}"
 
     right_meters = @pixels_to_meters(pixels[0]+256,pixels[1], @zoom)
     right_latlon = @meters_to_latlon(right_meters[0], right_meters[1])
@@ -44,8 +52,9 @@ window.GpsMapView = class
       @_google_marker(n[0], n[1], i, marker_colors[i])
 
     @background = new Image()
-    @background.src = ["#{STATICMAP_URL}?center=#{longitude},#{latitude}",
+    @background.src = ["#{STATICMAP_URL}?center=#{@focus_lon},#{@focus_lat}",
       "zoom=#{@zoom}","size=#{512}x#{512}",'maptype=satellite', 'sensor=false',
+      "format=png32",
       @_google_marker(bottom_latlon[0], bottom_latlon[1], 'B', 'red'),
       @_google_marker(right_latlon[0], right_latlon[1], 'R', 'red'),
       @_google_marker(left_latlon[0], left_latlon[1], 'L', 'red')
@@ -56,6 +65,8 @@ window.GpsMapView = class
 
   render: () -> 
     @ctx.clear()
+    # TODO: We should have some kind of grid to display if our background tiles 
+    # aren't loaded/available
     @ctx.drawImage(@background, 0, 0) if @background.is_loaded
     @_circle(256,256,6,'green')
     @_circle(512,256,6,'blue')
@@ -88,7 +99,6 @@ window.GpsMapView = class
 
   latlon_to_meters: (lat, lon) ->
     # "Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913"
-
     mx = lon * ORIGIN_SHIFT / 180.0
     my = Math.log( Math.tan((90 + lat) * Math.PI / 360.0 )) / (Math.PI / 180.0)
 
@@ -116,4 +126,3 @@ window.GpsMapView = class
 
     lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180.0)) - Math.PI / 2.0)
     [lat, lon]
-

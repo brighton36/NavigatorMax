@@ -1,4 +1,9 @@
 * Do something nicer on the gps
+  * Move the focus_lat/lon to the center of the canvas, and preserve the current
+    tile code
+  * Then, work through a modulus-based render (Ie - fetch the n'th 512 block left and n'th 512 block right)
+    * This will make caching easier
+  * Add a focus(lat,lon,zoom)
   * https://developers.google.com/maps/documentation/staticmaps/#quick_example
   * and cache!
 
