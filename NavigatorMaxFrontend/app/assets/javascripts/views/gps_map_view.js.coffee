@@ -28,31 +28,31 @@ window.GpsMapView = class
     @left_meters = @pixels_to_meters(pixels[0]-256,pixels[1], @zoom)
     left_latlon = @meters_to_latlon(@left_meters[0], @left_meters[1])
 
-    @top_meters = @pixels_to_meters(pixels[0],pixels[1]-256, @zoom)
-    top_latlon = @meters_to_latlon(@top_meters[0], @top_meters[1])
+    # Note that the google origin is South West, and canvas origin is North West
+    @bottom_meters = @pixels_to_meters(pixels[0],pixels[1]-256, @zoom)
+    bottom_latlon = @meters_to_latlon(@bottom_meters[0], @bottom_meters[1])
 
     console.log "Right latlon : lat: #{right_latlon[0]} long: #{right_latlon[1]}"
-    console.log "Top latlon : lat: #{top_latlon[0]} long: #{top_latlon[1]}"
+    console.log "Top latlon : lat: #{bottom_latlon[0]} long: #{bottom_latlon[1]}"
 
     @markers = [ [40.6892,-74.0447], [40.6893,-74.0447], [40.6892,-74.0446], 
       [40.6891,-74.0447], [40.6892,-74.0448] ]
+    marker_colors = ['brown', 'green', 'purple', 'yellow', 'blue', 'gray', 
+      'orange']
+
+    url_markers = $(@markers).map (i,n) => 
+      @_google_marker(n[0], n[1], i, marker_colors[i])
 
     @background = new Image()
     @background.src = ["#{STATICMAP_URL}?center=#{longitude},#{latitude}",
-      "zoom=#{@zoom}","size=#{512}x#{512}",'maptype=satellite',
-      'sensor=false',
-      "markers=color:red%7Clabel:0%7C#{top_latlon[0]},#{top_latlon[1]}",
-      "markers=color:red%7Clabel:1%7C#{right_latlon[0]},#{right_latlon[1]}",
-      "markers=color:red%7Clabel:3%7C#{left_latlon[0]},#{left_latlon[1]}",
-      'markers=color:red%7Clabel:A%7C40.6892,-74.0447' 
-      'markers=color:blue%7Clabel:B%7C40.6893,-74.0447',
-      'markers=color:green%7Clabel:C%7C40.6892,-74.0446',
-      'markers=color:purple%7Clabel:D%7C40.6891,-74.0447',
-      'markers=color:orange%7Clabel:E%7C40.6892,-74.0448' ].join('&')
+      "zoom=#{@zoom}","size=#{512}x#{512}",'maptype=satellite', 'sensor=false',
+      @_google_marker(bottom_latlon[0], bottom_latlon[1], 'B', 'red'),
+      @_google_marker(right_latlon[0], right_latlon[1], 'R', 'red'),
+      @_google_marker(left_latlon[0], left_latlon[1], 'L', 'red')
+      ].concat($.makeArray(url_markers)).join('&')
 
     console.log @background.src
     @background.onload = -> @is_loaded = true
-
 
   render: () -> 
     @ctx.clear()
@@ -61,11 +61,14 @@ window.GpsMapView = class
     @_circle(512,256,6,'blue')
 
     left_pixels = @meters_to_pixels @left_meters[0], @left_meters[1], @zoom
-    top_pixels = @meters_to_pixels @top_meters[0], @top_meters[1], @zoom
+    bottom_pixels = @meters_to_pixels @bottom_meters[0], @bottom_meters[1], @zoom
     for marker in @markers
       meters = @latlon_to_meters marker[0], marker[1]
       pixels = @meters_to_pixels(meters[0], meters[1], @zoom)
-      @_circle(pixels[0] - left_pixels[0], pixels[1] - top_pixels[1],6,'black')
+      @_circle(pixels[0] - left_pixels[0], pixels[1] - bottom_pixels[1],6,'black')
+
+  _google_marker: (lat, lon, label, color) ->
+    "markers=color:#{color}%7Clabel:#{label}%7C#{lat},#{lon}"
 
   _circle: (x,y,diameter, color) ->
     @ctx.beginPath()
