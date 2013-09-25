@@ -1,5 +1,10 @@
-* Fix the gyro in 3d
 * Do something nicer on the gps
+  * https://developers.google.com/maps/documentation/staticmaps/#quick_example
+  * and cache!
+
+* Fix the gyro in 3d
+  * I think that we need to compute a vector from the deltas on a tick, and rotate
+    the dcm by the angles of this vector on each axis
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
@@ -14,21 +19,13 @@
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
   * https://developers.google.com/maps/documentation/staticmaps/#quick_example
 
-* Back to maps:
-  * This is what we should do on the maps:
-    https://developers.google.com/maps/documentation/staticmaps/#quick_example
-  and cache!
-
-* And about that gyroscope....
-  * I think that we need to compute a vector from the deltas on a tick, and rotate
-    the dcm by the angles of this vector on each axis
-
 * After testing....
   * GPS TODO:
     * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
   * GUI : On commloss should retry connection
 
 * Down the line on the phidgets gem:
+  Maybe....
   * Remove the type_info and replace with extended_attributes and polled_attributes
     basic attributes (these stay in the struct)
     extended_attributes (these are pointed to and are device specific)
