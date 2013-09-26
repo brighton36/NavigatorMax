@@ -13,32 +13,30 @@ window.GpsMapView = class
     @ctx = dom_id.getContext("2d")
 
     @zoom = 21
-    @focus_lon = 40.6892
-    @focus_lat= -74.0447
+    @focus_latlon = [40.6892, -74.0447]
 
-    # Dont forget you have to convert your projection to EPSG:900913
-    meters = @latlon_to_meters @focus_lon, @focus_lat
-    console.log meters
-    mx = meters[0] # 40.714728
-    my = meters[1] #-73.998672
+    @render_tiles = [] # TODO index by zoom level, tiles as a hash
 
     console.log "Canvas dimensions: #{@ctx.canvas.width}x#{@ctx.canvas.height}"
 
-    pixels = @meters_to_pixels(mx, my, @zoom)
-    #meter = @latlon_to_meters(pixels[0], pixels[1])
-    console.log "Center Pixels X: #{pixels[0]} Y: #{pixels[1]}"
+    @canvas_center = [Math.floor(@ctx.canvas.width/2), Math.floor(@ctx.canvas.height/2)]
+
+    pixels = @latlon_to_pixels(@focus_latlon...)
+   
+    console.log "Center World Pixels X: #{pixels[0]} Y: #{pixels[1]}"
+
     console.log "UL Pixels X: #{pixels[0]-256} Y: #{pixels[1]+256}"
     console.log "LR Pixels X: #{pixels[0]+256} Y: #{pixels[1]-256}"
 
-    right_meters = @pixels_to_meters(pixels[0]+256,pixels[1], @zoom)
-    right_latlon = @meters_to_latlon(right_meters[0], right_meters[1])
+    right_meters = @pixels_to_meters(pixels[0]+256,pixels[1])
+    right_latlon = @meters_to_latlon(right_meters...)
 
-    @left_meters = @pixels_to_meters(pixels[0]-256,pixels[1], @zoom)
-    left_latlon = @meters_to_latlon(@left_meters[0], @left_meters[1])
+    @left_meters = @pixels_to_meters(pixels[0]-256,pixels[1])
+    left_latlon = @meters_to_latlon(@left_meters...)
 
     # Note that the google origin is South West, and canvas origin is North West
-    @bottom_meters = @pixels_to_meters(pixels[0],pixels[1]-256, @zoom)
-    bottom_latlon = @meters_to_latlon(@bottom_meters[0], @bottom_meters[1])
+    @bottom_meters = @pixels_to_meters(pixels[0],pixels[1]-256)
+    bottom_latlon = @meters_to_latlon(@bottom_meters...)
 
     console.log "Right latlon : lat: #{right_latlon[0]} long: #{right_latlon[1]}"
     console.log "Top latlon : lat: #{bottom_latlon[0]} long: #{bottom_latlon[1]}"
@@ -52,7 +50,7 @@ window.GpsMapView = class
       @_google_marker(n[0], n[1], i, marker_colors[i])
 
     @background = new Image()
-    @background.src = ["#{STATICMAP_URL}?center=#{@focus_lon},#{@focus_lat}",
+    @background.src = ["#{STATICMAP_URL}?center=#{@focus_latlon[0]},#{@focus_latlon[1]}",
       "zoom=#{@zoom}","size=#{512}x#{512}",'maptype=satellite', 'sensor=false',
       "format=png32",
       @_google_marker(bottom_latlon[0], bottom_latlon[1], 'B', 'red'),
@@ -67,21 +65,24 @@ window.GpsMapView = class
     @ctx.clear()
     # TODO: We should have some kind of grid to display if our background tiles 
     # aren't loaded/available
-    @ctx.drawImage(@background, 0, 0) if @background.is_loaded
-    @_circle(256,256,6,'green')
-    @_circle(512,256,6,'blue')
+    @ctx.drawImage(@background, @canvas_center[0]-RENDER_TILE_SIZE/2, @canvas_center[1]-RENDER_TILE_SIZE/2) if @background.is_loaded
 
-    left_pixels = @meters_to_pixels @left_meters[0], @left_meters[1], @zoom
-    bottom_pixels = @meters_to_pixels @bottom_meters[0], @bottom_meters[1], @zoom
     for marker in @markers
-      meters = @latlon_to_meters marker[0], marker[1]
-      pixels = @meters_to_pixels(meters[0], meters[1], @zoom)
-      @_circle(pixels[0] - left_pixels[0], pixels[1] - bottom_pixels[1],6,'black')
+      canvas_coords = @_latlon_to_canvas( marker... )
+      # TODO: clip testing (is x < 0 or > width-1) same for y
+      @_circle 6, 'black', canvas_coords...
+
+  _latlon_to_canvas: (lat, lon) ->
+    viewport_ul_pixels = @_viewport_ul_to_pixels()
+
+    pixels = @latlon_to_pixels lat, lon
+
+    [ pixels[0]-viewport_ul_pixels[0], pixels[1]-viewport_ul_pixels[1] ]
 
   _google_marker: (lat, lon, label, color) ->
     "markers=color:#{color}%7Clabel:#{label}%7C#{lat},#{lon}"
 
-  _circle: (x,y,diameter, color) ->
+  _circle: (diameter, color, x,y) ->
     @ctx.beginPath()
     @ctx.arc(x,y,diameter, 0, 2 * Math.PI, false)
     @ctx.lineWidth = 4
@@ -93,9 +94,23 @@ window.GpsMapView = class
     @ctx.strokeStyle = color
     @ctx.stroke()
 
-  resolution: (zoom) ->
+  _resolution: (zoom) ->
     # "Resolution (meters/pixel) for given zoom level (measured at Equator)"
     INITIAL_RESOLUTION / Math.pow(2, zoom)
+
+  # Upper-right corner of the viewport, in google pixels:
+  _viewport_ul_to_pixels: ->
+    # TODO: Test!
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    [ focus_in_pixels[0] - @canvas_center[0], focus_in_pixels[1] - @canvas_center[1] ]
+
+  # Lower-right corner of the viewport, in google pixels:
+  _viewport_lr_to_pixels: ->
+    # TODO: Test!
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+
+    [ focus_in_pixels[0] + @ctx.canvas.width - @canvas_center[0], 
+      focus_in_pixels[1] - @ctx.canvas.height - @canvas_center[1] ]
 
   latlon_to_meters: (lat, lon) ->
     # "Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913"
@@ -105,16 +120,19 @@ window.GpsMapView = class
     my = my * ORIGIN_SHIFT / 180.0
     [mx, my]
 
-  meters_to_pixels: (mx, my, zoom) ->
+  meters_to_pixels: (mx, my) ->
     #"Converts EPSG:900913 to pyramid pixel coordinates in given zoom level"
-    res = @resolution zoom
+    res = @_resolution @zoom
     px = (mx + ORIGIN_SHIFT) / res
     py = (my + ORIGIN_SHIFT) / res
     [ px, py ]
 
-  pixels_to_meters: (px, py, zoom) ->
+  latlon_to_pixels: (lat, lon) ->
+    @meters_to_pixels @latlon_to_meters(lat,lon)...
+
+  pixels_to_meters: (px, py) ->
     #"Converts pixel coordinates in given zoom level of pyramid to EPSG:900913"
-    res = @resolution(zoom)
+    res = @_resolution @zoom
     mx = px * res - ORIGIN_SHIFT
     my = py * res - ORIGIN_SHIFT
     [mx, my]
@@ -126,3 +144,7 @@ window.GpsMapView = class
 
     lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180.0)) - Math.PI / 2.0)
     [lat, lon]
+
+  pixels_to_latlon: (px, py) ->
+    @meters_to_latlon @pixels_to_meters(px,py)...
+
