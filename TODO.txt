@@ -1,8 +1,8 @@
 * Do something nicer on the gps
-  * flesh out _viewport_ll_to_pixels, and build the image from the lower left to the upper right
-    *  Remember that the lower left is the google world pixel origin, and we can convert it to canvas coords by
-      canvas.height - y_offset (what would have been the bottom)
-
+  * We're copying too much on the top row of tiles in the source y and x
+    * It should be < 512 pixels high
+    * we're also over copying the width, past the extent of the canvas
+  * Don't forget to test what happens when we can't load a tile
   * Move the focus_lat/lon to the center of the canvas, and preserve the current
     tile code
   * Then, work through a modulus-based render (Ie - fetch the n'th 512 block left and n'th 512 block right)

@@ -13,13 +13,15 @@ window.GpsMapView = class
     @ctx = dom_id.getContext("2d")
 
     @zoom = 21
-    @focus_latlon = [40.6892, -74.0447]
 
-    @tile_images = [] # TODO index by zoom level, tiles as a hash
+    # Here's where we store the image cache
+    @tile_images = [] 
 
     console.log "Canvas dimensions: #{@ctx.canvas.width}x#{@ctx.canvas.height}"
 
     @canvas_center = [Math.floor(@ctx.canvas.width/2), Math.floor(@ctx.canvas.height/2)]
+
+    @focus(40.6892, -74.0447)
 
     pixels = @latlon_to_pixels(@focus_latlon...)
    
@@ -60,45 +62,27 @@ window.GpsMapView = class
 
     console.log @background.src
     @background.onload = -> @is_loaded = true
-
+  
 
   render: () -> 
     @ctx.clear()
+    
+    for tile_params in @draw_image_params
+      @ctx.drawImage(tile_params...)# if tile_params[0].is_loaded
 
-    # This is our background rendering loop:
-    viewport_bl_pixels = @_viewport_bl_to_pixels()
-    @bl_tile = @_pixels_to_tile(viewport_bl_pixels...)
-    @bl_tile_img = @_tile_img(@bl_tile...)
-    tile_bl_pixels = [@bl_tile[0]*RENDER_TILE_SIZE, @bl_tile[1]*RENDER_TILE_SIZE]
-    region_bl = [ viewport_bl_pixels[0]-tile_bl_pixels[0], viewport_bl_pixels[1]-tile_bl_pixels[1] ]
-
-    tile_region_width = 512 - region_bl[0]
-    tile_region_height = 512 - region_bl[1]
-
-    @dest_coords = [0, @ctx.canvas.height-tile_region_height ]
-
-    @ctx.drawImage(@bl_tile_img,
-      # Source Coords:
-      region_bl[0], 0,
-      # Region dimensions
-      tile_region_width, tile_region_height,
-      # Dest coords:
-      @dest_coords[0], @dest_coords[1],
-      # Region dimensions pt. 2 (We're not scaling, so these are unneeded
-      tile_region_width, tile_region_height) if @bl_tile_img.is_loaded
-
+      #@_circle 6, 'black', canvas_dest_x, canvas_dest_y
+    #
     # This is our debug overlay
     # TODO: We should have some kind of grid to display if our background tiles 
     # aren't loaded/available
+    ###
     @ctx.drawImage(@background, @canvas_center[0]-RENDER_TILE_SIZE/2, @canvas_center[1]-RENDER_TILE_SIZE/2) if @background.is_loaded
 
     for marker in @markers
       canvas_coords = @_latlon_to_canvas( marker... )
       # TODO: clip testing (is x < 0 or > width-1) same for y
       @_circle 6, 'black', canvas_coords...
-
-    @_circle 6, 'black', @dest_coords[0], @dest_coords[1]
- 
+    ###
 
   _latlon_to_canvas: (lat, lon) ->
     viewport_ul_pixels = @_viewport_ul_to_pixels()
@@ -155,27 +139,40 @@ window.GpsMapView = class
     # "Resolution (meters/pixel) for given zoom level (measured at Equator)"
     INITIAL_RESOLUTION / Math.pow(2, zoom)
 
-  # Upper-right corner of the viewport, in google pixels:
-  _viewport_ul_to_pixels: ->
-    # TODO: Test!
-    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
-    [ focus_in_pixels[0] - @canvas_center[0], focus_in_pixels[1] + @canvas_center[1] ]
-
   _pixels_to_tile: (px, py) ->
     [ Math.floor(px/RENDER_TILE_SIZE), Math.floor(py/RENDER_TILE_SIZE) ]
 
+  _viewport_left_pixels: ->
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    focus_in_pixels[0] - @canvas_center[0]
+
+  _viewport_right_pixels: ->
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    # Note that we need to mention the canvas width here in case the width is an
+    # odd number:
+    focus_in_pixels[0] + @ctx.canvas.width - @canvas_center[0]
+
+  _viewport_bottom_pixels: ->
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    # Note that we need to mention the canvas width here in case the width is an
+    # odd number:
+    focus_in_pixels[1] - @canvas_center[1]
+
+  _viewport_top_pixels: ->
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    # Note that we need to mention the canvas width here in case the width is an
+    # odd number:
+    focus_in_pixels[1] + @ctx.canvas.height - @canvas_center[1]
+
+  # Upper-left corner of the viewport, in google pixels:
+  _viewport_ul_to_pixels: ->
+    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
+    [ focus_in_pixels[0] - @canvas_center[0], focus_in_pixels[1] + @canvas_center[1] ]
+  
+  # Bottom-left corner of the viewport, in google pixels:
   _viewport_bl_to_pixels: ->
-    # TODO: Test!
     focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
     [ focus_in_pixels[0] - @canvas_center[0], focus_in_pixels[1] - @canvas_center[1] ]
-
-  # Lower-right corner of the viewport, in google pixels:
-  _viewport_br_to_pixels: ->
-    # TODO: Test!
-    focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
-
-    [ focus_in_pixels[0] + @ctx.canvas.width - @canvas_center[0], 
-      focus_in_pixels[1] - @ctx.canvas.height - @canvas_center[1] ]
 
   latlon_to_meters: (lat, lon) ->
     # "Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913"
@@ -213,3 +210,57 @@ window.GpsMapView = class
   pixels_to_latlon: (px, py) ->
     @meters_to_latlon @pixels_to_meters(px,py)...
 
+  focus: (lat,lon) ->
+    @focus_latlon = [lat, lon]
+    @draw_image_params = []
+
+    # So - to make things easier in the render loop, to preload the image (and 
+    # make the render faster in general) we pre-calculate our background tile 
+    # rendering parameters here.
+    viewport_top_pixels = @_viewport_top_pixels()
+    viewport_right_pixels = @_viewport_right_pixels()
+    viewport_left_pixels = @_viewport_left_pixels()
+    viewport_bottom_pixels = @_viewport_bottom_pixels()
+
+    # We traverse the world coords from bottom-left to top right. We reverse the 
+    # y-order because google's y-origin is south, and the canvas' is north
+    cursor_y_pixels = viewport_bottom_pixels
+   
+    while (cursor_y_pixels < viewport_top_pixels)
+      cursor_x_pixels = viewport_left_pixels
+      while (cursor_x_pixels < viewport_right_pixels)
+        # The tile we're copying from:
+        cursor_tile_offset = @_pixels_to_tile(cursor_x_pixels, cursor_y_pixels)
+
+        # The bottom-left world-coordinates of the tile 
+        tile_bl_pixels_x = cursor_tile_offset[0]*RENDER_TILE_SIZE
+        tile_bl_pixels_y = cursor_tile_offset[1]*RENDER_TILE_SIZE
+
+        # Calculate the tile width/source dimensions :
+        tile_source_x = cursor_x_pixels-tile_bl_pixels_x
+        canvas_width_remaining = viewport_right_pixels - cursor_x_pixels
+        if canvas_width_remaining > RENDER_TILE_SIZE
+          copy_width = RENDER_TILE_SIZE - tile_source_x 
+        else 
+          copy_width = canvas_width_remaining
+
+        # Calculate the tile height/source copy dimensions :
+        canvas_height_remaining = viewport_top_pixels - cursor_y_pixels
+
+        if canvas_height_remaining > RENDER_TILE_SIZE
+          copy_height = tile_bl_pixels_y + RENDER_TILE_SIZE - cursor_y_pixels
+          tile_source_y = 0 
+        else
+          copy_height = canvas_height_remaining
+          tile_source_y = RENDER_TILE_SIZE - copy_height
+      
+        # This is where we're copying to on the canvas:
+        canvas_dest_x = cursor_x_pixels-viewport_left_pixels
+        canvas_dest_y = @ctx.canvas.height - cursor_y_pixels + viewport_bottom_pixels - copy_height
+
+        @draw_image_params.push [@_tile_img(cursor_tile_offset...), 
+          tile_source_x, tile_source_y, copy_width, copy_height, canvas_dest_x,
+          canvas_dest_y, copy_width, copy_height]
+        cursor_x_pixels += copy_width
+      cursor_y_pixels += copy_height
+     console.log @draw_image_params 
