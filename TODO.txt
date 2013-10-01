@@ -1,15 +1,12 @@
 * Do something nicer on the gps
-  * We're copying too much on the top row of tiles in the source y and x
-    * It should be < 512 pixels high
-    * we're also over copying the width, past the extent of the canvas
-  * Don't forget to test what happens when we can't load a tile
-  * Move the focus_lat/lon to the center of the canvas, and preserve the current
-    tile code
-  * Then, work through a modulus-based render (Ie - fetch the n'th 512 block left and n'th 512 block right)
-    * This will make caching easier
-  * Add a focus(lat,lon,zoom)
-  * https://developers.google.com/maps/documentation/staticmaps/#quick_example
+  * Implement the focus for debugging()
+  * Draw lines around the tiles
+  * Implement what happens when we can't load a tile
+  * Remove the google branding
   * and cache!
+
+* Sketch out a home screen
+  * With orientation, controller notations and our map at a zoom of 20?
 
 * Fix the gyro in 3d
   * I think that we need to compute a vector from the deltas on a tick, and rotate

@@ -123,7 +123,7 @@ window.GpsMapView = class
         "zoom=#{@zoom}","size=#{RENDER_TILE_SIZE}x#{RENDER_TILE_SIZE}",
         'maptype=satellite', 'sensor=false',"format=png32"]
       if @debug_rendering
-        src_parts.push @_google_marker('B', 'red', tile_center_latlon...)
+        src_parts.push @_google_marker('F', 'red', tile_center_latlon...)
 
       tile = new Image()
       tile.src = src_parts.join('&')
