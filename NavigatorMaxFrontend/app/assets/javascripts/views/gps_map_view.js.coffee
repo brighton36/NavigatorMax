@@ -14,6 +14,8 @@ window.GpsMapView = class
 
     @zoom = 21
 
+    @debug_rendering = true
+
     # Here's where we store the image cache
     @tile_images = [] 
 
@@ -67,10 +69,25 @@ window.GpsMapView = class
   render: () -> 
     @ctx.clear()
     
-    for tile_params in @draw_image_params
-      @ctx.drawImage(tile_params...)# if tile_params[0].is_loaded
+    for tile in @background_tiles
+      @ctx.drawImage( tile.image, tile.source_x, tile.source_y, 
+        tile.copy_width, tile.copy_height, tile.dest_x, tile.dest_y,
+        tile.copy_width, tile.copy_height) if tile.image.is_loaded
 
-      #@_circle 6, 'black', canvas_dest_x, canvas_dest_y
+    if @debug_rendering
+      for i,tile of @background_tiles
+        # Tile focus:
+        if tile.focus_in_canvas_x? and tile.focus_in_canvas_y?
+          @_circle 6, 'black', tile.focus_in_canvas_x, tile.focus_in_canvas_y 
+        
+        # Top-left
+        @_circle 6, 'black', tile.dest_x, tile.dest_y
+        # Top Right:
+        @_circle 6, 'black', tile.dest_x+tile.copy_width, tile.dest_y
+        # Bottom Right:
+        @_circle 6, 'black', tile.dest_x+tile.copy_width, tile.dest_y+tile.copy_height
+        # Bottom Left:
+        @_circle 6, 'black', tile.dest_x, tile.dest_y+tile.copy_height
     #
     # This is our debug overlay
     # TODO: We should have some kind of grid to display if our background tiles 
@@ -96,31 +113,27 @@ window.GpsMapView = class
     @tile_images[@zoom][tx] ?= []
     
     unless @tile_images[@zoom][tx][ty]?
-      console.log "Retrieving Tile" 
-
-      #TODO: We need to add this to a grid system for debugging:
-      #left_latlon = @meters_to_latlon(@left_meters...)
-      # @_google_marker(left_latlon[0], left_latlon[1], 'L', 'red')
-      #TODO
-      
       # This calculates the lower left corner in pixels first, and adds half a 
       # tile to the offset to arrive at the tile's center in pixels
       tile_center_latlon = @pixels_to_latlon(
         tx*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2, 
         ty*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2)
 
-      tile = new Image()
-      tile.src = ["#{STATICMAP_URL}?center=#{tile_center_latlon.join(',')}",
+      src_parts = ["#{STATICMAP_URL}?center=#{tile_center_latlon.join(',')}",
         "zoom=#{@zoom}","size=#{RENDER_TILE_SIZE}x#{RENDER_TILE_SIZE}",
-        'maptype=satellite', 'sensor=false',"format=png32"].join('&')
+        'maptype=satellite', 'sensor=false',"format=png32"]
+      if @debug_rendering
+        src_parts.push @_google_marker('B', 'red', tile_center_latlon...)
+
+      tile = new Image()
+      tile.src = src_parts.join('&')
       tile.onload = -> @is_loaded = true
-      console.log tile.src
       @tile_images[@zoom][tx][ty] = tile
 
     # Return the tile from the cache 
     @tile_images[@zoom][tx][ty]
 
-  _google_marker: (lat, lon, label, color) ->
+  _google_marker: (label, color, lat, lon) ->
     "markers=color:#{color}%7Clabel:#{label}%7C#{lat},#{lon}"
 
   _circle: (diameter, color, x,y) ->
@@ -138,9 +151,6 @@ window.GpsMapView = class
   _resolution: (zoom) ->
     # "Resolution (meters/pixel) for given zoom level (measured at Equator)"
     INITIAL_RESOLUTION / Math.pow(2, zoom)
-
-  _pixels_to_tile: (px, py) ->
-    [ Math.floor(px/RENDER_TILE_SIZE), Math.floor(py/RENDER_TILE_SIZE) ]
 
   _viewport_left_pixels: ->
     focus_in_pixels = @latlon_to_pixels(@focus_latlon...)
@@ -212,7 +222,7 @@ window.GpsMapView = class
 
   focus: (lat,lon) ->
     @focus_latlon = [lat, lon]
-    @draw_image_params = []
+    @background_tiles = []
 
     # So - to make things easier in the render loop, to preload the image (and 
     # make the render faster in general) we pre-calculate our background tile 
@@ -229,38 +239,42 @@ window.GpsMapView = class
     while (cursor_y_pixels < viewport_top_pixels)
       cursor_x_pixels = viewport_left_pixels
       while (cursor_x_pixels < viewport_right_pixels)
-        # The tile we're copying from:
-        cursor_tile_offset = @_pixels_to_tile(cursor_x_pixels, cursor_y_pixels)
+        # The tile offset we're copying from:
+        cursor_tile_offset_x = Math.floor(cursor_x_pixels/RENDER_TILE_SIZE)
+        cursor_tile_offset_y = Math.floor(cursor_y_pixels/RENDER_TILE_SIZE)
+
+        tile = {image: @_tile_img(cursor_tile_offset_x,cursor_tile_offset_y)}
 
         # The bottom-left world-coordinates of the tile 
-        tile_bl_pixels_x = cursor_tile_offset[0]*RENDER_TILE_SIZE
-        tile_bl_pixels_y = cursor_tile_offset[1]*RENDER_TILE_SIZE
+        tile_bl_pixels_x = cursor_tile_offset_x*RENDER_TILE_SIZE
+        tile_bl_pixels_y = cursor_tile_offset_y*RENDER_TILE_SIZE
+
+        # TODO
+        tile.focus_in_canvas_x = null
+        tile.focus_in_canvas_y = null
 
         # Calculate the tile width/source dimensions :
-        tile_source_x = cursor_x_pixels-tile_bl_pixels_x
+        tile.source_x = cursor_x_pixels-tile_bl_pixels_x
         canvas_width_remaining = viewport_right_pixels - cursor_x_pixels
         if canvas_width_remaining > RENDER_TILE_SIZE
-          copy_width = RENDER_TILE_SIZE - tile_source_x 
+          tile.copy_width = RENDER_TILE_SIZE - tile.source_x 
         else 
-          copy_width = canvas_width_remaining
+          tile.copy_width = canvas_width_remaining
 
         # Calculate the tile height/source copy dimensions :
         canvas_height_remaining = viewport_top_pixels - cursor_y_pixels
 
         if canvas_height_remaining > RENDER_TILE_SIZE
-          copy_height = tile_bl_pixels_y + RENDER_TILE_SIZE - cursor_y_pixels
-          tile_source_y = 0 
+          tile.copy_height = tile_bl_pixels_y + RENDER_TILE_SIZE - cursor_y_pixels
+          tile.source_y = 0 
         else
-          copy_height = canvas_height_remaining
-          tile_source_y = RENDER_TILE_SIZE - copy_height
+          tile.copy_height = canvas_height_remaining
+          tile.source_y = RENDER_TILE_SIZE - tile.copy_height
       
         # This is where we're copying to on the canvas:
-        canvas_dest_x = cursor_x_pixels-viewport_left_pixels
-        canvas_dest_y = @ctx.canvas.height - cursor_y_pixels + viewport_bottom_pixels - copy_height
-
-        @draw_image_params.push [@_tile_img(cursor_tile_offset...), 
-          tile_source_x, tile_source_y, copy_width, copy_height, canvas_dest_x,
-          canvas_dest_y, copy_width, copy_height]
-        cursor_x_pixels += copy_width
-      cursor_y_pixels += copy_height
-     console.log @draw_image_params 
+        tile.dest_x = cursor_x_pixels-viewport_left_pixels
+        tile.dest_y = @ctx.canvas.height - cursor_y_pixels + viewport_bottom_pixels - tile.copy_height
+        
+        @background_tiles.push(tile)
+        cursor_x_pixels += tile.copy_width
+      cursor_y_pixels += tile.copy_height
