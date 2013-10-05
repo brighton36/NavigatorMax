@@ -1,9 +1,8 @@
 * Do something nicer on the gps
-  * Implement the focus for debugging()
-  * Draw lines around the tiles
-  * Implement what happens when we can't load a tile
   * Remove the google branding
   * and cache!
+    * We should also load our tiles a little more aggressively in the js - take a full circle around the requested tile
+    * And write a preload rake task
 
 * Sketch out a home screen
   * With orientation, controller notations and our map at a zoom of 20?
