@@ -1,7 +1,10 @@
 NavigatorMaxFrontend::Application.routes.draw do
   match '/' => 'view_handler#index'
 
+  match '/images/gmap-tiles-512/:zoom/:tx-:ty.png' => 'ViewHandler#google_static_image'
+
   match '*anything' => 'ViewHandler#catchall', :as => :catchall
+
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

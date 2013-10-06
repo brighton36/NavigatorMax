@@ -6,9 +6,7 @@ window.GpsLocationController = class
       "Heading", 'E', 'N', COLORS
 
     @gps_map = new GpsMapView $('#gps_map')[0], 40.6892, -74.0447, { 
-      #tile_source: (zoom, center_lat, center_lon) -> 
-        #console.log "HI+ #{center_lat} #{center_lon} #{zoom}"
-    }
+      tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }
 
   set_metadata: (data) -> 
     attribs = data.gps
