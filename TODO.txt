@@ -1,8 +1,8 @@
 * Do something nicer on the gps
-  * Remove the google branding
-  * and cache!
+  * Cache!
     * We should also load our tiles a little more aggressively in the js - take a full circle around the requested tile
     * And write a preload rake task
+  * Draw a nicer focus, and add pathing support
 
 * Sketch out a home screen
   * With orientation, controller notations and our map at a zoom of 20?

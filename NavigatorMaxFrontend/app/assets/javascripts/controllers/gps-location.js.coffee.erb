@@ -5,7 +5,10 @@ window.GpsLocationController = class
     @orientation = new VectorPlot2D $("#heading_gps_vector")[0], 
       "Heading", 'E', 'N', COLORS
 
-    @gps_map = new GpsMapView $('#gps_map')[0]
+    @gps_map = new GpsMapView $('#gps_map')[0], 40.6892, -74.0447, { 
+      #tile_source: (zoom, center_lat, center_lon) -> 
+        #console.log "HI+ #{center_lat} #{center_lon} #{zoom}"
+    }
 
   set_metadata: (data) -> 
     attribs = data.gps

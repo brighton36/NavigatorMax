@@ -13,31 +13,38 @@ window.GpsMapView = class
   # if they're not loaded:
   BACKGROUND_GRID_SIZE = 16
 
-  constructor: (dom_id) ->
-    @zoom = 21
-    @debug_rendering = true
+  constructor: (dom_id, lat, lon, options = {}) ->
+    @options = options
+    @options.zoom ?= 21
+    @options.debug_rendering ?= true
+
     @tile_images = []  # This is our tile cache
 
     @ctx = dom_id.getContext("2d")
     @canvas_center = [Math.floor(@ctx.canvas.width/2), Math.floor(@ctx.canvas.height/2)]
 
-    @focus(40.6892, -74.0447) # TODO: Take from the constructor
+    @focus(lat, lon)
 
-    # TODO: nix in production? Maybe a debug toggle?
-    $(document).keydown (e) =>
-      switch e.keyCode
-        # Left:
-        when 37 then @focus( @focus_latlon[0], @focus_latlon[1]-0.00001 )
-        # Up:
-        when 38 then @focus( @focus_latlon[0]+0.00001, @focus_latlon[1] )
-        # Right:
-        when 39 then @focus( @focus_latlon[0], @focus_latlon[1]+0.00001 )
-        # Down:
-        when 40 then @focus( @focus_latlon[0]-0.00001, @focus_latlon[1] )
+    if @options.debug_rendering
+      $(document).keydown (e) =>
+        switch e.keyCode
+          # Left:
+          when 37 then @focus(@focus_latlon[0], @focus_latlon[1]-0.00001)
+          # Up:
+          when 38 then @focus(@focus_latlon[0]+0.00001, @focus_latlon[1])
+          # Right:
+          when 39 then @focus(@focus_latlon[0], @focus_latlon[1]+0.00001)
+          # Down:
+          when 40 then @focus(@focus_latlon[0]-0.00001, @focus_latlon[1])
 
     # At some point I guess this must go?
     @markers = [ [40.6892,-74.0447], [40.6893,-74.0447], [40.6892,-74.0446], 
-      [40.6891,-74.0447], [40.6892,-74.0448] ]
+      [40.6891,-74.0447], [40.6892,-74.0448], 
+      # Centers:
+      [40.68909920143032, -74.04493331909178],
+      [40.68909920143032, -74.04458999633789],
+      [40.689359528279546, -74.04493331909178],
+      [40.689359528279546, -74.04458999633789] ]
 
   render: () -> 
     @ctx.clear()
@@ -59,7 +66,7 @@ window.GpsMapView = class
           @_line 'blue', tile.dest_x, cursor_y, tile.dest_x+tile.copy_width, cursor_y
           cursor_y += BACKGROUND_GRID_SIZE
 
-    if @debug_rendering
+    if @options.debug_rendering
       for i,tile of @background_tiles
         # Top-left
         @_circle 6, 'black', tile.dest_x, tile.dest_y
@@ -82,32 +89,37 @@ window.GpsMapView = class
     [ pixels[0]-viewport_pixels[3], @ctx.canvas.height - pixels[1]+viewport_pixels[2] ]
 
   _tile_img: (tx, ty) ->
-    @tile_images[@zoom] ?= []
-    @tile_images[@zoom][tx] ?= []
+    @tile_images[@options.zoom] ?= []
+    @tile_images[@options.zoom][tx] ?= []
     
-    unless @tile_images[@zoom][tx][ty]?
+    unless @tile_images[@options.zoom][tx][ty]?
       # This calculates the lower left corner in pixels first, and adds half a 
       # tile to the offset to arrive at the tile's center in pixels
-      tile_center_latlon = @pixels_to_latlon(
-        tx*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2, 
-        ty*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2)
-
-      src_parts = ["#{STATICMAP_URL}?center=#{tile_center_latlon.join(',')}",
-        "zoom=#{@zoom}","size=#{RENDER_TILE_SIZE}x#{RENDER_TILE_SIZE}",
-        'maptype=satellite', 'sensor=false',"format=png32"]
-      if @debug_rendering
-        src_parts.push @_google_marker('F', 'red', tile_center_latlon...)
 
       tile = new Image()
-      tile.src = src_parts.join('&')
+      src_args = [@options.zoom, tx, ty, @]
+      tile.src = if (@options.tile_source) then @options.tile_source(src_args...) else @_tile_source(src_args...)
       tile.onload = -> @is_loaded = true
-      @tile_images[@zoom][tx][ty] = tile
+      @tile_images[@options.zoom][tx][ty] = tile
 
     # Return the tile from the cache 
-    @tile_images[@zoom][tx][ty]
+    @tile_images[@options.zoom][tx][ty]
 
   _google_marker: (label, color, lat, lon) ->
     "markers=color:#{color}%7Clabel:#{label}%7C#{lat},#{lon}"
+
+  _tile_source: (zoom, tx, ty) ->
+    [center_lat, center_lon] = @pixels_to_latlon(
+      tx*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2, 
+      ty*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2)
+
+    console.log "lat: #{center_lat} lon: #{center_lon}"
+
+    src_parts = ["#{STATICMAP_URL}?center=#{center_lat},#{center_lon}",
+      "zoom=#{zoom}","size=#{RENDER_TILE_SIZE}x#{RENDER_TILE_SIZE}",
+      'maptype=satellite', 'sensor=false',"format=png32"]
+    src_parts.push @_google_marker('F', 'red', center_lat, center_lon) if @options.debug_rendering
+    src_parts.join('&')
 
   _line: (color, start_x, start_y, end_x, end_y) ->
     @ctx.beginPath()
@@ -152,7 +164,7 @@ window.GpsMapView = class
 
   meters_to_pixels: (mx, my) ->
     #"Converts EPSG:900913 to pyramid pixel coordinates in given zoom level"
-    res = @_resolution @zoom
+    res = @_resolution @options.zoom
     px = (mx + ORIGIN_SHIFT) / res
     py = (my + ORIGIN_SHIFT) / res
     [ px, py ]
@@ -162,7 +174,7 @@ window.GpsMapView = class
 
   pixels_to_meters: (px, py) ->
     #"Converts pixel coordinates in given zoom level of pyramid to EPSG:900913"
-    res = @_resolution @zoom
+    res = @_resolution @options.zoom
     mx = px * res - ORIGIN_SHIFT
     my = py * res - ORIGIN_SHIFT
     [mx, my]
@@ -185,11 +197,8 @@ window.GpsMapView = class
     # So - to make things easier in the render loop, to preload the image (and 
     # make the render faster in general) we pre-calculate our background tile 
     # rendering parameters here.
-    viewport_pixels = @_viewport_in_pixels()
-    viewport_top_pixels = viewport_pixels[0]
-    viewport_right_pixels = viewport_pixels[1]
-    viewport_bottom_pixels = viewport_pixels[2]
-    viewport_left_pixels = viewport_pixels[3]
+    [ viewport_top_pixels, viewport_right_pixels, viewport_bottom_pixels, 
+      viewport_left_pixels ] = @_viewport_in_pixels()
 
     # We traverse the world coords from bottom-left to top right. We reverse the 
     # y-order because google's y-origin is south, and the canvas' is north
