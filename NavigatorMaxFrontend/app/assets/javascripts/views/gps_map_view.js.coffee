@@ -16,9 +16,13 @@ window.GpsMapView = class
   constructor: (dom_id, lat, lon, options = {}) ->
     @options = options
     @options.zoom ?= 21
-    @options.debug_rendering ?= true
+    @options.debug_rendering ?= false
+    @options.path_stroke ?= 'fff'
 
     @tile_images = []  # This is our tile cache
+
+    @turtle_angle = null
+    @draw_path = null
 
     @ctx = dom_id.getContext("2d")
     @canvas_center = [Math.floor(@ctx.canvas.width/2), Math.floor(@ctx.canvas.height/2)]
@@ -37,18 +41,11 @@ window.GpsMapView = class
           # Down:
           when 40 then @focus(@focus_latlon[0]-0.00001, @focus_latlon[1])
 
-    # At some point I guess this must go?
-    @markers = [ [40.6892,-74.0447], [40.6893,-74.0447], [40.6892,-74.0446], 
-      [40.6891,-74.0447], [40.6892,-74.0448], 
-      # Centers:
-      [40.68909920143032, -74.04493331909178],
-      [40.68909920143032, -74.04458999633789],
-      [40.689359528279546, -74.04493331909178],
-      [40.689359528279546, -74.04458999633789] ]
 
   render: () -> 
     @ctx.clear()
-   
+  
+    # Let's draw the background first:
     for tile in @background_tiles
       if tile.image.is_loaded
         @ctx.drawImage( tile.image, tile.source_x, tile.source_y, 
@@ -66,6 +63,7 @@ window.GpsMapView = class
           @_line 'blue', tile.dest_x, cursor_y, tile.dest_x+tile.copy_width, cursor_y
           cursor_y += BACKGROUND_GRID_SIZE
 
+    # Debug the corners, if appropriate:
     if @options.debug_rendering
       for i,tile of @background_tiles
         # Top-left
@@ -77,11 +75,25 @@ window.GpsMapView = class
         # Bottom Left:
         @_circle 6, 'black', tile.dest_x, tile.dest_y+tile.copy_height
 
-    for marker in @markers
-      canvas_coords = @_latlon_to_canvas( marker... )
-      #console.log "Marker"+canvas_coords
-      # TODO: clip testing (is x < 0 or > width-1) same for y
-      @_circle 6, 'orange', canvas_coords...
+    [focal_x, focal_y] = @_latlon_to_canvas( @focus_latlon... )
+
+    # Draw the path of motion:
+    if @draw_path?
+      @ctx.strokeStyle = @options.path_stroke
+      @ctx.lineWidth = 2
+      @ctx.beginPath()
+      @ctx.moveTo focal_x, focal_y
+      for stop_latlon in @draw_path
+        @ctx.lineTo @_latlon_to_canvas(stop_latlon...)...
+      @ctx.stroke()
+      @ctx.closePath()
+
+    # For reference:
+    @_circle 6, 'blue', @_latlon_to_canvas(@focus_latlon...)...
+
+    # Draw the turtle:
+    @_turtle focal_x, focal_y, @turtle_angle if @turtle_angle?
+
 
   _latlon_to_canvas: (lat, lon) ->
     viewport_pixels = @_viewport_in_pixels()
@@ -120,6 +132,36 @@ window.GpsMapView = class
       'maptype=satellite', 'sensor=false',"format=png32"]
     src_parts.push @_google_marker('F', 'red', center_lat, center_lon) if @options.debug_rendering
     src_parts.join('&')
+
+  _turtle: (canvas_x, canvas_y, angle, fill_color = 'blue', height = 30, toa = 15/360*2*Math.PI) ->
+    @ctx.fillStyle   = fill_color
+    @ctx.strokeStyle = '#fff'
+    @ctx.lineWidth   = 1
+
+    opposite_length = height
+    adjacent_length = Math.tan(toa) * opposite_length
+
+    # Local Coords. These are essentially lines between two hypoteneuses:
+    triangle_points = [
+      [0-adjacent_length, opposite_length],
+      [adjacent_length, opposite_length], 
+    ]
+
+    @ctx.beginPath()
+    @ctx.moveTo canvas_x, canvas_y
+    for point in triangle_points
+      # Rotate the triangle:
+      point_x = point[0] * Math.cos(angle) - point[1] * Math.sin(angle)
+      point_y = point[0] * Math.sin(angle) + point[1] * Math.cos(angle)
+
+      # Translate to world coords:
+      @ctx.lineTo canvas_x+point_x, canvas_y+point_y
+    
+    @ctx.lineTo canvas_x, canvas_y
+
+    @ctx.fill()
+    @ctx.stroke()
+    @ctx.closePath()
 
   _line: (color, start_x, start_y, end_x, end_y) ->
     @ctx.beginPath()
@@ -189,6 +231,12 @@ window.GpsMapView = class
 
   pixels_to_latlon: (px, py) ->
     @meters_to_latlon @pixels_to_meters(px,py)...
+
+  path: (draw_path) ->
+    @draw_path = draw_path
+
+  direction: (angle) ->
+    @turtle_angle = angle
 
   focus: (lat,lon) ->
     @focus_latlon = [lat, lon]

@@ -1,4 +1,6 @@
 window.GpsLocationController = class
+  MAX_PATH_LENGTH = 60
+
   constructor:  ->
     @gps_table = new DataTableView '#gps_sensor'
 
@@ -7,6 +9,9 @@ window.GpsLocationController = class
 
     @gps_map = new GpsMapView $('#gps_map')[0], 40.6892, -74.0447, { 
       tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }
+
+    @path = [] # This is merely a queue of where we've been
+    @last_path_update_at = null
 
   set_metadata: (data) -> 
     attribs = data.gps
@@ -19,6 +24,19 @@ window.GpsLocationController = class
     heading = if data.gps.heading? then "#{data.gps.heading.toFixed(1)}&deg;" else ''
     velocity = if data.gps.velocity? then "#{data.gps.velocity.toFixed(4)} km/h" else ''
 
+    if data.gps.latitude? and data.gps.longitude?
+      latlon = [data.gps.latitude, data.gps.longitude]
+      @gps_map.focus latlon...
+
+      # We want to collect the location every second, and add it to the path:
+      now = new Date().getTime()
+
+      if (!@last_path_update_at?) or ((now - @last_path_update_at) > 1000)
+        @last_path_update_at = now
+        @path.unshift latlon
+        @path.pop() if @path.length > MAX_PATH_LENGTH
+        @gps_map.path @path
+
     @gps_table.set(property, value) for property, value of { 
       device_comm_rate: "#{data.gps.updates_per_second} hz", latitude: latitude, 
       longitude: longitude, altitude: altitude, heading: heading, 
@@ -26,6 +44,8 @@ window.GpsLocationController = class
       fixed: (if data.gps.is_fixed then 'Yes' else 'No') }
 
     heading_in_rad = data.gps.heading / 360 * 2*Math.PI
+
+    @gps_map.direction heading_in_rad
     
     @orientation.plot( 'gps_heading', 
       new THREE.Vector2(Math.sin(heading_in_rad), Math.cos(heading_in_rad)) )

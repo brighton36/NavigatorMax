@@ -17,12 +17,7 @@ class GMapStaticTile
   end
 
   def to_png!(dest_path)
-    center_lat, center_lon = pixels_to_latlon(
-      @tx*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2, 
-      @ty*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2)
-
-    http_resp = self.class.get(TILE_TO_PNG % ['png32', center_lat, center_lon, 
-      @zoom, RENDER_TILE_SIZE, RENDER_TILE_SIZE])
+    http_resp = self.class.get png_url
 
     raise RequestFail unless http_resp.code == 200
 
@@ -31,6 +26,15 @@ class GMapStaticTile
     File.open(dest_path, 'wb'){|file| file << http_resp.body} unless File.exists? dest_path
 
     true
+  end
+
+  def png_url
+    center_lat, center_lon = pixels_to_latlon(
+      @tx*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2, 
+      @ty*RENDER_TILE_SIZE+RENDER_TILE_SIZE/2)
+
+    TILE_TO_PNG % ['png32', center_lat, center_lon, @zoom, RENDER_TILE_SIZE, 
+      RENDER_TILE_SIZE]
   end
 
   def self.latlon_to_tile(zoom, lat, lon)

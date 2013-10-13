@@ -1,17 +1,9 @@
-* Do something nicer on the gps
-  * Cache!
-    * Move that httparty obj into a nicer lib somewhere
-    * Implement a ?debug_render so that we can put pins down and not cache the render
-    * We should also load our tiles a little more aggressively in the js - take a full circle around the requested tile
-    * And write a preload rake task - and let it download ftl
-  * Draw a nicer focus, and add pathing support
-
-* Sketch out a home screen
-  * With orientation, controller notations and our map at a zoom of 20?
-
 * Fix the gyro in 3d
   * I think that we need to compute a vector from the deltas on a tick, and rotate
     the dcm by the angles of this vector on each axis
+
+* Sketch out a home screen
+  * With orientation, controller notations and our map at a zoom of 20?
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
