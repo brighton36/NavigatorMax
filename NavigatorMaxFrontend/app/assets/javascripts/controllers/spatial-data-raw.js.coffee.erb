@@ -65,69 +65,87 @@ window.SpatialDataRawController = class
 
       for sensor in ['acceleration', 'gyroscope', 'compass']
         for i, coord of ['x', 'y', 'z']
-          @data_tables.coords.set "#{sensor}_#{coord}coord", orientation.raw[sensor][i].toFixed(2)
+          value = if orientation.raw[sensor]? and orientation.raw[sensor][i]?
+            orientation.raw[sensor][i].toFixed(2)
+          else
+            ''
+          @data_tables.coords.set "#{sensor}_#{coord}coord", value 
 
       # Update the 2d planes:
-      norm_accel = new THREE.Vector3().fromArray( orientation.raw['acceleration'] ).normalize()
-      @plane_vectors['xy_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
-      @plane_vectors['yz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
-      @plane_vectors['xz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
+      if orientation.raw['acceleration']?
+        norm_accel = new THREE.Vector3().fromArray( orientation.raw['acceleration'] ).normalize()
+        @plane_vectors['xy_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.y) )
+        @plane_vectors['yz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.y, norm_accel.z) )
+        @plane_vectors['xz_spatial_vectors'].plot( 'acceleration', new THREE.Vector2(norm_accel.x, norm_accel.z) )
+      else
+        @plane_vectors["#{plane}_spatial_vectors"].plot 'acceleration', null for plane in ['xy','yz','xz']
 
       # Update the 2d planes:
-      norm_compass = new THREE.Vector3().fromArray( orientation.raw['compass'] ).normalize()
-      @plane_vectors['xy_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
-      @plane_vectors['yz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
-      @plane_vectors['xz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
+      if orientation.raw['compass']?
+        norm_compass = new THREE.Vector3().fromArray( orientation.raw['compass'] ).normalize()
+        @plane_vectors['xy_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.y) )
+        @plane_vectors['yz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.y, norm_compass.z) )
+        @plane_vectors['xz_spatial_vectors'].plot( 'compass', new THREE.Vector2(norm_compass.x, norm_compass.z) )
+      else
+        @plane_vectors["#{plane}_spatial_vectors"].plot 'compass', null for plane in ['xy','yz','xz']
 
       # Update the 2d planes:
-      gyroscope = new THREE.Vector3().fromArray( 
-        $(orientation.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
-      @plane_vectors['xy_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
-      @plane_vectors['yz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
-      @plane_vectors['xz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
+      if orientation.raw['gyroscope']?
+        gyroscope = new THREE.Vector3().fromArray( 
+          $(orientation.raw['gyroscope']).map( (i,n) -> n / 360 * Math.PI * 2  ) )
+        @plane_vectors['xy_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.z), Math.cos(gyroscope.z)) )
+        @plane_vectors['yz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.x), Math.cos(gyroscope.x)) )
+        @plane_vectors['xz_spatial_gyro'].plot( 'gyroscope', new THREE.Vector2(Math.sin(gyroscope.y), Math.cos(gyroscope.y)) )
+      else
+        @plane_vectors["#{plane}_spatial_vectors"].plot 'gyroscope', null for plane in ['xy','yz','xz']
 
-      # Let's try out our rotation matrix:
+      # Update the data table with euler angles:
       if orientation.euler_angles
-        euler_accel = orientation.euler_angles['acceleration']
-        dcm_accel = orientation.direction_cosine_matrix['acceleration']
-        euler_compass = orientation.euler_angles['compass']
-        dcm_compass = orientation.direction_cosine_matrix['compass']
-        dcm_gyro = orientation.direction_cosine_matrix['gyroscope']
-
         for sensor in ['acceleration','gyroscope', 'compass']
           for i, coord of ['heading','pitch','bank']
-            @data_tables.orientation.set "#{sensor}_#{coord}", orientation.euler_angles[sensor][i].toFixed(2)
+            value = if orientation.euler_angles[sensor]? and orientation.euler_angles[sensor][i]?
+              orientation.euler_angles[sensor][i].toFixed(2)
+            else
+              ''
+            @data_tables.orientation.set "#{sensor}_#{coord}", value 
+
+      # Take the 3D arrow angles from the DCM:
+      if orientation.direction_cosine_matrix?
+        if orientation.direction_cosine_matrix['acceleration']?
+          dcm_accel = orientation.direction_cosine_matrix['acceleration']
+          @vector_arrows['acceleration'].visible = true
+          @vector_arrows['acceleration'].matrix = new THREE.Matrix4()
+          @vector_arrows['acceleration'].applyMatrix(new THREE.Matrix4( 
+            dcm_accel[0][0], dcm_accel[0][1], dcm_accel[0][2], 0, 
+            dcm_accel[1][0], dcm_accel[1][1], dcm_accel[1][2], 0, 
+            dcm_accel[2][0], dcm_accel[2][1], dcm_accel[2][2], 0, 
+            0, 0, 0, 1 ))
+        else 
+          @vector_arrows['acceleration'].visible = false
         
-        # We can take the rotation from the eular 
-        #accel_rot = new THREE.Matrix4().makeRotationFromEuler( v(euler_accel[0],euler_accel[1],euler_accel[2]), 'XYZ' )
+        if orientation.direction_cosine_matrix['compass']?
+          dcm_compass = orientation.direction_cosine_matrix['compass']
+          @vector_arrows['compass'].visible = true
+          @vector_arrows['compass'].matrix = new THREE.Matrix4()
+          @vector_arrows['compass'].applyMatrix(new THREE.Matrix4( 
+            dcm_compass[0][0], dcm_compass[0][1], dcm_compass[0][2], 0, 
+            dcm_compass[1][0], dcm_compass[1][1], dcm_compass[1][2], 0, 
+            dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
+            0, 0, 0, 1 ))
+        else
+          @vector_arrows['compass'].visible = false
 
-        # Or, we can take the rotation from the direction cosine:
-        accel_rot = new THREE.Matrix4( 
-          dcm_accel[0][0], dcm_accel[0][1], dcm_accel[0][2], 0, 
-          dcm_accel[1][0], dcm_accel[1][1], dcm_accel[1][2], 0, 
-          dcm_accel[2][0], dcm_accel[2][1], dcm_accel[2][2], 0, 
-          0, 0, 0, 1 )
-        
-        compass_rot = new THREE.Matrix4( 
-          dcm_compass[0][0], dcm_compass[0][1], dcm_compass[0][2], 0, 
-          dcm_compass[1][0], dcm_compass[1][1], dcm_compass[1][2], 0, 
-          dcm_compass[2][0], dcm_compass[2][1], dcm_compass[2][2], 0, 
-          0, 0, 0, 1 )
-
-        gyro_rot = new THREE.Matrix4( 
-          dcm_gyro[0][0], dcm_gyro[0][1], dcm_gyro[0][2], 0, 
-          dcm_gyro[1][0], dcm_gyro[1][1], dcm_gyro[1][2], 0, 
-          dcm_gyro[2][0], dcm_gyro[2][1], dcm_gyro[2][2], 0, 
-          0, 0, 0, 1 )
-      
-        @vector_arrows['acceleration'].matrix = new THREE.Matrix4()
-        @vector_arrows['acceleration'].applyMatrix(accel_rot)
-
-        @vector_arrows['compass'].matrix = new THREE.Matrix4()
-        @vector_arrows['compass'].applyMatrix(compass_rot)
-
-        @vector_arrows['gyroscope'].matrix = new THREE.Matrix4()
-        @vector_arrows['gyroscope'].applyMatrix(gyro_rot)
+        if orientation.direction_cosine_matrix['gyroscope']?
+          dcm_gyro = orientation.direction_cosine_matrix['gyroscope']
+          @vector_arrows['gyroscope'].visible = true
+          @vector_arrows['gyroscope'].matrix = new THREE.Matrix4()
+          @vector_arrows['gyroscope'].applyMatrix(new THREE.Matrix4( 
+            dcm_gyro[0][0], dcm_gyro[0][1], dcm_gyro[0][2], 0, 
+            dcm_gyro[1][0], dcm_gyro[1][1], dcm_gyro[1][2], 0, 
+            dcm_gyro[2][0], dcm_gyro[2][1], dcm_gyro[2][2], 0, 
+            0, 0, 0, 1 ))
+        else
+          @vector_arrows['gyroscope'].visible = false
 
   render: ->
     @renderer.render @scene, @camera

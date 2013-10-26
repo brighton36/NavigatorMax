@@ -21,7 +21,7 @@ window.VectorPlot2D = class VectorPlot2D
     @cxt.clear()
     @_draw_grid()
     for label, vector of @vectors
-      @_draw_vector @vectors[label], decimal_to_hex_string( @vector_colors[label] )
+      @_draw_vector @vectors[label], decimal_to_hex_string( @vector_colors[label] ) if vector?
     @cxt.fillStyle = '000000'
     @cxt.font = '10pt Arial'
     @cxt.fillText(@title, 5,14)

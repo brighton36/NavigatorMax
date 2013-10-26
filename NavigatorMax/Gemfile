@@ -6,5 +6,6 @@ gem 'em-websocket'
 gem 'vmstat'
 gem 'rusage'
 
-gem 'phidgets_native', :git => 'git://github.com/brighton36/phidgets_native.git'
+#gem 'phidgets_native', :git => 'git://github.com/brighton36/phidgets_native.git'
+#gem 'phidgets_native', :path => "../../phidgets_native/pkg"
 

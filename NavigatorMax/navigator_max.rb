@@ -5,7 +5,7 @@ require 'rubygems'
 require 'em-websocket'
 require 'json'
 require 'matrix'
-require 'phidgets_native'
+require '../../phidgets_native/lib/phidgets_native'
 
 REQUIRE_LIBS = %w(lib sensors).collect{|p| [File.dirname(__FILE__),p,'*.rb'].join('/')}
 Dir[*REQUIRE_LIBS].each{ |lib_path| require lib_path }

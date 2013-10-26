@@ -32,17 +32,17 @@ class OrientationSensor < PhidgetSensor
   def polled_attributes
     { :updates_per_second => updates_per_second,
       :raw => { 
-        :acceleration => acceleration.to_a,  
-        :gyroscope    => gyroscope.to_a, 
-        :compass      => compass.to_a },
+        :acceleration => arrayify(acceleration),  
+        :gyroscope    => arrayify(gyroscope), 
+        :compass      => arrayify(compass) },
       :euler_angles => {
-        :acceleration => acceleration_to_euler.to_a,
-        :gyroscope    => gyroscope_to_euler.to_a,
-        :compass      => compass_bearing_to_euler.to_a},
+        :acceleration => arrayify(acceleration_to_euler),
+        :gyroscope    => arrayify(gyroscope_to_euler),
+        :compass      => arrayify(compass_bearing_to_euler)},
       :direction_cosine_matrix => {
-        :acceleration => acceleration_dcm.to_a,
-        :gyroscope    => gyroscope_dcm.to_a,
-        :compass      => compass_bearing_dcm.to_a } }
+        :acceleration => arrayify(acceleration_dcm),
+        :gyroscope    => arrayify(gyroscope_dcm),
+        :compass      => arrayify(compass_bearing_dcm) } }
   end
 
   def acceleration
@@ -50,12 +50,13 @@ class OrientationSensor < PhidgetSensor
   end
 
   def compass
-    compass = @phidget.compass
-    if compass
-      @compass_last = v3(*compass)
-    else
-      @compass_last
-    end
+    comp = @phidget.compass
+    comp ? v3(*@phidget.compass) : nil
+    #if compass
+      #@compass_last = v3(*compass)
+    #else
+      #@compass_last
+    #end
   end
 
   def gyroscope
@@ -68,7 +69,10 @@ class OrientationSensor < PhidgetSensor
   #    plugs in, 0 radians is the front of the device
   #  * This registers the magnetic north, and not true north
   def compass_bearing_mag
-    roll, pitch = acceleration_direction_cosine.to_a # TODO: We're calculating this too much, cache somehow?
+    roll, pitch = acceleration_to_roll_and_pitch # TODO: We're calculating this too much, cache somehow?
+
+    comp = self.compass
+    return nil unless compass
 
     # Yaw Angle - about axis 2
     #   tan(yaw) = (mz * sin(roll) – my * cos(roll)) / 
@@ -77,34 +81,16 @@ class OrientationSensor < PhidgetSensor
     #
     #   Yaw angle == 0 degrees when axis 0 is pointing at magnetic north
 	  yaw = Math.atan2(
-		   (compass.z * Math.sin(roll)) - 
-       (compass.y * Math.cos(roll)),
-		   (compass.x * Math.cos(pitch)) + 
-       (compass.y * Math.sin(pitch) * Math.sin(roll)) + 
-       (compass.z * Math.sin(pitch) * Math.cos(roll)) )
+		   (comp.z * Math.sin(roll)) - 
+       (comp.y * Math.cos(roll)),
+		   (comp.x * Math.cos(pitch)) + 
+       (comp.y * Math.sin(pitch) * Math.sin(roll)) + 
+       (comp.z * Math.sin(pitch) * Math.cos(roll)) )
 
     (acceleration.z < 0) ? ( yaw - Math::PI / 2 ) : ( yaw - Math::PI * 1.5 )
   end
 
-  def compass_bearing_dcm
-    direction_cosine_matrix *compass_bearing_to_euler
-  end
-
-  def compass_bearing_to_euler
-    [0, 0, compass_bearing_mag ]
-  end
-
-  def gyroscope_to_euler
-    [gyroscope.x, gyroscope.y, gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
-  end
-
-  def gyroscope_dcm
-    direction_cosine_matrix( (gyroscope_to_euler[0]-Math::PI * 0.5) * -1.0, 
-      gyroscope_to_euler[1], gyroscope_to_euler[2] * -1.0, 'YZX' )
-  end
-
-  # TODO: Are we doing this right? Should we be handling the dcm calcs in here?
-  def acceleration_direction_cosine
+  def acceleration_to_roll_and_pitch
     # Roll Angle - about axis 0
     #   tan(roll) = gy/gz
     #   Use Atan2 so we have an output os (-180 - 180) degrees
@@ -114,48 +100,48 @@ class OrientationSensor < PhidgetSensor
     #   tan(pitch) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
     #   Pitch angle range is (-90 - 90) degrees
 	  pitch = Math.atan -acceleration.x / ((acceleration.y * Math.sin(roll)) + (acceleration.z * Math.cos(roll)))
- 
-    v3 roll, pitch, 0
+
+    [roll, pitch]
+  end
+
+  def compass_bearing_to_euler
+    cbm = compass_bearing_mag
+    (cbm) ? [0, 0, cbm ] : nil
+  end
+
+  def acceleration_to_euler
+    roll, pitch = acceleration_to_roll_and_pitch 
+
+    v3 roll * -1.00 + Math::PI / 2, 0, pitch
   end
   
-  def acceleration_dcm 
-    accel_dcv = acceleration_direction_cosine
-
-    direction_cosine_matrix accel_dcv.x * -1.00 + Math::PI / 2, 0, accel_dcv.y
+  def gyroscope_to_euler
+    [gyroscope.x, gyroscope.y, gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
   end
 
-  # TODO: We broke this - fix
-  def acceleration_to_euler
-    accel_dcv = acceleration_direction_cosine
-    [accel_dcv.y, 0, accel_dcv.x]
+  def acceleration_dcm 
+    direction_cosine_matrix *acceleration_to_euler
+  end
+
+  def compass_bearing_dcm
+    cbe = compass_bearing_to_euler
+    (cbe) ? direction_cosine_matrix(*cbe) : nil
+  end
+
+  def gyroscope_dcm
+    direction_cosine_matrix( (gyroscope_to_euler[0]-Math::PI * 0.5) * -1.0, 
+      gyroscope_to_euler[1], gyroscope_to_euler[2] * -1.0, 'YZX' )
   end
 
   private
 
   def direction_cosine_matrix(around_x, around_y, around_z, in_order = 'XYZ')
-    rotations = {
-      # X-rotation:
-      :x => Matrix.rows([
-        [1.0, 0, 0],
-        [0, Math.cos(around_x), Math.sin(around_x) * (-1.0)],
-        [0, Math.sin(around_x), Math.cos(around_x)]
-      ]), 
-
-      # Y-rotation:
-      :y => Matrix.rows([
-        [Math.cos(around_y), 0, Math.sin(around_y)],
-        [0, 1.0, 0],
-        [Math.sin(around_y) * (-1.0), 0, Math.cos(around_y)]
-      ]), 
-
-      # Z-rotation:
-      :z => Matrix.rows([ 
-        [Math.cos(around_z), Math.sin(around_z) * (-1.0), 0],
-        [Math.sin(around_z), Math.cos(around_z), 0],
-        [0, 0, 1.0]
-      ]) 
-    }
-
-    in_order.chars.collect{ |axis| rotations[axis.downcase.to_sym] }.reduce(:*)
+    @phidget.instance_eval{ 
+      direction_cosine_matrix around_x, around_y, around_z, in_order  }
   end 
+
+  # If we're not null, and respond to to_a, return an array:
+  def arrayify(a)
+    ( a && a.respond_to?(:to_a) ) ? a.to_a : nil
+  end
 end

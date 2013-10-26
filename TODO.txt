@@ -1,3 +1,7 @@
+* Start fleshing out the orientation methods in c, see the todo in the spatial_ruby.c
+  * Move the methods out of orientation into the spatial
+  * Get that gyro working right
+
 * Fix the gyro in 3d
   * I think that we need to compute a vector from the deltas on a tick, and rotate
     the dcm by the angles of this vector on each axis
@@ -7,6 +11,11 @@
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
+
+* This might be the way to do the IMU: 
+  http://mbed.org/cookbook/IMU
+  * Maybe http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
+  * Look into a quaternion-based implementation that accepts compass?
 
 * The cpu temps should be a different sensor - not an analog sensor
   * These may belong in a different tab, along with system voltages and the like
