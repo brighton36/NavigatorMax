@@ -45,31 +45,21 @@ class OrientationSensor < PhidgetSensor
         :compass      => arrayify(compass_bearing_dcm) } }
   end
 
-  def acceleration
-    v3(*@phidget.accelerometer)
-  end
+  def acceleration; v3ify(@phidget.accelerometer); end
+  def compass; v3ify(@phidget.compass); end
+  def gyroscope; v3ify(@phidget.gyro); end
 
-  def compass
-    comp = @phidget.compass
-    comp ? v3(*@phidget.compass) : nil
-    #if compass
-      #@compass_last = v3(*compass)
-    #else
-      #@compass_last
-    #end
-  end
+  def acceleration_to_euler; @phidget.acceleration_to_euler; end
 
-  def gyroscope
-    v3(*@phidget.gyro)
-  end
-
+  # TODO: cify:
+  
   # TODO: This should be based on gravity, not acceleration
   # NOTE: 
   #  * This bearing is in radians, not angles. 1 radian is where the usb cable
   #    plugs in, 0 radians is the front of the device
   #  * This registers the magnetic north, and not true north
-  def compass_bearing_mag
-    roll, pitch = acceleration_to_roll_and_pitch # TODO: We're calculating this too much, cache somehow?
+  def compass_bearing
+    roll, pitch = acceleration_to_roll_and_pitch # TODO: Grab this from gravity_roll_and_pitch
 
     comp = self.compass
     return nil unless compass
@@ -90,44 +80,18 @@ class OrientationSensor < PhidgetSensor
     (acceleration.z < 0) ? ( yaw - Math::PI / 2 ) : ( yaw - Math::PI * 1.5 )
   end
 
-  def acceleration_to_roll_and_pitch
-    # Roll Angle - about axis 0
-    #   tan(roll) = gy/gz
-    #   Use Atan2 so we have an output os (-180 - 180) degrees
-	  roll = Math.atan2 acceleration.y, acceleration.z
- 
-    # Pitch Angle - about axis 1
-    #   tan(pitch) = -gx / (gy * sin(roll angle) * gz * cos(roll angle))
-    #   Pitch angle range is (-90 - 90) degrees
-	  pitch = Math.atan -acceleration.x / ((acceleration.y * Math.sin(roll)) + (acceleration.z * Math.cos(roll)))
-
-    [roll, pitch]
-  end
-
   def compass_bearing_to_euler
-    cbm = compass_bearing_mag
+    cbm = compass_bearing
     (cbm) ? [0, 0, cbm ] : nil
   end
 
-  def acceleration_to_euler
-    roll, pitch = acceleration_to_roll_and_pitch 
-
-    v3 roll * -1.00 + Math::PI / 2, 0, pitch
-  end
-  
   def gyroscope_to_euler
     [gyroscope.x, gyroscope.y, gyroscope.z ].collect{|n| n / 360 * 2 * Math::PI}
   end
+  # /cify
 
-  def acceleration_dcm 
-    direction_cosine_matrix *acceleration_to_euler
-  end
-
-  def compass_bearing_dcm
-    cbe = compass_bearing_to_euler
-    (cbe) ? direction_cosine_matrix(*cbe) : nil
-  end
-
+  def acceleration_dcm; dcmify acceleration_to_euler; end
+  def compass_bearing_dcm; dcmify compass_bearing_to_euler; end
   def gyroscope_dcm
     direction_cosine_matrix( (gyroscope_to_euler[0]-Math::PI * 0.5) * -1.0, 
       gyroscope_to_euler[1], gyroscope_to_euler[2] * -1.0, 'YZX' )
@@ -135,13 +99,29 @@ class OrientationSensor < PhidgetSensor
 
   private
 
+  # TODO: Nix
+  def acceleration_to_roll_and_pitch
+    @phidget.instance_eval{ acceleration_to_roll_and_pitch }
+  end
+
   def direction_cosine_matrix(around_x, around_y, around_z, in_order = 'XYZ')
     @phidget.instance_eval{ 
       direction_cosine_matrix around_x, around_y, around_z, in_order  }
   end 
+  # TODO: /Nix
 
   # If we're not null, and respond to to_a, return an array:
   def arrayify(a)
     ( a && a.respond_to?(:to_a) ) ? a.to_a : nil
+  end
+
+  # If we're not null, and respond to to_a, return a v3
+  def v3ify(a)
+    ( a && a.respond_to?(:to_a) ) ? v3(*a) : nil
+  end
+
+  # If we're not null, and respond to to_a, return a direction_cosine_matrix
+  def dcmify(a)
+    ( a && a.respond_to?(:to_a) ) ? direction_cosine_matrix(*a) : nil
   end
 end
