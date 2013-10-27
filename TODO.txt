@@ -1,17 +1,16 @@
-* Fix the gyro in 3d
-  * I think that we need to compute a vector from the deltas on a tick, and rotate
-    the dcm by the angles of this vector on each axis
-
-* Start fleshing out the orientation methods in c, see the todo in the spatial_ruby.c
-  * I think we need to adjust the frontend to use yaw, bank, pitch instead of roll and heading
-  * Probably we should switch the front end to match the phidget lib with repsect to acceleration 
-    vs accelerometer, and gyro instead of scope
-
 * Sketch out a home screen
   * With orientation, controller notations and our map at a zoom of 20?
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
+
+* Clean up / refactor the spatial code a bit
+  * What should we do about the gyro_to_euler, it'd be nice if we used eulers instead
+    of dcm's internally...
+  * I think we can better reflect the gyro than what we're doing with the plane-views
+  * I think we need to adjust the frontend to use yaw, bank, pitch instead of roll and heading
+  * Probably we should switch the front end to match the phidget lib with repsect to acceleration 
+    vs accelerometer, and gyro instead of scope
 
 * This might be the way to do the IMU: 
   http://mbed.org/cookbook/IMU

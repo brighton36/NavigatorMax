@@ -55,6 +55,7 @@ class OrientationSensor < PhidgetSensor
   def compass_bearing_to_dcm; @phidget.compass_bearing_to_dcm; end
 
   def gyroscope; @phidget.gyro; end
+  def gyroscope_to_dcm; @phidget.gyro_to_dcm; end
 
   # TODO: cify:
   def gyroscope_to_euler
@@ -62,13 +63,6 @@ class OrientationSensor < PhidgetSensor
     [gyro.x, gyro.y, gyro.z ].collect{|n| n / 360 * 2 * Math::PI}
   end
 
-  def gyroscope_to_dcm
-    gyro_eu = gyroscope_to_euler
-
-    @phidget.instance_eval{ 
-      direction_cosine_matrix( (gyro_eu[0]-Math::PI * 0.5) * -1.0, 
-        gyro_eu[1], gyro_eu[2] * -1.0, 'YZX' ) }
-  end
   # /cify
 
   private
