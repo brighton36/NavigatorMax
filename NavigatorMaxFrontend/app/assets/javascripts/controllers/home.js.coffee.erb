@@ -1,7 +1,7 @@
 window.HomeController = class
   constructor: ->
     @gps_map = new GpsMapView $('#gps_zoomed_out')[0], 40.6892, -74.0447, { 
-      zoom: 21, debug_rendering: true, 
+      zoom: 19,
       tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }
   set_metadata: (data) -> 
     $('#home .title_annotation').html("TODO: figure out what's important here (power-on time?)")

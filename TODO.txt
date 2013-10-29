@@ -1,5 +1,5 @@
 * Sketch out a home screen
-  * Get the small viewport height bug fixed
+  * Refactor the damn viewport code. Figure out why we need the damn+1 in there, but not the horiz loop
     * Get those varible names looking better
       tile_bl_pixels_x -> tile_bottom_world_px
       tile_offset_x 
