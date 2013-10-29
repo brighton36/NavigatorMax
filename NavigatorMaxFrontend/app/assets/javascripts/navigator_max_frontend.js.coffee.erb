@@ -33,9 +33,10 @@ on_route_change = (e) ->
 
 $(document).ready -> 
   window.controllers = {
-    'spatial-data-raw': new SpatialDataRawController
-    'gps-location': new GpsLocationController
-    'system': new SystemController
+    'home': new HomeController,
+    'spatial-data-raw': new SpatialDataRawController,
+    'gps-location': new GpsLocationController,
+    'system': new SystemController,
     'analog-sensors': new AnalogSensorsController
   }
   connection_status = new ConnectionStatusView '#connection_status'
