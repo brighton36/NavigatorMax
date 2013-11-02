@@ -4,7 +4,7 @@
       tile_bl_pixels_x -> tile_bottom_world_px
       tile_offset_x 
       cursor_y_pixels -> cursor_world_y
-  * Something seems up with zoom level 20 (test it out at 21 to ensure)
+  * Spice up the gps a bit with a smaller turtle, and add the code we use for pathing. Maybe turn off the focal point
   * With orientation, controller notations and our map at a zoom of 20?
 
 * Implement the controllers and servos

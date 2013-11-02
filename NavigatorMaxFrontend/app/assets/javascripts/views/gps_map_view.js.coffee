@@ -246,58 +246,29 @@ window.GpsMapView = class
     [ viewport_top_pixels, viewport_right_pixels, viewport_bottom_pixels, 
       viewport_left_pixels ] = @_viewport_in_pixels()
 
-    # TODO: recomment We traverse the world coords from bottom-left to top right. We reverse the 
-    # y-order because google's y-origin is south, and the canvas' is north
+    # We traverse the world coords from top to bottom, left to right. We reverse 
+    # the y-order because google's y-origin is south, and html canvas' is north
     cursor_y_pixels = viewport_top_pixels
 
     cursor_dest_y = 0
     while (cursor_y_pixels > viewport_bottom_pixels)
       # Calculate the tile height/source copy dimensions :
       cursor_tile_offset_y = Math.floor(cursor_y_pixels/RENDER_TILE_SIZE)
-      tile_bl_pixels_y = cursor_tile_offset_y*RENDER_TILE_SIZE
+      tile_bot_world_px = cursor_tile_offset_y*RENDER_TILE_SIZE
 
-      # TODO: This is the new code:
-      copy_height = cursor_y_pixels - tile_bl_pixels_y
+      copy_height = cursor_y_pixels - tile_bot_world_px
 
       source_y = RENDER_TILE_SIZE - copy_height
       # If our height is past the viewport
       if cursor_y_pixels-copy_height < viewport_bottom_pixels
         # Clip it to the height remaining:
-        copy_height = tile_bl_pixels_y + RENDER_TILE_SIZE - viewport_bottom_pixels
+        copy_height = cursor_y_pixels - viewport_bottom_pixels
       
-      # TODO: this is crappy. Also - stick this in the y loop
       dest_y = cursor_dest_y
       cursor_dest_y += copy_height
-      #source_y = RENDER_TILE_SIZE - source_y
-      ## Invert the coords since the origin is on top:
-      #source_y = RENDER_TILE_SIZE-source_y
-      #copy_height = RENDER_TILE_SIZE-copy_height
 
-      ###
-      # OLD CODE that works on larger viewports:
-      canvas_height_remaining = viewport_top_pixels - cursor_y_pixels
-      if canvas_height_remaining > RENDER_TILE_SIZE
-        copy_height = tile_bl_pixels_y + RENDER_TILE_SIZE - cursor_y_pixels
-        source_y = 0 
-      else
-        copy_height = canvas_height_remaining
-        source_y = RENDER_TILE_SIZE - copy_height
-      dest_y = @ctx.canvas.height - cursor_y_pixels + viewport_bottom_pixels - copy_height
-      ###
-      #/TODO
-      
-      if @options.debug_rendering
-        console.log "------ Tile Y: -----"
-        console.log "Viewport top:"+viewport_top_pixels
-        console.log "Viewport bottom:"+viewport_bottom_pixels
-        console.log "Cursor y:"+cursor_y_pixels
-        console.log "tile bl y:"+tile_bl_pixels_y
-        console.log "Source y:"+source_y
-        console.log "dest y:"+dest_y
-        console.log "Height:"+copy_height
-
-      # TODO: move this along for the next iteration
-      cursor_y_pixels -= copy_height + 1 # TODO: Why the +1!?
+      # Move this along for the next iteration
+      cursor_y_pixels -= copy_height + 1 
 
       # Now start calculating the x params:
       cursor_x_pixels = viewport_left_pixels
@@ -306,16 +277,16 @@ window.GpsMapView = class
         cursor_tile_offset_x = Math.floor(cursor_x_pixels/RENDER_TILE_SIZE)
 
         # The bottom-left world-coordinates of the tile 
-        tile_bl_pixels_x = cursor_tile_offset_x*RENDER_TILE_SIZE
+        tile_left_world_px = cursor_tile_offset_x*RENDER_TILE_SIZE
 
         # Calculate the tile width/source dimensions :
-        source_x = cursor_x_pixels-tile_bl_pixels_x
+        source_x = cursor_x_pixels-tile_left_world_px
        
         copy_width = RENDER_TILE_SIZE - source_x
         # If our width is past the viewport
         if cursor_x_pixels+copy_width > viewport_right_pixels
           # Clip it to the width remaining:
-          copy_width = viewport_right_pixels-tile_bl_pixels_x-source_x
+          copy_width = viewport_right_pixels-tile_left_world_px-source_x
 
         dest_x = cursor_x_pixels-viewport_left_pixels
    
