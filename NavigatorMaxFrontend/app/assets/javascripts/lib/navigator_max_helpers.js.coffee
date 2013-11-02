@@ -6,6 +6,13 @@ CanvasRenderingContext2D.prototype.clear = (preserveTransform) ->
   @clearRect(0, 0, @canvas.width, @canvas.height)
   @restore() if (preserveTransform)
 
+window.mixOf = (base, mixins...) ->
+  class Mixed extends base
+  for mixin in mixins by -1 #earlier mixins override later ones
+    for name, method of mixin::
+      Mixed::[name] = method
+  Mixed
+
 window.decimal_to_hex_string = (d) ->
   hex = Number(d).toString(16)
   "000000".substr(0, 6 - hex.length) + hex

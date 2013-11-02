@@ -1,11 +1,6 @@
 * Sketch out a home screen
-  * Refactor the damn viewport code. Figure out why we need the damn+1 in there, but not the horiz loop
-    * Get those varible names looking better
-      tile_bl_pixels_x -> tile_bottom_world_px
-      tile_offset_x 
-      cursor_y_pixels -> cursor_world_y
-  * Spice up the gps a bit with a smaller turtle, and add the code we use for pathing. Maybe turn off the focal point
-  * With orientation, controller notations and our map at a zoom of 20?
+  * Spice up the gps a bit with a smaller kalman-based turtle, and add the code we use for pathing. Maybe turn off the focal point
+  * 3d view with a model? maybe just rotate it via a constant for now
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
