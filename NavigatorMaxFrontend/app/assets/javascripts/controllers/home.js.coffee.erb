@@ -3,7 +3,6 @@ window.HomeController = class extends ThreedControllerHelpers
     @gps_map = new GpsMapView $('#gps_zoomed_out')[0], 40.6892, -74.0447, { 
       zoom: 19,
       tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }
-
     
     @orientation_cxt = $('#vessel_orientation_threed')[0].getContext( '2d' )
 
@@ -24,8 +23,15 @@ window.HomeController = class extends ThreedControllerHelpers
 
     # The actual model
     @scene.add( new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
-      new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ) ) )
+      new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) ) )
 
+    # Lighting:
+    @scene.add(new THREE.AmbientLight(0x888888))
+
+    light = new THREE.DirectionalLight(0xffffff)
+    light.position.set(500, 500, 500).normalize()
+    @scene.add(light)
+      
     @renderer = new THREE.CanvasRenderer(canvas: @orientation_cxt.canvas)
     @renderer.setSize @orientation_cxt.canvas.width, @orientation_cxt.canvas.height
 

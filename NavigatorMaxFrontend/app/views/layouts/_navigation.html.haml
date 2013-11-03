@@ -1,7 +1,7 @@
 .nav-collapse.collapse
   %ul.nav
     - navigation.each do |nav_item|
-      %li{:class => ( (nav_item == @requested_action) ? 'active' : nil) }
+      %li{:class => ['clicknav', ( (nav_item == @requested_action) ? 'active' : nil)] }
         %a{:href => '#%s' % nav_item}=page_title_for nav_item
     %li.divider-vertical
     

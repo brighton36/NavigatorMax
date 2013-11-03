@@ -1,9 +1,15 @@
 * Sketch out a home screen
+  * Figure out how to relay the throttle and rudder to the vessel
   * Spice up the gps a bit with a smaller kalman-based turtle, and add the code we use for pathing. Maybe turn off the focal point
   * 3d view with a model? maybe just rotate it via a constant for now
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
+
+* This might be the way to do the IMU: 
+  http://mbed.org/cookbook/IMU
+  * Maybe http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
+  * Look into a quaternion-based implementation that accepts compass?
 
 * Clean up / refactor the spatial code a bit
   * What should we do about the gyro_to_euler, it'd be nice if we used eulers instead
@@ -13,11 +19,6 @@
   * I think we need to adjust the frontend to use yaw, bank, pitch instead of roll and heading
   * Probably we should switch the front end to match the phidget lib with repsect to acceleration 
     vs accelerometer, and gyro instead of scope
-
-* This might be the way to do the IMU: 
-  http://mbed.org/cookbook/IMU
-  * Maybe http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
-  * Look into a quaternion-based implementation that accepts compass?
 
 * The cpu temps should be a different sensor - not an analog sensor
   * These may belong in a different tab, along with system voltages and the like

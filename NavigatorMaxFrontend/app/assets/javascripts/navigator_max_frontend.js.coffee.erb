@@ -50,8 +50,26 @@ $(document).ready ->
   for label, color of COLORS
     $(".#{label}_legend_indicator").css('background-color', '#'+decimal_to_hex_string(color) )
 
+  # If the browser supports it - create a (rudimentary) gamepad state tracker for 
+  # us to poll in the animate loop
+  if GamePad.is_supported()
+    window.gamepads = new GamePad 
+    gamepads.on_button_down 0, GamePad.BTN_YELLOW_Y, ->
+      # Navigate to the first Main nav entry:
+      $("ul.nav > li.clicknav:first > a")[0].click()
+    gamepads.on_button_down 0, GamePad.BTN_GREEN_A, ->
+      # Navigate to the last Main nav entry:
+      $("ul.nav > li.clicknav:last > a")[0].click()
+    gamepads.on_button_down 0, GamePad.BTN_RED_B, ->
+      link = $("ul.nav > li.clicknav.active").next('li').find('a')
+      link[0].click() if link.length > 0
+    gamepads.on_button_down 0, GamePad.BTN_BLUE_X, ->
+      link = $("ul.nav > li.clicknav.active").prev('li').find('a')
+      link[0].click() if link.length > 0
+  
   window.animate = ->
     requestAnimationFrame window.animate 
+    window.gamepads.poll() if window.gamepads
     connection_status.render()
     window.active_controller.render() if window.active_controller
 
@@ -73,3 +91,6 @@ $(document).ready ->
     connection_status.is_connected true
     ws.send 'get application_metadata'
     setInterval ( -> ws.send "get application_state" ), 1000/30
+    # TODO: Report this !
+    #    console.log "Right Trigger:"+gamepads.right_trigger(0)
+    #    console.log "Left Analog Axis Y:"+gamepads.axis(0, GamePad.AXIS_LEFT_Y)
