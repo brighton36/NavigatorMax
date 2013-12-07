@@ -1,7 +1,16 @@
+* Get the analog sensor working?
+  * Address the todos
+* Maybe the websockets?
+* maybe then do the gps
+* and then the vmstat
+
+
+
 * Sketch out a home screen
   * Figure out how to relay the throttle and rudder to the vessel
   * Spice up the gps a bit with a smaller kalman-based turtle, and add the code we use for pathing. Maybe turn off the focal point
   * 3d view with a model? maybe just rotate it via a constant for now
+  * signal and battery on the home page would be nice/needed...
 
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
