@@ -6,4 +6,4 @@ gem 'em-websocket'
 gem 'vmstat'
 gem 'rusage'
 
-gem 'artoo'
+gem 'artoo', :path => "/Users/cderose/Documents/development/artoo/"

@@ -63,7 +63,7 @@ module Artoo::Drivers
 
     # Publishes events according to the button feedback
     def update(sensor_label, new_val)
-      publish event_topic_name("sensor"), sensor_label.to_s, new_val
+      publish event_topic_name("update"), sensor_label.to_s, new_val
     end
 
     def as_temperature(val)

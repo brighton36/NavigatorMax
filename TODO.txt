@@ -1,6 +1,6 @@
 * Get the analog sensor working?
   * Address the todos
-* Maybe the websockets?
+* Do we add routes for the websocket publishes? 
 * maybe then do the gps
 * and then the vmstat
 

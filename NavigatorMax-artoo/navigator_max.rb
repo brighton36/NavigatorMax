@@ -8,7 +8,8 @@ require 'artoo'
 require 'artoo-phidgets'
 
 class NavigatorMaxRobot < Artoo::Robot
-  api :host => "0.0.0.0", :port => 8023
+  api :host => "0.0.0.0", :port => '8023'
+
   
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
