@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
+#$: << "/Users/cderose/Documents/development/artoo/lib"
+
 $: << File.dirname(__FILE__)
 $: << [File.dirname(__FILE__), 'lib'].join('/')
 
@@ -10,7 +12,7 @@ require 'artoo-phidgets'
 class NavigatorMaxRobot < Artoo::Robot
   api :host => "0.0.0.0", :port => '8023'
 
-  
+=begin 
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
   device :rudder, :driver => :phidgets_advanced_servo, :serial => 305367, 
@@ -29,15 +31,14 @@ class NavigatorMaxRobot < Artoo::Robot
       {:type => :voltage, :location => "ESC"},
       {:type => :voltage, :location => "Engine"},
       {:type => :voltage, :location => "Computer"} ]
+=end
+
+  device :system, :driver => :system, 
+    :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
 
   work do
     puts "Hello from the API running at #{api_host}:#{api_port}..."
 
-  end
-
-  def initialize(params =  {})
-    params[:name] ||= "NavigatorMax"
-    super params
   end
 
   def hello
@@ -45,4 +46,7 @@ class NavigatorMaxRobot < Artoo::Robot
   end
 end
 
-NavigatorMaxRobot.work!
+robots = []
+robots << NavigatorMaxRobot.new(:name => "NavigatorMax", :commands => [:hello])
+NavigatorMaxRobot.work!(robots)
+

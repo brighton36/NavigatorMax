@@ -1,5 +1,6 @@
 * Get the analog sensor working?
   * Address the todos
+  * Make those sensors objects not hashes, and don't publish events unless there's a request to do so
 * Do we add routes for the websocket publishes? 
 * maybe then do the gps
 * and then the vmstat
