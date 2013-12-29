@@ -47,12 +47,16 @@ class NavigatorMaxRobot < Artoo::Robot
 
   end
 
-  def hello
-    puts "HI"
+  def attributes
+    Hash[*devices.collect{|key, device| [key, device.device_attributes]}.flatten]
+  end
+
+  def state
+    Hash[*devices.collect{|key, device| [key, device.polled_attributes]}.flatten]
   end
 end
 
 robots = []
-robots << NavigatorMaxRobot.new(:name => "NavigatorMax", :commands => [:hello])
+robots << NavigatorMaxRobot.new(:name => "NavigatorMax", :commands => [:attributes, :state])
 NavigatorMaxRobot.work!(robots)
 

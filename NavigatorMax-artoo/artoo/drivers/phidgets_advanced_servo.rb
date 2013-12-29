@@ -25,6 +25,10 @@ module Artoo::Drivers
       end
     end
 
+    def polled_attributes
+      # TODO
+    end
+
     # Moves to specified angle
     # @param [Integer] position must be between the min and max for the device
     def move(pos)
