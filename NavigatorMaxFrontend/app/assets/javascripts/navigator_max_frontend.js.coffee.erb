@@ -19,6 +19,9 @@ window.COLORS = {
   humidities_cabin: 0xff9900
 }
 
+window.WSCMD_GET_ATTRIBS = JSON.stringify({requestid: 'robot_command', robotid: 'NavigatorMax', commandid: 'attributes'})
+window.WSCMD_GET_STATE = JSON.stringify({requestid: 'robot_command', robotid: 'NavigatorMax', commandid: 'state'})
+
 on_route_change = (e) ->
   nav_pane = $.param.fragment()
   nav_pane = 'home' unless nav_pane
@@ -76,21 +79,23 @@ $(document).ready ->
   requestAnimationFrame window.animate 
 
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
-  ws = new Socket "ws://localhost:8080/"
+  ws = new Socket "ws://localhost:8023/commands"
   ws.onmessage = (evt) ->
     data = $.parseJSON(evt.data)
 
-    if data.request == 'get application_state'
-      controller.tick data for label, controller of window.controllers
-    else if data.request == 'get application_metadata'
-      controller.set_metadata data for label, controller of window.controllers
+    if data.request.requestid == 'robot_command'
+      if data.request.commandid == 'state'
+        controller.tick data.result for label, controller of window.controllers
+      else if data.request.commandid == 'attributes'
+        controller.set_metadata data.result for label, controller of window.controllers
         
   ws.onclose = -> 
     connection_status.is_connected false
   ws.onopen = ->
     connection_status.is_connected true
-    ws.send 'get application_metadata'
-    setInterval ( -> ws.send "get application_state" ), 1000/30
+    ws.send WSCMD_GET_ATTRIBS
+
+    setInterval ( -> ws.send WSCMD_GET_STATE ), 1000/30
     # TODO: Report this !
     #    console.log "Right Trigger:"+gamepads.right_trigger(0)
     #    console.log "Left Analog Axis Y:"+gamepads.axis(0, GamePad.AXIS_LEFT_Y)
