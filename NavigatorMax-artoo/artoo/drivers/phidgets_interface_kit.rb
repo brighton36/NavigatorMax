@@ -1,7 +1,12 @@
+# encoding: UTF-8
+
 module Artoo::Drivers
   class PhidgetsInterfaceKit < PhidgetsDriver
 
-    COMMANDS = [:comm_rate, :sensor, :sensor_previous].freeze
+    DEVICE_ATTRIBUTES = []
+    POLLED_ATTRIBUTES = [ :temperatures, :humidities, :voltages, :updates_per_second ]
+
+    COMMANDS = ([:device_attributes, :polled_attributes]+DEVICE_ATTRIBUTES+POLLED_ATTRIBUTES+[:sensor, :sensor_previous]).freeze
 
     def initialize(params={})
       super params
@@ -49,41 +54,53 @@ module Artoo::Drivers
       end
     end
 
-    def comm_rate
-      @phidget.sample_rate
+    def device_attributes
+      super.merge({
+        :temperatures => labels_for(:temperature), 
+        :humidities => labels_for(:humidity), 
+        :voltages => labels_for(:voltage)
+      })
     end
 
-    # Sensors are referenced via "#{location.downcase}_#{type}" specifiers
-    def sensor(sensor_label)
-      @sensor_values[sensor_label.to_sym] if @sensor_values.has_key?(sensor_label.to_sym)
+    def polled_attributes
+      hashify_attributes POLLED_ATTRIBUTES
     end
 
-    # Sensors are referenced via "#{location.downcase}_#{type}" specifiers
-    def sensor_previous(sensor_label)
-      @sensor_previous[sensor_label.to_sym] if @sensor_previous.has_key?(sensor_label.to_sym)
+    def updates_per_second
+      @phidget.sensor_sample_rates
     end
 
-    def start_driver
-      every(@interval) do
-        @sensor_previous = @sensor_values.dup
+    # Returns the temperature is celsius
+    def temperatures
+      # These magic numbers come from the phidget documentation
+      collect_type(:temperature){ |i| sensor(i).to_f * 0.22222 - 61.111 if sensor(i) > 0}
+    end
 
-        @sensors.each_with_index do |sensor, i|
-          sensor_label = sensor[:label]
-          value = @phidget.sensors[i]
-          value = sensor[:transform].call value if sensor.has_key? :transform
-          @sensor_values[sensor_label] = value
-          update sensor_label, value unless @sensor_previous[sensor_label] == value
-        end
-      end
+    # Returns the relative humidity (0-100%)
+    def humidities
+      # These magic numbers come from the phidget documentation
+      collect_type(:humidity){ |i| sensor(i).to_f * 0.1906 - 40.2 if sensor(i) > 0} 
+    end
 
-      super
+    def voltages
+      collect_type(:voltage){ |i| (sensor(i).to_f / 200 - 2.5) / 0.0681 if sensor(i) > 0} 
+    end
+
+    # Just a shortcut:
+    def sensor(offset)
+      @phidget.sensors[offset] 
     end
 
     private
 
-    # Publishes events according to the button feedback
-    def update(sensor_label, new_val)
-      publish event_topic_name("update"), {:label => sensor_label.to_s, :value => new_val}
+    def collect_type(type, &block)
+      Hash[*@sensors.to_enum(:each_with_index).collect{|d,i| 
+        [d[:location], block.call(i, d)] if d[:type] == type 
+      }.compact.flatten]
+    end
+
+    def labels_for(type)
+      @sensors.collect{|d| d[:location] if d[:type] == type}.compact
     end
 
   end

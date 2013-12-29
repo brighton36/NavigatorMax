@@ -1,9 +1,9 @@
 module Artoo::Drivers
   class PhidgetsAdvancedServo < PhidgetsDriver
     
-    COMMANDS = [:move, :min, :center, :max,
-      :current_position, :max_position, :min_position, :center_position, 
-      :position_range].freeze
+    COMMANDS = ([:device_attributes, :polled_attributes]+[:move, :min, :center, 
+      :max, :current_position, :max_position, :min_position, :center_position, 
+      :position_range]).freeze
 
     def initialize(params={})
       super params

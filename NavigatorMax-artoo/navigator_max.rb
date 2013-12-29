@@ -8,11 +8,11 @@ $: << [File.dirname(__FILE__), 'lib'].join('/')
 
 require 'artoo'
 require 'artoo-phidgets'
+require 'core_overides'
 
 class NavigatorMaxRobot < Artoo::Robot
   api :host => "0.0.0.0", :port => '8023'
 
-=begin 
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
   device :rudder, :driver => :phidgets_advanced_servo, :serial => 305367, 
@@ -31,10 +31,16 @@ class NavigatorMaxRobot < Artoo::Robot
       {:type => :voltage, :location => "ESC"},
       {:type => :voltage, :location => "Engine"},
       {:type => :voltage, :location => "Computer"} ]
-=end
 
   device :system, :driver => :system, 
     :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
+
+  device :orientation, :driver => :phidgets_spatial, :serial => 302012, 
+    :compass_correction => [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 
+      2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 
+      0.009283]
+
+  device :gps, :driver => :phidgets_gps, :serial => 284771 
 
   work do
     puts "Hello from the API running at #{api_host}:#{api_port}..."

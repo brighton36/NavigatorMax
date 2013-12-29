@@ -3,7 +3,7 @@ require 'socket'
 require 'rusage'
 
 module Artoo::Drivers
-  class System < Driver
+  class System < StateDriver
     DEVICE_ATTRIBUTES = [:hostname, :uname, :boot_time, :cpu_arch, :serial_number, 
       :ruby_description, :primary_interface, :memory_total, :root_filesystem]
     POLLED_ATTRIBUTES = [:updates_per_second, :snapshot_at, :memory_free,
@@ -12,8 +12,7 @@ module Artoo::Drivers
       :network_recv_rate, :process_resident_memory, :process_percent_user,
       :process_percent_system, :wifi_network, :wifi_signal, :wifi_noise ]
 
-    COMMANDS = (DEVICE_ATTRIBUTES+POLLED_ATTRIBUTES+[:state]).freeze
-
+    COMMANDS = ([:device_attributes, :polled_attributes]+DEVICE_ATTRIBUTES+POLLED_ATTRIBUTES).freeze
 
     attr_accessor :updates_per_second
     attr_accessor *DEVICE_ATTRIBUTES
@@ -27,11 +26,6 @@ module Artoo::Drivers
 
     def initialize(params={})
       super params
-      # This is to track the sampling rates:
-      @updates_this_interval = 0
-      @updates_per_second = 0
-      @last_update_interval_at = Time.now.to_f
-      #/Sensor
 
       @primary_interface = params[:additional_params][:primary_interface].to_s
       @snapshot = Vmstat.snapshot
@@ -45,24 +39,6 @@ module Artoo::Drivers
 
       on_poll 
       every(1){ on_poll }
-    end
-
-    def state
-      puts "Called state!"
-      hashify_attributes POLLED_ATTRIBUTES
-    end
-
-    def sampled!(now)
-      # Has it been more than a second since we last counted?
-      if now > @last_update_interval_at + 1.0
-        @last_update_interval_at = now
-        @updates_per_second = @updates_this_interval
-        @updates_this_interval = 1
-      else
-        @updates_this_interval += 1
-      end
-
-      @last_data_at = now
     end
 
     def device_attributes
@@ -235,11 +211,6 @@ module Artoo::Drivers
 
     def osx_command_parse(output, for_value)
       $1 if /^[ ]*#{for_value}:[ ]*(.+)/.match(output)
-    end
-
-
-    def hashify_attributes(attrs)
-      Hash.new.tap{ |h| attrs.each{|a| h[a] = self.send(a)} }
     end
   end
 end

@@ -1,20 +1,20 @@
+* I say to preserve the  device_ and state_ methods and export those commands
+  * 
+
 * Get the analog sensor working?
   * Address the todos
   * Make those sensors objects not hashes, and don't publish events unless there's a request to do so
-* Do we add routes for the websocket publishes? 
-* maybe then do the gps
-* and then the vmstat
+* Test the vmstat?
+* then do the gps
 
-
+* Implement the controllers and servos
+  * These will belong in an emittors lib/folder
 
 * Sketch out a home screen
   * Figure out how to relay the throttle and rudder to the vessel
   * Spice up the gps a bit with a smaller kalman-based turtle, and add the code we use for pathing. Maybe turn off the focal point
   * 3d view with a model? maybe just rotate it via a constant for now
   * signal and battery on the home page would be nice/needed...
-
-* Implement the controllers and servos
-  * These will belong in an emittors lib/folder
 
 * This might be the way to do the IMU: 
   http://mbed.org/cookbook/IMU
