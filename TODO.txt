@@ -1,12 +1,3 @@
-* I say to preserve the  device_ and state_ methods and export those commands
-  * 
-
-* Get the analog sensor working?
-  * Address the todos
-  * Make those sensors objects not hashes, and don't publish events unless there's a request to do so
-* Test the vmstat?
-* then do the gps
-
 * Implement the controllers and servos
   * These will belong in an emittors lib/folder
 

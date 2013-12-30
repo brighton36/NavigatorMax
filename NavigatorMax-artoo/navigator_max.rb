@@ -54,9 +54,14 @@ class NavigatorMaxRobot < Artoo::Robot
   def state
     Hash[*devices.collect{|key, device| [key, device.polled_attributes]}.flatten]
   end
+
+  def overide_controls(normalized_heading, acceleration_magnitude)
+    rudder.move(
+      rudder.center_position + normalized_heading.to_f * (rudder.position_range/2) )
+
+    # TODO: Accel
+  end
 end
 
-robots = []
-robots << NavigatorMaxRobot.new(:name => "NavigatorMax", :commands => [:attributes, :state])
-NavigatorMaxRobot.work!(robots)
-
+attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls]}
+NavigatorMaxRobot.work! [ NavigatorMaxRobot.new(attribs) ]

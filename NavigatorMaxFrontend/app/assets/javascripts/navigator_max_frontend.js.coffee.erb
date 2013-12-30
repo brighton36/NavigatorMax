@@ -19,8 +19,11 @@ window.COLORS = {
   humidities_cabin: 0xff9900
 }
 
-window.WSCMD_GET_ATTRIBS = JSON.stringify({requestid: 'robot_command', robotid: 'NavigatorMax', commandid: 'attributes'})
-window.WSCMD_GET_STATE = JSON.stringify({requestid: 'robot_command', robotid: 'NavigatorMax', commandid: 'state'})
+window.ROBOT_MSG = {requestid: 'robot_command', robotid: 'NavigatorMax'}
+window.OVERIDE_CONTROLS_MSG = $.extend({}, ROBOT_MSG, {commandid: 'overide_controls'})
+
+window.WSCMD_GET_ATTRIBS = JSON.stringify $.extend({}, ROBOT_MSG, {commandid: 'attributes'})
+window.WSCMD_GET_STATE = JSON.stringify $.extend({}, ROBOT_MSG, {commandid: 'state'})
 
 on_route_change = (e) ->
   nav_pane = $.param.fragment()
@@ -95,7 +98,15 @@ $(document).ready ->
     connection_status.is_connected true
     ws.send WSCMD_GET_ATTRIBS
 
+    # State Polling:
     setInterval ( -> ws.send WSCMD_GET_STATE ), 1000/30
-    # TODO: Report this !
-    #    console.log "Right Trigger:"+gamepads.right_trigger(0)
-    #    console.log "Left Analog Axis Y:"+gamepads.axis(0, GamePad.AXIS_LEFT_Y)
+
+    # Overide Control reporting:
+    setInterval -> 
+      if window.gamepads
+        # Axis 0 is left/right analog . -1.0 is left, 1.0 is right
+        # Right trigger is a magnitude, between 0 and 1
+        command_params = { commandid: 'overide_controls', command_params: [
+          gamepads.axis(0, GamePad.AXIS_LEFT_X)[0], gamepads.right_trigger(0) ] }
+        ws.send JSON.stringify($.extend({}, OVERIDE_CONTROLS_MSG, command_params))
+    , 1000/30
