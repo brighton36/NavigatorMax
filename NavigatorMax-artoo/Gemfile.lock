@@ -10,6 +10,11 @@ PATH
       reel (~> 0.4.0)
       thor (~> 0.18.1)
 
+PATH
+  remote: /Users/cderose/Documents/development/phidgets_native
+  specs:
+    phidgets_native (0.2.3)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -64,6 +69,7 @@ PLATFORMS
 DEPENDENCIES
   artoo!
   em-websocket
+  phidgets_native!
   rspec
   rusage
   vmstat

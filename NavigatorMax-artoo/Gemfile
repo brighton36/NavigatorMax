@@ -7,3 +7,4 @@ gem 'vmstat'
 gem 'rusage'
 
 gem 'artoo', :path => "/Users/cderose/Documents/development/artoo"
+gem 'phidgets_native', :path => "/Users/cderose/Documents/development/phidgets_native"

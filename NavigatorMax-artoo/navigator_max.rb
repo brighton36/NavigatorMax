@@ -13,6 +13,10 @@ require 'core_overides'
 class NavigatorMaxRobot < Artoo::Robot
   api :host => "0.0.0.0", :port => '8023'
 
+  device :system, :driver => :system, 
+    :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
+
+=begin
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
   device :rudder, :driver => :phidgets_advanced_servo, :serial => 305367, 
@@ -32,15 +36,12 @@ class NavigatorMaxRobot < Artoo::Robot
       {:type => :voltage, :location => "Engine"},
       {:type => :voltage, :location => "Computer"} ]
 
-  device :system, :driver => :system, 
-    :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
-
+  device :gps, :driver => :phidgets_gps, :serial => 284771 
+=end
   device :orientation, :driver => :phidgets_spatial, :serial => 302012, 
     :compass_correction => [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 
       2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 
       0.009283]
-
-  device :gps, :driver => :phidgets_gps, :serial => 284771 
 
   work do
     puts "Hello from the API running at #{api_host}:#{api_port}..."
@@ -59,7 +60,7 @@ class NavigatorMaxRobot < Artoo::Robot
     rudder.move(
       rudder.center_position + normalized_heading.to_f * (rudder.position_range/2) )
 
-    # TODO: Accel
+    throttle.move( acceleration_magnitude.to_f * throttle.position_range  )
   end
 end
 

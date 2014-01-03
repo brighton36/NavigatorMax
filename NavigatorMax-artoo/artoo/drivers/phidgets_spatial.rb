@@ -15,7 +15,7 @@ module Artoo::Drivers
 
       initialize_phidget(:Spatial, params) do |spatial_params, spatial|
         spatial.zero_gyro!
-        spatial.data_rate = 8
+        #TODO: why? spatial.data_rate = 8
         spatial.compass_correction = spatial_params[:compass_correction] if spatial_params.has_key? :compass_correction
 
         @acceleration_max = spatial.accelerometer_max[0]
@@ -49,7 +49,9 @@ module Artoo::Drivers
         :direction_cosine_matrix => {
           :acceleration => arrayify(acceleration_to_dcm),
           :gyroscope    => arrayify(gyroscope_to_dcm),
-          :compass      => arrayify(compass_bearing_to_dcm) } }
+          :compass      => arrayify(compass_bearing_to_dcm) },
+        :orientation_to_quaternion => arrayify(orientation_to_quaternion)
+      }
     end
 
     def acceleration; @phidget.accelerometer; end
@@ -63,6 +65,10 @@ module Artoo::Drivers
 
     def gyroscope; @phidget.gyro; end
     def gyroscope_to_dcm; @phidget.gyro_to_dcm; end
+
+    def orientation_to_quaternion; 
+      @phidget.orientation_to_quaternion; 
+    end
 
     # TODO: cify:
     def gyroscope_to_euler

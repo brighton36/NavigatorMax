@@ -22,8 +22,11 @@ window.HomeController = class extends ThreedControllerHelpers
     @scene.add(@debug_plane(50,50,50,50))
 
     # The actual model
-    @scene.add( new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
-      new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) ) )
+    @boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
+      new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) )
+    @boat.useQuaternion = true
+
+    @scene.add @boat
 
     # Lighting:
     @scene.add(new THREE.AmbientLight(0x888888))
@@ -39,8 +42,16 @@ window.HomeController = class extends ThreedControllerHelpers
     $('#home .title_annotation').html("TODO: figure out what's important here (power-on time?)")
 
   tick: (data) ->
-    latlon = [data.gps.latitude, data.gps.longitude]
-    @gps_map.focus latlon...
+    if data.gps?
+      latlon = [data.gps.latitude, data.gps.longitude]
+      @gps_map.focus latlon...
+    if data.orientation?
+      @boat.quaternion = new THREE.Quaternion(
+        data.orientation.orientation_to_quaternion[1]
+        data.orientation.orientation_to_quaternion[2]
+        data.orientation.orientation_to_quaternion[3]
+        data.orientation.orientation_to_quaternion[0] )
+
   render: ->
     @gps_map.render()
 

@@ -36,59 +36,61 @@ window.AnalogSensorsController = class
       @series_data[sensor] = {}
 
   set_metadata: (data) -> 
-    attribs = data.analogs
-    $('#analog-sensors .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+    if data.analogs?
+      attribs = data.analogs
+      $('#analog-sensors .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
 
-    # This makes things easier/faster to initialize down below
-    empty_series = []
-    empty_series.push 1 for i in [0..DATA_POINTS-1] by 1
+      # This makes things easier/faster to initialize down below
+      empty_series = []
+      empty_series.push 1 for i in [0..DATA_POINTS-1] by 1
 
-    # Now Let's create the charts:
-    for sensor in SENSORS
-      for location in data.analogs[sensor]
-        # Setup our colors:
-        color = COLORS["#{sensor}_#{classify(location)}"]
-        color = 0x333333 unless color?
-        @colors[sensor][location] = '#'+decimal_to_hex_string(color)
-        
-        # Setup our tables:
-        sensor_color_class = "#{sensor}_#{classify(location)}"
-        css_classes = ['legend_indicator', sensor_color_class]
-        sensor_header = "<div class=\"#{css_classes.join(' ')}\"></div> #{location}"
+      # Now Let's create the charts:
+      for sensor in SENSORS
+        for location in data.analogs[sensor]
+          # Setup our colors:
+          color = COLORS["#{sensor}_#{classify(location)}"]
+          color = 0x333333 unless color?
+          @colors[sensor][location] = '#'+decimal_to_hex_string(color)
+          
+          # Setup our tables:
+          sensor_color_class = "#{sensor}_#{classify(location)}"
+          css_classes = ['legend_indicator', sensor_color_class]
+          sensor_header = "<div class=\"#{css_classes.join(' ')}\"></div> #{location}"
 
-        @tables[sensor].add_row sensor_header, [classify(location)]
-        $(".#{sensor_color_class}").css('background-color', @colors[sensor][location])
+          @tables[sensor].add_row sensor_header, [classify(location)]
+          $(".#{sensor_color_class}").css('background-color', @colors[sensor][location])
 
-        # Setup our plot data:
-        # NOTE: slice(0) returns a clone, instead of a reference, which is what we need:
-        @series_data[sensor][location] = empty_series.slice(0)
+          # Setup our plot data:
+          # NOTE: slice(0) returns a clone, instead of a reference, which is what we need:
+          @series_data[sensor][location] = empty_series.slice(0)
 
-      # And now intstantiate a graph:
-      container = $("##{sensor}_graph")
-      @graphs[sensor] = $.plot(container, @_formatted_series_for(sensor), 
-        $.extend( {}, PLOT_OPTIONS, { yaxis: YAXIS_EXTENTS[sensor] } ) )
+        # And now intstantiate a graph:
+        container = $("##{sensor}_graph")
+        @graphs[sensor] = $.plot(container, @_formatted_series_for(sensor), 
+          $.extend( {}, PLOT_OPTIONS, { yaxis: YAXIS_EXTENTS[sensor] } ) )
 
-      yaxisLabel = $('<div class="axisLabel yaxisLabel">'+@_yaxis_label_for(sensor)+"</div>")
-      yaxisLabel.appendTo(container)
-      width = $(container).find('.yaxisLabel').width()
-      width =  90 # TODO! this needs to calculate on the first render
-      yaxisLabel.css("margin-top", width / 2 - 20)
+        yaxisLabel = $('<div class="axisLabel yaxisLabel">'+@_yaxis_label_for(sensor)+"</div>")
+        yaxisLabel.appendTo(container)
+        width = $(container).find('.yaxisLabel').width()
+        width =  90 # TODO! this needs to calculate on the first render
+        yaxisLabel.css("margin-top", width / 2 - 20)
 
   tick: (data) ->
-    # We only want to perform updates at a rate of 1 Hz. This is an easy way to 
-    # do that
-    if @_is_new_second()
-      comm_rates = []
-      comm_rates.push "#{rate} Hz" for rate in data.analogs.updates_per_second
-      @tables.ifkit_stats.set 'comm_rate', comm_rates.join(', ')
+    if data.analogs?
+      # We only want to perform updates at a rate of 1 Hz. This is an easy way to 
+      # do that
+      if @_is_new_second()
+        comm_rates = []
+        comm_rates.push "#{rate} Hz" for rate in data.analogs.updates_per_second
+        @tables.ifkit_stats.set 'comm_rate', comm_rates.join(', ')
 
-      for sensor in SENSORS
-        for location, value of data.analogs[sensor]
-          @tables[sensor].set classify(location), @_value_to_s_for(sensor, value)
-          @series_data[sensor][location] = @series_data[sensor][location].slice(1) 
-          @series_data[sensor][location].push parseInt(value)
+        for sensor in SENSORS
+          for location, value of data.analogs[sensor]
+            @tables[sensor].set classify(location), @_value_to_s_for(sensor, value)
+            @series_data[sensor][location] = @series_data[sensor][location].slice(1) 
+            @series_data[sensor][location].push parseInt(value)
 
-        @graphs[sensor].setData(@_formatted_series_for(sensor))
+          @graphs[sensor].setData(@_formatted_series_for(sensor))
     
   render: ->
     @tables.ifkit_stats.render()

@@ -1,16 +1,21 @@
-* Implement the controllers and servos
-  * These will belong in an emittors lib/folder
-
-* Sketch out a home screen
-  * Figure out how to relay the throttle and rudder to the vessel
-  * Spice up the gps a bit with a smaller kalman-based turtle, and add the code we use for pathing. Maybe turn off the focal point
-  * 3d view with a model? maybe just rotate it via a constant for now
-  * signal and battery on the home page would be nice/needed...
-
 * This might be the way to do the IMU: 
-  http://mbed.org/cookbook/IMU
-  * Maybe http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
-  * Look into a quaternion-based implementation that accepts compass?
+  * Switch to the imu-only version when compass data is whack
+  zero_gyro, compass_correct, and data_rate all need to init the ahrs
+  * Setting the data_rate seems to Nan the ahrs...
+
+  * Switch to the madwick ahrs here: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
+    * This will show us what we're doing wrong: https://github.com/xioTechnologies/Open-Source-AHRS-With-x-IMU/tree/master/x-IMU%20IMU%20and%20AHRS%20Algorithms/x-IMU%20IMU%20and%20AHRS%20Algorithms
+    * Are we using degrees instead of radians?
+    
+  https://github.com/TobiasSimon/MadgwickTests/blob/master/test.c
+  * Switch to the better maintained imu code. Maybe cleanup the sensor/driver
+
+* Get the battery turned on, and maybe even start using the minnow?
+  * Do the soldering on the interfacekit and the minnow!
+
+* Sketch out a home screen that incorporates throttle and servo state
+  * signal and battery on the home page would be nice/needed...
+  * 3d view with a model? maybe just rotate it via a constant for now
 
 * Clean up / refactor the spatial code a bit
   * What should we do about the gyro_to_euler, it'd be nice if we used eulers instead

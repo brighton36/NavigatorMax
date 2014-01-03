@@ -103,7 +103,7 @@ $(document).ready ->
 
     # Overide Control reporting:
     setInterval -> 
-      if window.gamepads
+      if window.gamepads? and is_controller_avalable?(0)
         # Axis 0 is left/right analog . -1.0 is left, 1.0 is right
         # Right trigger is a magnitude, between 0 and 1
         command_params = { commandid: 'overide_controls', command_params: [
