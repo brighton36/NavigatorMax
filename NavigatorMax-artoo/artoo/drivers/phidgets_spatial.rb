@@ -15,7 +15,7 @@ module Artoo::Drivers
 
       initialize_phidget(:Spatial, params) do |spatial_params, spatial|
         spatial.zero_gyro!
-        #TODO: why? spatial.data_rate = 8
+        spatial.data_rate = 8
         spatial.compass_correction = spatial_params[:compass_correction] if spatial_params.has_key? :compass_correction
 
         @acceleration_max = spatial.accelerometer_max[0]

@@ -1,21 +1,14 @@
 * This might be the way to do the IMU: 
-  * Switch to the imu-only version when compass data is whack
-  zero_gyro, compass_correct, and data_rate all need to init the ahrs
-  * Setting the data_rate seems to Nan the ahrs...
-
-  * Switch to the madwick ahrs here: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
-    * This will show us what we're doing wrong: https://github.com/xioTechnologies/Open-Source-AHRS-With-x-IMU/tree/master/x-IMU%20IMU%20and%20AHRS%20Algorithms/x-IMU%20IMU%20and%20AHRS%20Algorithms
-    * Are we using degrees instead of radians?
-    
-  https://github.com/TobiasSimon/MadgwickTests/blob/master/test.c
-  * Switch to the better maintained imu code. Maybe cleanup the sensor/driver
-
-* Get the battery turned on, and maybe even start using the minnow?
-  * Do the soldering on the interfacekit and the minnow!
-
-* Sketch out a home screen that incorporates throttle and servo state
-  * signal and battery on the home page would be nice/needed...
-  * 3d view with a model? maybe just rotate it via a constant for now
+  * The coordinate space needs to be translated correctly
+    - We're pretty close as all the movements are correct, but, it's off by ninety degrees on 'North' . 
+      - *Maybe* a 90 degree rotation around Z is appropriate...
+    http://stackoverflow.com/questions/13499838/delay-in-yaw-pitch-and-roll-values/16214450#16214450
+    http://stackoverflow.com/questions/17788043/madgwicks-sensor-fusion-algorithm-on-ios
+  * spatial_orientation_to_(euler|dcm)
+    * Implement the euler/dcm gets: https://github.com/TobiasSimon/MadgwickTests/blob/master/test.c
+  * We want to use open gl coords on the gyro:
+    * +x is currently due north on the home screen. Similarly, -z is 'away from ground'
+    * whereas on the vector screen -y is north, and +z is 'away from ground'
 
 * Clean up / refactor the spatial code a bit
   * What should we do about the gyro_to_euler, it'd be nice if we used eulers instead
@@ -25,6 +18,18 @@
   * I think we need to adjust the frontend to use yaw, bank, pitch instead of roll and heading
   * Probably we should switch the front end to match the phidget lib with repsect to acceleration 
     vs accelerometer, and gyro instead of scope
+
+* See if you can implement a better setInterval that doesnt dump so many errors
+  on a disconnect.
+
+* Replace the Orientation screen with a flightplan view
+
+* Sketch out a home screen that incorporates throttle and servo state
+  * signal and battery on the home page would be nice/needed...
+  * 3d view with a model? maybe just rotate it via a constant for now
+
+* Get the battery turned on, and maybe even start using the minnow?
+  * Do the soldering on the interfacekit and the minnow!
 
 * The cpu temps should be a different sensor - not an analog sensor
   * These may belong in a different tab, along with system voltages and the like

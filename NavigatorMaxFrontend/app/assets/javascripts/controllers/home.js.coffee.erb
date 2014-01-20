@@ -22,11 +22,12 @@ window.HomeController = class extends ThreedControllerHelpers
     @scene.add(@debug_plane(50,50,50,50))
 
     # The actual model
-    @boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
+    window.boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
       new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) )
-    @boat.useQuaternion = true
+    window.boat.position.z = 50
+    window.boat.useQuaternion = true
 
-    @scene.add @boat
+    @scene.add window.boat
 
     # Lighting:
     @scene.add(new THREE.AmbientLight(0x888888))
@@ -46,7 +47,7 @@ window.HomeController = class extends ThreedControllerHelpers
       latlon = [data.gps.latitude, data.gps.longitude]
       @gps_map.focus latlon...
     if data.orientation?
-      @boat.quaternion = new THREE.Quaternion(
+      window.boat.quaternion = new THREE.Quaternion(
         data.orientation.orientation_to_quaternion[1]
         data.orientation.orientation_to_quaternion[2]
         data.orientation.orientation_to_quaternion[3]
