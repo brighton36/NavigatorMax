@@ -99,7 +99,7 @@ $(document).ready ->
     ws.send WSCMD_GET_ATTRIBS
 
     # State Polling:
-    setInterval ( -> ws.send WSCMD_GET_STATE ), 1000/30
+    setInterval ( -> ws.send WSCMD_GET_STATE if connection_status.is_connected()), 1000/30
 
     # Overide Control reporting:
     setInterval -> 

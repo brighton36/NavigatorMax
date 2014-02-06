@@ -6,8 +6,11 @@ window.ConnectionStatusView = class
     @last_fps_update_at = new Date().getTime()
     @_is_connected = false
   
-  is_connected: (flag) ->
-    @_is_connected = flag
+  is_connected: (flag = null) ->
+    if flag?
+      @_is_connected = flag
+    else
+      @_is_connected
 
   render: ->
     # FPS Calc

@@ -1,39 +1,27 @@
 * This might be the way to do the IMU: 
-  * The coordinate space needs to be translated correctly
-    - We're pretty close as all the movements are correct, but, it's off by ninety degrees on 'North' . 
-      - *Maybe* a 90 degree rotation around Z is appropriate...
-    http://stackoverflow.com/questions/13499838/delay-in-yaw-pitch-and-roll-values/16214450#16214450
-    http://stackoverflow.com/questions/17788043/madgwicks-sensor-fusion-algorithm-on-ios
+  * spatial_orientation_to_euler
+    * The euler order is off a bit , might have the coordinate system wrong in the c
   * spatial_orientation_to_(euler|dcm)
-    * Implement the euler/dcm gets: https://github.com/TobiasSimon/MadgwickTests/blob/master/test.c
-  * We want to use open gl coords on the gyro:
-    * +x is currently due north on the home screen. Similarly, -z is 'away from ground'
-    * whereas on the vector screen -y is north, and +z is 'away from ground'
-
-* Clean up / refactor the spatial code a bit
-  * What should we do about the gyro_to_euler, it'd be nice if we used eulers instead
-    of dcm's internally...
-  * The gyro might be backwards on one of the dimensions, test that out a bit 
-  * I think we can better reflect the gyro than what we're doing with the plane-views
-  * I think we need to adjust the frontend to use yaw, bank, pitch instead of roll and heading
-  * Probably we should switch the front end to match the phidget lib with repsect to acceleration 
-    vs accelerometer, and gyro instead of scope
-
-* See if you can implement a better setInterval that doesnt dump so many errors
-  on a disconnect.
-
-* Replace the Orientation screen with a flightplan view
+    * I think the dcm isn't rotating correctly... might be the norm?
+    * might have the coords wrong?
+  * Change those quat*'s to quat[4]
+  * It'd be nice to init the madgewick algorithm with the very first poll being the starting quat.
+    * I think line 367 shouldn't run on the first iteration
+    * Maybe on iteration 1 , it doesn't weight the position, but instead - sets it.
 
 * Sketch out a home screen that incorporates throttle and servo state
   * signal and battery on the home page would be nice/needed...
   * 3d view with a model? maybe just rotate it via a constant for now
 
 * Get the battery turned on, and maybe even start using the minnow?
+  * We need to try running i2cdetect and/or smbus detect
   * Do the soldering on the interfacekit and the minnow!
+  * The cpu temps should be a different sensor - not an analog sensor
+    * These may belong in a different tab, along with system voltages and the like
+    * Let's not do anything here until we boot up the minnowboard
 
-* The cpu temps should be a different sensor - not an analog sensor
-  * These may belong in a different tab, along with system voltages and the like
-  * Let's not do anything here until we boot up the minnowboard
+* Replace the Orientation screen with a flightplan view
+
 
 -- Test run!
 

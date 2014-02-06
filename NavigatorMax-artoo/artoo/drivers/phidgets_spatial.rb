@@ -45,12 +45,16 @@ module Artoo::Drivers
         :euler_angles => {
           :acceleration => arrayify(acceleration_to_euler),
           :gyroscope    => arrayify(gyroscope_to_euler),
-          :compass      => arrayify(compass_bearing_to_euler)},
+          :compass      => arrayify(compass_bearing_to_euler),
+          :orientation  => arrayify(orientation_to_euler) },
         :direction_cosine_matrix => {
           :acceleration => arrayify(acceleration_to_dcm),
           :gyroscope    => arrayify(gyroscope_to_dcm),
-          :compass      => arrayify(compass_bearing_to_dcm) },
-        :orientation_to_quaternion => arrayify(orientation_to_quaternion)
+          :compass      => arrayify(compass_bearing_to_dcm),
+          :orientation  => arrayify(orientation_to_dcm) },
+        :quaternion => {
+          :orientation => arrayify(orientation_to_quaternion)
+        }
       }
     end
 
@@ -66,9 +70,9 @@ module Artoo::Drivers
     def gyroscope; @phidget.gyro; end
     def gyroscope_to_dcm; @phidget.gyro_to_dcm; end
 
-    def orientation_to_quaternion; 
-      @phidget.orientation_to_quaternion; 
-    end
+    def orientation_to_quaternion; @phidget.orientation_to_quaternion; end
+    def orientation_to_dcm; @phidget.orientation_to_dcm; end
+    def orientation_to_euler; @phidget.orientation_to_euler; end
 
     # TODO: cify:
     def gyroscope_to_euler

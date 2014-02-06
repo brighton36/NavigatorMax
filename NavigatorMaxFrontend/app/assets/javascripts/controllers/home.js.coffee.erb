@@ -22,12 +22,12 @@ window.HomeController = class extends ThreedControllerHelpers
     @scene.add(@debug_plane(50,50,50,50))
 
     # The actual model
-    window.boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
+    @boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
       new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) )
-    window.boat.position.z = 50
-    window.boat.useQuaternion = true
+    @boat.position.z = 50
+    #@boat.useQuaternion = true
 
-    @scene.add window.boat
+    @scene.add @boat
 
     # Lighting:
     @scene.add(new THREE.AmbientLight(0x888888))
@@ -47,11 +47,25 @@ window.HomeController = class extends ThreedControllerHelpers
       latlon = [data.gps.latitude, data.gps.longitude]
       @gps_map.focus latlon...
     if data.orientation?
-      window.boat.quaternion = new THREE.Quaternion(
-        data.orientation.orientation_to_quaternion[1]
-        data.orientation.orientation_to_quaternion[2]
-        data.orientation.orientation_to_quaternion[3]
-        data.orientation.orientation_to_quaternion[0] )
+      #orientation_dcm = data.orientation.direction_cosine_matrix['orientation']
+      #@boat.matrix = new THREE.Matrix4()
+      #@boat.visible = true
+      #@boat.applyMatrix(new THREE.Matrix4( 
+        #orientation_dcm[0][0], orientation_dcm[0][1], orientation_dcm[0][2], 0, 
+        #orientation_dcm[1][0], orientation_dcm[1][1], orientation_dcm[1][2], 0, 
+        #orientation_dcm[2][0], orientation_dcm[2][1], orientation_dcm[2][2], 0, 
+        #0, 0, 0, 1 ) )
+      
+      #@boat.quaternion = new THREE.Quaternion(
+        #data.orientation.quaternion.orientation[1]
+        #data.orientation.quaternion.orientation[2]
+        #data.orientation.quaternion.orientation[3]
+        #data.orientation.quaternion.orientation[0] )
+      orientation_eu = data.orientation.euler_angles['orientation']
+      @boat.eulerOrder = 'XYZ';
+      @boat.rotation.x = orientation_eu[0];
+      @boat.rotation.y = orientation_eu[1];
+      @boat.rotation.z = orientation_eu[2];
 
   render: ->
     @gps_map.render()

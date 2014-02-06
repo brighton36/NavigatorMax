@@ -39,9 +39,9 @@ class NavigatorMaxRobot < Artoo::Robot
   device :gps, :driver => :phidgets_gps, :serial => 284771 
 =end
   device :orientation, :driver => :phidgets_spatial, :serial => 302012, 
-    :compass_correction => [0.441604, 0.045493, 0.176548, 0.002767, 1.994358, 
-      2.075937, 2.723117, -0.019360, -0.008005, -0.020036, 0.007017, -0.010891, 
-      0.009283]
+    :compass_correction => [ 0.338590, 0.227589, 0.173635, -0.077661, 2.608094, 
+      2.742003, 3.510178, -0.043266, -0.049816, -0.044693, 0.045490, -0.064236, 
+      0.057208 ]
 
   work do
     puts "Hello from the API running at #{api_host}:#{api_port}..."
