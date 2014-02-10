@@ -1,13 +1,9 @@
 * This might be the way to do the IMU: 
-  * spatial_orientation_to_euler
-    * The euler order is off a bit , might have the coordinate system wrong in the c
-  * spatial_orientation_to_(euler|dcm)
-    * I think the dcm isn't rotating correctly... might be the norm?
-    * might have the coords wrong?
-  * Change those quat*'s to quat[4]
+  * Change those quat *'s to quat[4]
   * It'd be nice to init the madgewick algorithm with the very first poll being the starting quat.
     * I think line 367 shouldn't run on the first iteration
     * Maybe on iteration 1 , it doesn't weight the position, but instead - sets it.
+  * True north vs mag north?
 
 * Sketch out a home screen that incorporates throttle and servo state
   * signal and battery on the home page would be nice/needed...
@@ -23,7 +19,12 @@
 * Replace the Orientation screen with a flightplan view
 
 
--- Test run!
+-- Test run! Checklist:
+  * Compass Calibrate
+  * Check for spinning Gyro
+  * Wait a minute for the filter to stabilize orientation
+  * Battery checks
+  * Temp checks
 
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
