@@ -56,11 +56,9 @@ window.HomeController = class extends ThreedControllerHelpers
         orientation_dcm[2][0], orientation_dcm[2][1], orientation_dcm[2][2], 0, 
         0, 0, 0, 1 ) )
       
-      #@boat.quaternion = new THREE.Quaternion(
-        #data.orientation.quaternion.orientation[1]
-        #data.orientation.quaternion.orientation[2]
-        #data.orientation.quaternion.orientation[3]
-        #data.orientation.quaternion.orientation[0] )
+      #boat_quat = data.orientation.quaternion.orientation
+      #@boat.quaternion = new THREE.Quaternion(boat_quat[1], boat_quat[2], boat_quat[3], boat_quat[0])
+
       #orientation_eu = data.orientation.euler_angles['orientation']
       #@boat.eulerOrder = 'XYZ';
       #@boat.rotation.x = orientation_eu[0];
