@@ -1,0 +1,65 @@
+window.MissionModel = class
+  @all: -> 
+    @models || []
+
+  @add: (model) -> 
+    @models ?= []
+    @models.push model
+  constructor:  ->
+    # Push this onto the stack
+    MissionModel.add(@)
+
+window.MissionEditorView = class
+  constructor: (options) ->
+    options.select_missions.click @on_mission_select if options.select_missions
+
+  on_mission_select: (e) ->
+    e.preventDefault()
+    if $(this).html() is 'Create New'
+      # TODO: Init a model, and run the select()  
+      # select_mission new MissionModel
+    else 
+      # TODO:
+      console.log($(this).html())
+  select_mission: (mission) ->
+    # TODO
+
+window.WaypointModel = class
+
+window.MissionController = class
+  constructor:  ->
+
+    default_lat = 26.214726
+    default_lon = -80.168894
+    
+    @map = new GpsMapView $('#mission_map')[0], default_lat, default_lon, { 
+      tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png",
+      zoom: 18, is_drawing_center: false}
+    @dash_offset = 0;
+
+    @editor = new MissionEditorView select_missions: $('#missions_dropdown li>a'), 
+      select_waypoints: $('#waypoints_dropdown li>a'),
+      save_mission: $('#save_mission'), 
+      delete_mission: $('#delete_mission'), 
+      run_mission: $('#run_mission'),
+      properties_container: $('#mission_properties')
+
+  tick: (data) ->
+
+  render: ->
+    @map.render()
+
+    dashList = [12, 6]
+
+    @dash_offset += 1
+
+    @map.ctx.save()
+    @map.ctx.beginPath()
+    @map.ctx.setLineDash(dashList)
+    @map.ctx.lineDashOffset = @dash_offset
+    @map.ctx.moveTo(0,0)
+    @map.ctx.lineTo(@map.ctx.canvas.width,@map.ctx.canvas.height)
+    @map.ctx.lineWidth = 2.0
+    @map.ctx.strokeStyle = 'ffffff'
+    @map.ctx.stroke()
+    @map.ctx.restore()
