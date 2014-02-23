@@ -2,3 +2,14 @@
 body { padding-top: 60px; }
 @import "bootstrap-responsive";
 
+.voffset1{ margin-top: 20px; }
+.voffset2{ margin-top: 40px; }
+
+.mission_rightpane_label{ 
+  h3{
+    width: 180px; 
+    float:left;
+  }
+  .btn-group .btn{ margin-top: 3px; }
+}
+#mission_properties{ margin-bottom: 6px; }

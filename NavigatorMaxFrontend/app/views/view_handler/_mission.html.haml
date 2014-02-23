@@ -1,0 +1,90 @@
+.row
+  .span9
+    %h3 Flight Plan
+    %canvas#mission_map(width = '870' height = '556')
+  .span3
+    .mission_rightpane_label
+      %h3 Mission Properties
+      .btn-group#missions_dropdown
+        %a.btn.btn-mini.dropdown-toggle(data-toggle="dropdown" href="#")
+          Missions
+          %span.caret
+        %ul.dropdown-menu(role="menu" aria-labelledby="dropdownMenu")
+          %li
+            %a(tabindex="-1" href="#") Lake FTL - Figure Eight
+          %li
+            %a(tabindex="-1" href="#") Lake Palm Aire - Tour d'elegance
+          %li
+            %a(tabindex="-1" href="#") Lake Palm Aire - The wallet sinker
+          %li.divider
+          %li
+            %a(tabindex="-1" href="#") Create New
+    %table#mission_properties.table.table-striped.table-bordered.table-condensed
+      %tbody
+        %tr
+          %th Title
+          %td.title 
+            %span.muted (None)
+        %tr
+          %th Created At
+          %td.created_at 
+            %span.muted (None)
+        %tr
+          %th Modified At
+          %td.modified_at
+            %span.muted (None)
+        %tr
+          %th Center Lat
+          %td.center_lat
+            %span.muted (None)
+        %tr
+          %th Center Lon
+          %td.center_lon
+            %span.muted (None)
+        %tr
+          %th Zoom
+          %td.zoom
+            %span.muted (None)
+        %tr
+          %th Is Circular
+          %td.is_circular
+            %span.muted (None)
+        %tr
+          %th Total Distance
+          %td.distance
+            %span.muted (None)
+
+    %button#save_mission.btn.btn-mini.disabled.btn-primary(type='button') Save
+    %button#delete_mission.btn.btn-mini.disabled.btn-danger(type='button') Delete
+    %button#run_mission.btn.btn-mini.disabled.btn-success(type='button') Run
+    .mission_rightpane_label.voffset1
+      %h3 Waypoint Properties
+      .btn-group
+        %a.btn.btn-mini.disabled.dropdown-toggle(data-toggle="dropdown" href="#")
+          Waypoints
+          %span.caret
+        %ul.dropdown-menu(role="menu" aria-labelledby="dropdownMenu")
+          %li
+            %a(tabindex="-1" href="#") 1st Waypoint
+          %li
+            %a(tabindex="-1" href="#") 2nd Waypoint
+          %li
+            %a(tabindex="-1" href="#") 3rd Waypoint
+          %li.divider
+          %li
+            %a(tabindex="-1" href="#") Create New
+    %table#waypoint_properties.table.table-striped.table-bordered.table-condensed
+      %tbody
+        %tr
+          %th Offset
+          %td.offset
+            %span.muted (None)
+        %tr
+          %th Location
+          %td.location
+            %span.muted (None)
+        %tr
+          %th Length
+          %td.length
+            %span.muted (None)
+    %button#delete_waypoint.btn.btn-mini.disabled.btn-danger(type='button') Delete

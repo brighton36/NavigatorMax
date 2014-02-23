@@ -19,6 +19,8 @@ window.GpsMapView = class
     @options.debug_rendering ?= false
     @options.path_stroke ?= 'fff'
 
+    @options.is_drawing_center ?= true
+
     @tile_images = []  # This is our tile cache
 
     @turtle_angle = null
@@ -89,7 +91,7 @@ window.GpsMapView = class
       @ctx.closePath()
 
     # For reference:
-    @_circle 6, 'blue', @_latlon_to_canvas(@focus_latlon...)...
+    @_circle 6, 'blue', @_latlon_to_canvas(@focus_latlon...)... if @options.is_drawing_center
 
     # Draw the turtle:
     @_turtle focal_x, focal_y, @turtle_angle if @turtle_angle?

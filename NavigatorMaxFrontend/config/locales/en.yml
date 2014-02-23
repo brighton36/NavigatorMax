@@ -10,8 +10,8 @@ en:
       title: "System"
     spatial_data_raw:
       title: 'Spatial Data (Raw)'
-    orientation_kalman: 
-      title: 'Orientation (Kalman)'
+    mission: 
+      title: 'Mission Control'
     gps_location: 
       title: 'GPS (Location)'
     analog_sensors: 

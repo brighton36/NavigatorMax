@@ -4,7 +4,7 @@ class ViewHandlerController < ApplicationController
 
   CATCHALL_REQUESTURI_PARTS = /\A[\/]?(.*)[\/]?\Z/
 
-  SITE_NAVIGATION = [ 'home', 'orientation-kalman', 'spatial-data-raw',
+  SITE_NAVIGATION = [ 'home', 'mission', 'spatial-data-raw',
     'gps-location', 'analog-sensors', 'system' ]
 
   def catchall

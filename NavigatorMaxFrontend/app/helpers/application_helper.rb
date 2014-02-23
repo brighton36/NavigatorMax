@@ -8,12 +8,14 @@ module ApplicationHelper
     columns = options[:columns] || ['Value'] 
     row_header = ''
 
-    [ '<h3>%s</h3>' % title,
+    [ (options[:is_titleless]) ? nil :
+      '<h3>%s</h3>' % title,
       '<table class="%s" id="%s">' % [ 
         %w(table table-striped table-bordered table-condensed).join(' '), 
         underscore2(title)
       ],
-      '<thead><tr>%s</tr></thead>' % ([row_header]+columns).collect{|c| '<th>%s</th>' % c }.join,
+      (options[:is_headless]) ? nil :
+        '<thead><tr>%s</tr></thead>' % ([row_header]+columns).collect{|c| '<th>%s</th>' % c }.join,
       '<tbody>',
       rows.collect{|r| 
         shorthand = underscore2(r)

@@ -25,7 +25,7 @@ window.HomeController = class extends ThreedControllerHelpers
     @boat = new THREE.Mesh( @phidget_geometry( 200, 200, 50 ), 
       new THREE.MeshLambertMaterial( { color: 0xcc0000 } ) )
     @boat.position.z = 50
-    #@boat.useQuaternion = true
+    @boat.useQuaternion = true
 
     @scene.add @boat
 
@@ -47,23 +47,9 @@ window.HomeController = class extends ThreedControllerHelpers
       latlon = [data.gps.latitude, data.gps.longitude]
       @gps_map.focus latlon...
     if data.orientation?
-      orientation_dcm = data.orientation.direction_cosine_matrix['orientation']
-      @boat.matrix = new THREE.Matrix4()
-      @boat.visible = true
-      @boat.applyMatrix(new THREE.Matrix4( 
-        orientation_dcm[0][0], orientation_dcm[0][1], orientation_dcm[0][2], 0, 
-        orientation_dcm[1][0], orientation_dcm[1][1], orientation_dcm[1][2], 0, 
-        orientation_dcm[2][0], orientation_dcm[2][1], orientation_dcm[2][2], 0, 
-        0, 0, 0, 1 ) )
-      
-      #boat_quat = data.orientation.quaternion.orientation
-      #@boat.quaternion = new THREE.Quaternion(boat_quat[1], boat_quat[2], boat_quat[3], boat_quat[0])
-
-      #orientation_eu = data.orientation.euler_angles['orientation']
-      #@boat.eulerOrder = 'XYZ';
-      #@boat.rotation.x = orientation_eu[0];
-      #@boat.rotation.y = orientation_eu[1];
-      #@boat.rotation.z = orientation_eu[2];
+      boat_quat = data.orientation.quaternion.orientation
+      @boat.quaternion = new THREE.Quaternion(boat_quat[1], boat_quat[2], 
+        boat_quat[3], boat_quat[0])
 
   render: ->
     @gps_map.render()
