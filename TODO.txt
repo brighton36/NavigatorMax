@@ -1,4 +1,6 @@
 * Replace the Orientation screen with a Mission view
+  * Figure out dirty and validate
+
 
 * True north vs mag north?
   * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib

@@ -5,11 +5,25 @@ body { padding-top: 60px; }
 .voffset1{ margin-top: 20px; }
 .voffset2{ margin-top: 40px; }
 
-.mission_rightpane_label{ 
-  h3{
-    width: 180px; 
-    float:left;
+#mission_rightpane { 
+  .mission_rightpane_label{ 
+    h3{
+      width: 180px; 
+      float:left;
+    }
+    .btn-group .btn{ margin-top: 3px; }
   }
-  .btn-group .btn{ margin-top: 3px; }
+
+  #mission_properties{ 
+    th { width: 90px; }
+    td { font-size: 8pt; }
+    margin-bottom: 6px; 
+  }
+
+  input { margin-bottom: 0 }
+  input[type=text], input[type=number] {
+    font-size: 8pt;
+    padding: 2px;
+  }
+
 }
-#mission_properties{ margin-bottom: 6px; }

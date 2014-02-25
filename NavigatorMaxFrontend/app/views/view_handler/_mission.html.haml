@@ -2,7 +2,7 @@
   .span9
     %h3 Flight Plan
     %canvas#mission_map(width = '870' height = '556')
-  .span3
+  #mission_rightpane.span3
     .mission_rightpane_label
       %h3 Mission Properties
       .btn-group#missions_dropdown
@@ -10,13 +10,14 @@
           Missions
           %span.caret
         %ul.dropdown-menu(role="menu" aria-labelledby="dropdownMenu")
-          %li
-            %a(tabindex="-1" href="#") Lake FTL - Figure Eight
-          %li
-            %a(tabindex="-1" href="#") Lake Palm Aire - Tour d'elegance
-          %li
-            %a(tabindex="-1" href="#") Lake Palm Aire - The wallet sinker
-          %li.divider
+          -#
+            %li
+              %a(tabindex="-1" href="#") Lake FTL - Figure Eight
+            %li
+              %a(tabindex="-1" href="#") Lake Palm Aire - Tour d'elegance
+            %li
+              %a(tabindex="-1" href="#") Lake Palm Aire - The wallet sinker
+          -# %li.divider
           %li
             %a(tabindex="-1" href="#") Create New
     %table#mission_properties.table.table-striped.table-bordered.table-condensed
@@ -28,10 +29,6 @@
         %tr
           %th Created At
           %td.created_at 
-            %span.muted (None)
-        %tr
-          %th Modified At
-          %td.modified_at
             %span.muted (None)
         %tr
           %th Center Lat
@@ -46,11 +43,11 @@
           %td.zoom
             %span.muted (None)
         %tr
-          %th Is Circular
-          %td.is_circular
+          %th Looping?
+          %td.is_looping
             %span.muted (None)
         %tr
-          %th Total Distance
+          %th Distance
           %td.distance
             %span.muted (None)
 

@@ -1,48 +1,130 @@
-window.MissionModel = class
-  @all: -> 
-    @models || []
+window.ModelAttribute = class
+  constructor: (value) -> 
+    @_value = value
+    @_persisted_value = null
+    @_is_persisted = true
+  set: (value) ->
+    if @is_persisted()
+      @_persisted_value = @_value
+      @_mark_unpersisted()
+    @_value = value
+  value: -> @_value
+  persisted_value: -> @_persisted_value
+  is_persisted: -> @_is_persisted
+  is_dirty: -> if @_persisted_value != @_value
+  is_valid: -> 
+    console.log('TODO: Validations')
+    true
+  _mark_unpersisted: -> @_is_persisted = false
 
-  @add: (model) -> 
-    @models ?= []
-    @models.push model
-  constructor:  ->
-    # Push this onto the stack
-    MissionModel.add(@)
+window.Model = class
+  constructor: (attributes) ->
+    @attributes = []
+    for own key, value of attributes
+      @attributes.push key
+      @[key] = new ModelAttribute value
+  is_valid: ->
+    console.log("is_valid")
+  is_persisted: ->
+    console.log("todo")
+  save: ->
+    console.log("save")
+
+window.MissionModel = class extends Model
+  DEFAULT_ATTRIBUTES: {center_lat: 26.214726, center_lon: -80.168894, \
+    title: "New Mission", zoom: 18, is_looping: false}
+
+  constructor: (attributes) -> 
+    super($.extend( {}, MissionModel::DEFAULT_ATTRIBUTES, \
+      {created_at: new Date()}, attributes))
+
+  distance:   -> 0
 
 window.MissionEditorView = class
+  DEFAULT_INPUT_ATTRS = {type: 'text', class: 'input-medium', value: ''}
+
   constructor: (options) ->
+    @missions = []
     options.select_missions.click @on_mission_select if options.select_missions
+    options.save_mission.click @on_save if options.save_mission
+    @form_container = $(options.form_container)
 
-  on_mission_select: (e) ->
+  on_mission_select: (e) =>
     e.preventDefault()
-    if $(this).html() is 'Create New'
-      # TODO: Init a model, and run the select()  
-      # select_mission new MissionModel
+    if $(e.target).html() is 'Create New'
+      new_mission = new MissionModel 
+      @missions.push new_mission
+      @select_mission new_mission
     else 
-      # TODO:
-      console.log($(this).html())
-  select_mission: (mission) ->
-    # TODO
+      # TODO: Populate the mission table
+      console.log $(e.target).html()
 
-window.WaypointModel = class
+  on_save: (e) =>
+    e.preventDefault()
+
+  on_form_input_change: (e) =>
+    name_parts = /^[^\[]+\[(.*)\]$/.exec($(e.target).attr('name'))
+
+    changed_attr = name_parts[1] if name_parts?
+    if changed_attr? and @select_mission.hasOwnProperty(changed_attr)
+      new_value = switch $(e.target).attr('type')
+        when 'checkbox'
+          $(e.target).attr('checked') == 'checked'
+        else
+          $(e.target).val()
+      
+      console.log "Form Input changed: "+changed_attribute+' Value:'+new_value
+      @selected_mission[changed_attribute].set(new_value)
+      console.log "Valid?"+ @selected_mission[changed_attribute].is_valid()
+      # TODO: highlight if not, and cancel the move
+      # TODO: figure out how to validate uniqueness
+      # Fire the on_attribute_change so that we can adjust the titles in the dropdown
+
+  select_mission: (mission) ->
+    @selected_mission = mission
+
+    @_form_input 'title', mission.title.value()
+    @_form_input 'center_lat', mission.center_lat.value(), class: 'input-mini'
+    @_form_input 'center_lon', mission.center_lon.value(), class: 'input-mini'
+    @_form_input 'zoom', mission.zoom.value(), class: 'input-mini', type: 'number'
+    @_form_input 'is_looping', 1, type: 'checkbox', \
+      checked: if (mission.is_looping.value()) then 'checked' else ''
+
+    @_form_value 'created_at', @_date_to_s(mission.created_at.value())
+    @_form_value 'distance', "#{mission.distance()} Miles"
+
+  _date_to_s: (date) ->
+    [date.getMonth()+1, date.getDate(), date.getFullYear()].join('/') + ' at ' + \
+    [date.getHours(), date.getMinutes()].join(':') + ' EST'
+
+  _form_input: (attr, value, attribs = {}) ->
+    input_attrs = $.extend({}, attribs, {name:"mission[#{attr}]", value: value})
+    td_html = @form_container.find(".#{attr}").html(@_input(input_attrs))
+    td_html.find('input').change @on_form_input_change
+
+  _form_value: (attr, value) ->
+    @form_container.find(".#{attr}").html(value)
+
+  _input: (attribs = {}) ->
+    elprops = $.extend({}, DEFAULT_INPUT_ATTRS, attribs)
+    "<input "+$.map( elprops, (val,attr) -> "#{attr}=\"#{val}\"").join(' ')+" />"
 
 window.MissionController = class
   constructor:  ->
+    default_attrs = MissionModel::DEFAULT_ATTRIBUTES
 
-    default_lat = 26.214726
-    default_lon = -80.168894
-    
-    @map = new GpsMapView $('#mission_map')[0], default_lat, default_lon, { 
-      tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png",
-      zoom: 18, is_drawing_center: false}
+    @map = new GpsMapView $('#mission_map')[0], default_attrs.center_lat, 
+      default_attrs.center_lon, { zoom: default_attrs.zoom, is_drawing_center: false,
+      tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }
+
     @dash_offset = 0;
 
-    @editor = new MissionEditorView select_missions: $('#missions_dropdown li>a'), 
-      select_waypoints: $('#waypoints_dropdown li>a'),
-      save_mission: $('#save_mission'), 
-      delete_mission: $('#delete_mission'), 
-      run_mission: $('#run_mission'),
-      properties_container: $('#mission_properties')
+    @editor = new MissionEditorView select_missions: $('#missions_dropdown li>a'), \
+      select_waypoints: $('#waypoints_dropdown li>a'), \
+      save_mission: $('#save_mission'), \
+      delete_mission: $('#delete_mission'), \
+      run_mission: $('#run_mission'), \
+      form_container: $('#mission_properties')
 
   tick: (data) ->
 
