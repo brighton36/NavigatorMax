@@ -11,7 +11,7 @@ window.ModelAttribute = class
   value: -> @_value
   persisted_value: -> @_persisted_value
   is_persisted: -> @_is_persisted
-  is_dirty: -> if @_persisted_value != @_value
+  is_dirty: -> @_persisted_value != @_value
   is_valid: -> 
     console.log('TODO: Validations')
     true
@@ -76,9 +76,17 @@ window.MissionEditorView = class
       console.log "Form Input changed: "+changed_attribute+' Value:'+new_value
       @selected_mission[changed_attribute].set(new_value)
       console.log "Valid?"+ @selected_mission[changed_attribute].is_valid()
-      # TODO: highlight if not, and cancel the move
+
+      el_parent = $(e.target).parent('td')
+
       # TODO: figure out how to validate uniqueness
-      # Fire the on_attribute_change so that we can adjust the titles in the dropdown
+      if @selected_mission[changed_attribute].is_valid()
+        el_parent.removeClass('error')
+        # Fire the on_attribute_change so that we can adjust the titles in the dropdown
+      else 
+        # TODO: Test
+        el_parent.addClass('error')
+        e.preventDefault()
 
   select_mission: (mission) ->
     @selected_mission = mission
