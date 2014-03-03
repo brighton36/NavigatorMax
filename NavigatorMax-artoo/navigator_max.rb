@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-#$: << "/Users/cderose/Documents/development/artoo/lib"
+#$: << "/home/cderose/Documents/development/artoo/lib"
 
 $: << File.dirname(__FILE__)
 $: << [File.dirname(__FILE__), 'lib'].join('/')

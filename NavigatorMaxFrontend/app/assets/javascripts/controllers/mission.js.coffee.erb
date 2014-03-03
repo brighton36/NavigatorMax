@@ -1,5 +1,6 @@
 window.ModelAttribute = class
-  constructor: (value) -> 
+  constructor: (model, value) -> 
+    @_model = model
     @_value = value
     @_persisted_value = null
     @_is_persisted = true
@@ -13,22 +14,41 @@ window.ModelAttribute = class
   is_persisted: -> @_is_persisted
   is_dirty: -> @_persisted_value != @_value
   is_valid: -> 
-    console.log('TODO: Validations')
-    true
+    if @is_dirty()
+      for own key, value of @_model
+        return @_model.is_attribute_valid(key) if value is @
+      return false # This shouldn't ever be the case
+    else
+      true
   _mark_unpersisted: -> @_is_persisted = false
 
 window.Model = class
-  constructor: (attributes) ->
+  @add: (model) ->
+    @_models ?= []
+    @_models.push model
+  constructor: (attributes, klass) ->
     @attributes = []
     for own key, value of attributes
       @attributes.push key
-      @[key] = new ModelAttribute value
+      @[key] = new ModelAttribute @, value
+    klass.add @, klass
   is_valid: ->
-    console.log("is_valid")
+    console.log("TODO: is_valid")
+    # TODO for each attribute
   is_persisted: ->
-    console.log("todo")
+    console.log("todo: is_persisted")
   save: ->
     console.log("save")
+
+  is_attribute_valid: (attr) ->
+    if @_validations? and @_validations[attr]
+      return false unless against() for against in @_validations[attr]
+    return true
+
+  _validate: (attr, against) ->
+    @_validations ?= {}
+    @_validations[attr] ?= []
+    @_validations[attr].push against
 
 window.MissionModel = class extends Model
   DEFAULT_ATTRIBUTES: {center_lat: 26.214726, center_lon: -80.168894, \
@@ -36,59 +56,38 @@ window.MissionModel = class extends Model
 
   constructor: (attributes) -> 
     super($.extend( {}, MissionModel::DEFAULT_ATTRIBUTES, \
-      {created_at: new Date()}, attributes))
-
-  distance:   -> 0
+      {created_at: new Date()}, attributes), MissionModel)
+    @_validate 'title', ->
+      console.log "TODO: Perform a title uniqueness validation"
+      true
+    @_validate 'zoom', ->
+      console.log "TODO: Perform a min/max validation"
+      true
+    @_validate 'center_lat', ->
+      console.log "TODO: Perform a regex validation"
+      true
+    @_validate 'center_lon', ->
+      console.log "TODO: Perform a regex validation"
+      true
+    @_validate 'is_looping', ->
+      console.log "TODO: Perform a bool validation"
+      true
+  distance: -> 0
 
 window.MissionEditorView = class
   DEFAULT_INPUT_ATTRS = {type: 'text', class: 'input-medium', value: ''}
 
   constructor: (options) ->
     @missions = []
-    options.select_missions.click @on_mission_select if options.select_missions
-    options.save_mission.click @on_save if options.save_mission
+    options.select_missions.click @_on_mission_select if options.select_missions
+    options.save_mission.click @_on_form_save if options.save_mission
     @form_container = $(options.form_container)
 
-  on_mission_select: (e) =>
-    e.preventDefault()
-    if $(e.target).html() is 'Create New'
-      new_mission = new MissionModel 
-      @missions.push new_mission
-      @select_mission new_mission
-    else 
-      # TODO: Populate the mission table
-      console.log $(e.target).html()
-
-  on_save: (e) =>
-    e.preventDefault()
-
-  on_form_input_change: (e) =>
-    name_parts = /^[^\[]+\[(.*)\]$/.exec($(e.target).attr('name'))
-
-    changed_attr = name_parts[1] if name_parts?
-    if changed_attr? and @select_mission.hasOwnProperty(changed_attr)
-      new_value = switch $(e.target).attr('type')
-        when 'checkbox'
-          $(e.target).attr('checked') == 'checked'
-        else
-          $(e.target).val()
-      
-      console.log "Form Input changed: "+changed_attribute+' Value:'+new_value
-      @selected_mission[changed_attribute].set(new_value)
-      console.log "Valid?"+ @selected_mission[changed_attribute].is_valid()
-
-      el_parent = $(e.target).parent('td')
-
-      # TODO: figure out how to validate uniqueness
-      if @selected_mission[changed_attribute].is_valid()
-        el_parent.removeClass('error')
-        # Fire the on_attribute_change so that we can adjust the titles in the dropdown
-      else 
-        # TODO: Test
-        el_parent.addClass('error')
-        e.preventDefault()
-
   select_mission: (mission) ->
+    # TODO: Maybe just an on_select?
+    #  * if not persisted, and valid, then show the save button and hide run. Else, show run
+    #  * Always show delete
+    #  * Populate/activate the waypoint view?
     @selected_mission = mission
 
     @_form_input 'title', mission.title.value()
@@ -101,6 +100,53 @@ window.MissionEditorView = class
     @_form_value 'created_at', @_date_to_s(mission.created_at.value())
     @_form_value 'distance', "#{mission.distance()} Miles"
 
+  on_change: (attr, fire) ->
+    @_on_change ?= {}
+    @_on_change[attr] ?= []
+    @_on_change[attr].push fire
+
+  on_dirty: (fire) ->
+    @_on_dirty ?= []
+    @_on_dirty.push fire
+
+  _on_mission_select: (e) =>
+    e.preventDefault()
+    if $(e.target).html() is 'Create New'
+      new_mission = new MissionModel 
+      @missions.push new_mission
+      @select_mission new_mission
+    else 
+      # TODO: Populate the mission table
+      console.log $(e.target).html()
+
+  _on_form_save: (e) =>
+    e.preventDefault()
+
+  _on_form_input_change: (e) =>
+    e.preventDefault()
+    name_parts = /^[^\[]+\[(.*)\]$/.exec($(e.target).attr('name'))
+
+    changed_attr = name_parts[1] if name_parts?
+    if changed_attr? and @selected_mission.hasOwnProperty(changed_attr)
+      new_value = switch $(e.target).attr('type')
+        when 'checkbox'
+          $(e.target).attr('checked') == 'checked'
+        else
+          $(e.target).val()
+      
+      @selected_mission[changed_attr].set(new_value)
+
+      el_parent = $(e.target).parent('td')
+
+      if @selected_mission[changed_attr].is_valid()
+        el_parent.removeClass('error')
+      else 
+        el_parent.addClass('error')
+      
+      @_fire_on_change(changed_attr)
+
+      @_fire_on_dirty() if @selected_mission[changed_attr].is_dirty()
+
   _date_to_s: (date) ->
     [date.getMonth()+1, date.getDate(), date.getFullYear()].join('/') + ' at ' + \
     [date.getHours(), date.getMinutes()].join(':') + ' EST'
@@ -108,14 +154,21 @@ window.MissionEditorView = class
   _form_input: (attr, value, attribs = {}) ->
     input_attrs = $.extend({}, attribs, {name:"mission[#{attr}]", value: value})
     td_html = @form_container.find(".#{attr}").html(@_input(input_attrs))
-    td_html.find('input').change @on_form_input_change
+    td_html.find('input').change @_on_form_input_change
 
   _form_value: (attr, value) ->
     @form_container.find(".#{attr}").html(value)
-
   _input: (attribs = {}) ->
     elprops = $.extend({}, DEFAULT_INPUT_ATTRS, attribs)
     "<input "+$.map( elprops, (val,attr) -> "#{attr}=\"#{val}\"").join(' ')+" />"
+  _fire_on_change: (attr) ->
+    if @_on_change? and @_on_change[attr]
+      fire() for fire in @_on_change[attr]
+
+  _fire_on_dirty: ->
+    if @_on_dirty?
+      fire() for fire in @_on_dirty
+
 
 window.MissionController = class
   constructor:  ->
@@ -133,6 +186,10 @@ window.MissionController = class
       delete_mission: $('#delete_mission'), \
       run_mission: $('#run_mission'), \
       form_container: $('#mission_properties')
+    @editor.on_dirty ->
+      console.log "do on dirty things"
+    @editor.on_change 'title', ->
+      console.log "TODO: handle title changes in the drop-down" 
 
   tick: (data) ->
 

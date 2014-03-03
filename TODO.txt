@@ -1,29 +1,20 @@
-* Get the joystick working
-
-* Maybe get a config file too?
+Deployment test prereqs:
+  * Get the joystick working for accel and rudder
+  * Get the system cpu temp working
+  * Maybe get a config file too?
 
 * Replace the Orientation screen with a Mission view
   * Figure out dirty and validate
-
-* True north vs mag north?
-  * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib
-  http://www.ngdc.noaa.gov/geomag/declination.shtml
 
 * Sketch out a home screen that incorporates throttle and servo state
   * We might want to display SNR somewhere
   * signal and battery on the home page would be nice/needed...
   * 3d view with a model? maybe just rotate it via a constant for now
 
-* This might be the way to do the IMU: 
-  * Maybe?: Sometimes we get a JSON::GeneratorError: 882: NaN not allowed in JSON
+* True north vs mag north?
+  * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib
+  http://www.ngdc.noaa.gov/geomag/declination.shtml
 
-* Get the battery turned on, and maybe even start using the minnow?
-  * You know, we should throw an analog sensor in the cabin and be done with it
-  * We need to try running i2cdetect and/or smbus detect
-  * Do the soldering on the interfacekit and the minnow!
-  * The cpu temps should be a different sensor - not an analog sensor
-    * These may belong in a different tab, along with system voltages and the like
-    * Let's not do anything here until we boot up the minnowboard
 
 -- Test run! Checklist:
   * Compass Calibrate
@@ -35,27 +26,11 @@
 * Perhaps we should do this for the 'production' mode, and switch to apache:
   * http://neovintage.blogspot.de/2012/02/precompile-static-html-pages-with-rails.html
   * https://developers.google.com/maps/documentation/staticmaps/#quick_example
-
+---------------------------------------
+* Maybe?: Sometimes we get a JSON::GeneratorError: 882: NaN not allowed in JSON
 * It'd be nice to add a spec to test for segfaults when the devices aren't connected...
 
 * After testing....
   * GPS TODO:
     * Calculate true north, not mag north. Probably we just need to shell to : http://www.ngdc.noaa.gov/geomag/WMM/soft.shtml
   * GUI : On commloss should retry connection
-
-* Down the line on the phidgets gem:
-  Maybe....
-  * Remove the type_info and replace with extended_attributes and polled_attributes
-    basic attributes (these stay in the struct)
-    extended_attributes (these are pointed to and are device specific)
-    polled_attriubutes these are the running state variables
-
-    It'd be nice if we alloc'd a struct during the poll interval, and passed that
-    to a method for storage, this way we could implement our sequencing code down
-    the line. However, I don't think this is practical without some fancy locking,
-    as we could end up free'ing the struct before it's done in the ruby thread
-  * It would then be nice to have a basic_attributes, extended_attributes, and 
-    polled_attributes for each class
-
-
-
