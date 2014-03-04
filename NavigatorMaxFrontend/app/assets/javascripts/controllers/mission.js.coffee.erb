@@ -2,7 +2,7 @@ window.ModelAttribute = class
   constructor: (model, value) -> 
     @_model = model
     @_value = value
-    @_persisted_value = null
+    @_persisted_value = null # TODO: this may need to be passed in the constructor so we know when we were loaded from db
     @_is_persisted = true
   set: (value) ->
     if @is_persisted()
@@ -27,24 +27,29 @@ window.Model = class
     @_models ?= []
     @_models.push model
   constructor: (attributes, klass) ->
-    @attributes = []
-    for own key, value of attributes
-      @attributes.push key
-      @[key] = new ModelAttribute @, value
+    @attributes = {}
+    @[key] = new ModelAttribute @, value for own key, value of attributes
     klass.add @, klass
   is_valid: ->
-    console.log("TODO: is_valid")
-    # TODO for each attribute
-  is_persisted: ->
-    console.log("todo: is_persisted")
+    @_are_all_attributes (lbl, attr) -> attr.is_valid()
+  is_dirty: ->
+    @_is_any_attribute (lbl, attr) -> attr.is_dirty()
+  is_persisted: -> !@is_dirty()
+
   save: ->
-    console.log("save")
+    console.log("TODO: save")
 
   is_attribute_valid: (attr) ->
     if @_validations? and @_validations[attr]
       return false unless against() for against in @_validations[attr]
     return true
 
+  _are_all_attributes: (against) ->
+    return false unless against(key, attr) for own key, attr of @attributes
+    true
+  _is_any_attribute: (against) ->
+    return true if against(key, attr) for own key, attr of @attributes
+    false
   _validate: (attr, against) ->
     @_validations ?= {}
     @_validations[attr] ?= []
@@ -79,9 +84,30 @@ window.MissionEditorView = class
 
   constructor: (options) ->
     @missions = []
-    options.select_missions.click @_on_mission_select if options.select_missions
+
+    @select_missions_el = options.select_missions
+    @select_missions_el.find('li>a').click @_on_mission_select if @select_missions_el.find('li>a')
+
     options.save_mission.click @_on_form_save if options.save_mission
     @form_container = $(options.form_container)
+
+    @on_create =>
+      console.log "TODO: create an entry in the drop-down"
+      # TODO: If the record is dirty, set the dirty buttons
+
+      # Register the Mission in the option drop-down:
+      new_option_html = @_select_option @selected_mission.title.value()
+      new_option = $(new_option_html).insertBefore @select_missions_el.find('ul li.divider')
+      $(new_option).click @_on_mission_select
+      
+    @on_change 'title', (old_title, new_title) =>
+      for a_el in @select_missions_el.find('li>a')
+        if $(a_el).html() is old_title
+          $(a_el).html(new_title)
+          break
+
+    @on_dirty =>
+      console.log "TODO: Set the button conditions now that we're dirty"
 
   select_mission: (mission) ->
     # TODO: Maybe just an on_select?
@@ -109,12 +135,17 @@ window.MissionEditorView = class
     @_on_dirty ?= []
     @_on_dirty.push fire
 
+  on_create: (fire) ->
+    @_on_create ?= []
+    @_on_create.push fire
+
   _on_mission_select: (e) =>
     e.preventDefault()
     if $(e.target).html() is 'Create New'
       new_mission = new MissionModel 
       @missions.push new_mission
       @select_mission new_mission
+      @_fire_on_create()
     else 
       # TODO: Populate the mission table
       console.log $(e.target).html()
@@ -128,13 +159,16 @@ window.MissionEditorView = class
 
     changed_attr = name_parts[1] if name_parts?
     if changed_attr? and @selected_mission.hasOwnProperty(changed_attr)
-      new_value = switch $(e.target).attr('type')
+      record_was_dirty = @selected_mission.is_dirty()
+
+      new_html_value = switch $(e.target).attr('type')
         when 'checkbox'
           $(e.target).attr('checked') == 'checked'
         else
           $(e.target).val()
-      
-      @selected_mission[changed_attr].set(new_value)
+      old_value = @selected_mission[changed_attr].value()
+
+      @selected_mission[changed_attr].set(new_html_value)
 
       el_parent = $(e.target).parent('td')
 
@@ -142,10 +176,13 @@ window.MissionEditorView = class
         el_parent.removeClass('error')
       else 
         el_parent.addClass('error')
+        # This focus is a bit annoying, but in the case of say, a bad title, it 
+        # keeps us from having to deal with the pop-up menus having 'bad titles'
+        $(e.target).focus() 
       
-      @_fire_on_change(changed_attr)
+      @_fire_on_change changed_attr, old_value, @selected_mission[changed_attr].value()
 
-      @_fire_on_dirty() if @selected_mission[changed_attr].is_dirty()
+      @_fire_on_dirty() if !record_was_dirty and @selected_mission[changed_attr].is_dirty()
 
   _date_to_s: (date) ->
     [date.getMonth()+1, date.getDate(), date.getFullYear()].join('/') + ' at ' + \
@@ -161,14 +198,19 @@ window.MissionEditorView = class
   _input: (attribs = {}) ->
     elprops = $.extend({}, DEFAULT_INPUT_ATTRS, attribs)
     "<input "+$.map( elprops, (val,attr) -> "#{attr}=\"#{val}\"").join(' ')+" />"
-  _fire_on_change: (attr) ->
+  _select_option: (title) ->
+    "<li><a href=\"#\" tabindex=\"-1\">#{title}</a></li>"
+  _fire_on_change: (attr, old_value, new_value) ->
     if @_on_change? and @_on_change[attr]
-      fire() for fire in @_on_change[attr]
+      fire(old_value, new_value) for fire in @_on_change[attr]
 
   _fire_on_dirty: ->
     if @_on_dirty?
       fire() for fire in @_on_dirty
 
+  _fire_on_create: ->
+    if @_on_create?
+      fire() for fire in @_on_create
 
 window.MissionController = class
   constructor:  ->
@@ -180,16 +222,12 @@ window.MissionController = class
 
     @dash_offset = 0;
 
-    @editor = new MissionEditorView select_missions: $('#missions_dropdown li>a'), \
+    @editor = new MissionEditorView select_missions: $('#missions_dropdown'), \
       select_waypoints: $('#waypoints_dropdown li>a'), \
       save_mission: $('#save_mission'), \
       delete_mission: $('#delete_mission'), \
       run_mission: $('#run_mission'), \
       form_container: $('#mission_properties')
-    @editor.on_dirty ->
-      console.log "do on dirty things"
-    @editor.on_change 'title', ->
-      console.log "TODO: handle title changes in the drop-down" 
 
   tick: (data) ->
 
