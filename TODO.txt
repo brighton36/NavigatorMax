@@ -1,3 +1,12 @@
+* I think we need an id for each mission
+  * What happens if they type a duplicate title for a mission, and before they leave the input, they select a different mission?
+  * Unpersisted missions should be starred in the select label. ALso, no crazy chars in the title
+  * whereever we have a find_by_title, we need a find_by_id
+* When we run an on_select, we need to check the validity of each input to ensure it's valid. It's possible they selected an unpersisted record with invalid attributes
+* The persisted value shouldn't be set to 'New Misson' when a created mission has its title changed
+* Then the field validations
+* Then maybe the waypoints?
+
 Deployment test prereqs:
   * Get the joystick working for accel and rudder
   * Get the system cpu temp working
