@@ -35,11 +35,17 @@ window.Model = class
     for m in @_models
       return m if @_all(attrs, (key, value) -> m[key].value() is value)
     return nil
-
+  @find_by_id: (id) -> @_models[parseInt(id)]
   @_all: (pairs, is_truth) ->
     for own key, value of pairs
       return false unless is_truth(key, value)
     return true
+  id: ->
+    i = 0
+    for model in @constructor._models
+      return i if model is @
+      i++
+    return null
 
   constructor: (attributes, klass) ->
     @attributes = {}
@@ -134,7 +140,7 @@ window.MissionEditorView = class
 
     @on_create =>
       # Register the Mission in the option drop-down:
-      new_option_html = @_select_option @selected_mission.title.value()
+      new_option_html = @_select_option @selected_mission.title.value(), @selected_mission.id()
       new_option = $(new_option_html).insertBefore @select_missions_el.find('ul li.divider')
       $(new_option).click @_on_form_mission_select
 
@@ -148,7 +154,7 @@ window.MissionEditorView = class
 
     @on_change_attr 'title', (old_title, new_title) =>
       # This will adjust the title in the drop-down select:
-      mission_anc = @_find_mission_select_option(old_title)
+      mission_anc = @_find_mission_select_option(@selected_mission.id())
       $(mission_anc).html(new_title) if mission_anc?
 
   select_mission: (mission) ->
@@ -190,8 +196,7 @@ window.MissionEditorView = class
       @select_mission new_mission
       @_fire_event_chain(@_on_create)
     else 
-      # TODO: Base on model id()
-      mission = MissionModel.find_first(title: mission_anc.html())
+      mission = MissionModel.find_by_id(mission_anc.attr('data-mission-id'))
       @select_mission mission if mission? 
     @_fire_event_chain(@_on_select)
   _on_form_save: (e) =>
@@ -209,11 +214,12 @@ window.MissionEditorView = class
     unless $(e.target).hasClass('disabled')
       mission_title = @selected_mission.title.value()
       if confirm("Are you sure you wish to delete \"#{mission_title}\"")
+        mission_id = @selected_mission.id()
         @selected_mission.destroy()
-        @selected_mission = null
+        @selected_mission = null # TODO: Maybe this should be done via the destroy method() ?
 
         # Remove this mission from the option group:
-        mission_el = @_find_mission_select_option mission_title
+        mission_el = @_find_mission_select_option mission_id
         $(mission_el).parent('li').remove()
 
         # And 'reset' the form to its defaults:
@@ -254,11 +260,9 @@ window.MissionEditorView = class
         @_fire_on_change_attr changed_attr, old_value, new_value
 
       @_fire_event_chain @_on_dirty if !record_was_dirty and @selected_mission[changed_attr].is_dirty()
-  _find_mission_select_option: (title) ->
-    if @select_missions_el
-      for a_el in @select_missions_el.find('li>a')
-        return a_el if $(a_el).html() is title
-    return null
+  _find_mission_select_option: (mission_id) ->
+    els = $("a[data-mission-id=\"#{mission_id}\"]") 
+    if els.length is 1 then els[0] else null
   _date_to_s: (date) ->
     [date.getMonth()+1, date.getDate(), date.getFullYear()].join('/') + ' at ' + \
     [date.getHours(), date.getMinutes()].join(':') + ' EST'
@@ -271,8 +275,8 @@ window.MissionEditorView = class
   _input: (attribs = {}) ->
     elprops = $.extend({}, DEFAULT_INPUT_ATTRS, attribs)
     "<input "+$.map( elprops, (val,attr) -> "#{attr}=\"#{val}\"").join(' ')+" />"
-  _select_option: (title) ->
-    "<li><a href=\"#\" tabindex=\"-1\">#{title}</a></li>"
+  _select_option: (title, mission_id) ->
+    "<li><a href=\"#\" tabindex=\"-1\" data-mission-id=\"#{mission_id}\">#{title}</a></li>"
   _fire_on_change_attr: (attr, old_value, new_value) ->
     if @_on_change_attr? and @_on_change_attr[attr]
       fire(old_value, new_value) for fire in @_on_change_attr[attr]
