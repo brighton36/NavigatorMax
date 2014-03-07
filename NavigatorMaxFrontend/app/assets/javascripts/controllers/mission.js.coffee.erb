@@ -12,7 +12,7 @@ window.ModelAttribute = class
   value: -> @_value
   persisted_value: -> @_persisted_value
   is_persisted: -> @_is_persisted
-  is_dirty: -> @_persisted_value != @_value
+  is_dirty: -> !@is_persisted()
   is_valid: -> 
     if @is_dirty()
       for own key, value of @_model
@@ -29,11 +29,13 @@ window.Model = class
   @find: (attrs) ->
     found = []
     for m in @_models
-      found.push m if @_all(attrs, (key, value) -> m[key].value() is value)
+      if m?
+        found.push m if @_all(attrs, (key, value) -> m[key].value() is value)
     found
   @find_first: (attrs) ->
     for m in @_models
-      return m if @_all(attrs, (key, value) -> m[key].value() is value)
+      if m?
+        return m if @_all(attrs, (key, value) -> m[key].value() is value)
     return nil
   @find_by_id: (id) -> @_models[parseInt(id)]
   @_all: (pairs, is_truth) ->
@@ -47,10 +49,12 @@ window.Model = class
       i++
     return null
 
-  constructor: (attributes, klass) ->
-    @attributes = {}
-    @[key] = new ModelAttribute @, value for own key, value of attributes
-    klass.add @, klass
+  constructor: (attributes) ->
+    @_attributes = []
+    for own key, value of attributes
+      @_attributes.push key
+      @[key] = new ModelAttribute @, value 
+    @constructor.add @
   is_valid: ->
     @_are_all_attributes (lbl, attr) -> attr.is_valid()
   is_dirty: ->
@@ -61,17 +65,22 @@ window.Model = class
     console.log("TODO: save")
   destroy: ->
     console.log("TODO: destroy")
+    @constructor._models[@id()] = null
 
   is_attribute_valid: (attr) ->
     if @_validations? and @_validations[attr]
-      return false unless against() for against in @_validations[attr]
+      for against in @_validations[attr]
+        return false unless against(@[attr].value()) 
     return true
 
+  each_attribute: (against) ->
+    against(key, @[key]) for key in @_attributes
+
   _are_all_attributes: (against) ->
-    return false unless against(key, attr) for own key, attr of @attributes
+    return false unless against(key, @[key]) for key in @_attributes
     true
   _is_any_attribute: (against) ->
-    return true if against(key, attr) for own key, attr of @attributes
+    return true if against(key, @[key]) for key in @_attributes
     false
   _validate: (attr, against) ->
     @_validations ?= {}
@@ -81,25 +90,25 @@ window.Model = class
 window.MissionModel = class extends Model
   DEFAULT_ATTRIBUTES: {center_lat: 26.214726, center_lon: -80.168894, \
     title: "New Mission", zoom: 18, is_looping: false}
+  VALID_TITLE = /^[a-z0-9\!\@\#\$\%\^\&\(\)\\\/\|\_\-\<\>\. ]+$/i
+  VALID_ZOOM = /^([0-9]|1[0-9]|2[01])$/
+  VALID_GPSCOORD = /^[\-]?[0-9]{1,3}\.[0-9]+$/
 
   constructor: (attributes) -> 
     super($.extend( {}, MissionModel::DEFAULT_ATTRIBUTES, \
-      {created_at: new Date()}, attributes), MissionModel)
-    @_validate 'title', ->
-      console.log "TODO: Perform a title uniqueness validation"
-      true
-    @_validate 'zoom', ->
-      console.log "TODO: Perform a min/max validation"
-      true
-    @_validate 'center_lat', ->
-      console.log "TODO: Perform a regex validation"
-      true
-    @_validate 'center_lon', ->
-      console.log "TODO: Perform a regex validation"
-      true
-    @_validate 'is_looping', ->
-      console.log "TODO: Perform a bool validation"
-      true
+      {created_at: new Date()}, attributes))
+    @_validate 'title', (title) ->
+      if ( MissionModel.find(title: title).length is 1 ) \
+        and VALID_TITLE.exec(title) then true else false
+    @_validate 'zoom', (zoom) ->
+      if VALID_ZOOM.exec(zoom) then true else false
+    @_validate 'center_lat', (center_lat) ->
+      if VALID_GPSCOORD.exec(center_lat) then true else false
+    @_validate 'center_lon', (center_lon) ->
+      if VALID_GPSCOORD.exec(center_lon) then true else false
+    @_validate 'is_looping', (is_looping) ->
+      if (is_looping is true) or (is_looping is false) then true else false
+
   distance: -> 0
   run: ->
     console.log "TODO: Run!"
@@ -163,12 +172,24 @@ window.MissionEditorView = class
     @_form_input 'title', mission.title.value()
     @_form_input 'center_lat', mission.center_lat.value(), class: 'input-mini'
     @_form_input 'center_lon', mission.center_lon.value(), class: 'input-mini'
-    @_form_input 'zoom', mission.zoom.value(), class: 'input-mini', type: 'number'
+    @_form_input 'zoom', mission.zoom.value(), class: 'input-mini', \
+      type: 'number', min: 0, max: 21
     @_form_input 'is_looping', 1, type: 'checkbox', \
       checked: if (mission.is_looping.value()) then 'checked' else ''
 
     @_form_value 'created_at', @_date_to_s(mission.created_at.value())
     @_form_value 'distance', "#{mission.distance()} Miles"
+    
+    # Highlight any errors on this record:
+    @selected_mission.each_attribute (key, attr) =>
+      td_el = @form_container.find(".#{key}")
+      if attr.is_valid()
+        $(td_el).removeClass('error')
+      else
+        $(td_el).addClass('error')
+
+    # And focus to the first element:
+    @form_container.find('input:first').focus() 
 
   on_change_attr: (attr, fire) ->
     @_on_change_attr ?= {}
@@ -198,7 +219,11 @@ window.MissionEditorView = class
     else 
       mission = MissionModel.find_by_id(mission_anc.attr('data-mission-id'))
       @select_mission mission if mission? 
+
+    # TODO: set the buttons enable/disable status here
+    
     @_fire_event_chain(@_on_select)
+
   _on_form_save: (e) =>
     e.preventDefault()
     unless $(e.target).hasClass('disabled')
@@ -216,7 +241,7 @@ window.MissionEditorView = class
       if confirm("Are you sure you wish to delete \"#{mission_title}\"")
         mission_id = @selected_mission.id()
         @selected_mission.destroy()
-        @selected_mission = null # TODO: Maybe this should be done via the destroy method() ?
+        @selected_mission = null
 
         # Remove this mission from the option group:
         mission_el = @_find_mission_select_option mission_id
@@ -251,9 +276,6 @@ window.MissionEditorView = class
         el_parent.removeClass('error')
       else 
         el_parent.addClass('error')
-        # This focus is a bit annoying, but in the case of say, a bad title, it 
-        # keeps us from having to deal with the pop-up menus having 'bad titles'
-        $(e.target).focus() 
       
       if old_value isnt new_value
         @_fire_event_chain @_on_change

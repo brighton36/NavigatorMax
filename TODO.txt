@@ -1,11 +1,10 @@
-* I think we need an id for each mission
-  * So - we need to remove the null assignment from the on_form_delete, this should go into the models collection (where null is assigned to the element)
-  * Actually, we may need null assignment in both places
+* The save/delet button isn't an option when you create a new record?
+  * It'd be nice if we persisted this during the mission change (even if there's a todo in this feature)
+  * there's a todo in here
 * Then the field validations
-  * What happens if they type a duplicate title for a mission, and before they leave the input, they select a different mission?
-  * Unpersisted missions should be starred in the select label. ALso, no crazy chars in the title
-* When we run an on_select, we need to check the validity of each input to ensure it's valid. It's possible they selected an unpersisted record with invalid attributes
+  * Unpersisted missions should be starred (or highlighted blue?) in the select label. ALso, no crazy chars in the title
 * The persisted value shouldn't be set to 'New Misson' when a created mission has its title changed
+* Throw the model and view into sub-dirs
 * Then the waypoints!
 
 Deployment test prereqs:
