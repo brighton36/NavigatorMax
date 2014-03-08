@@ -10,7 +10,7 @@ module Artoo::Drivers
       :memory_swaprates, :root_filesystem_free, :load_avg, :uptime, :gc_rate,
       :cpu_percent_user, :cpu_percent_system, :cpu_percent_idle, :network_send_rate,
       :network_recv_rate, :process_resident_memory, :process_percent_user,
-      :process_percent_system, :wifi_network, :wifi_signal, :wifi_noise ]
+      :process_percent_system, :wifi_network, :wifi_signal, :wifi_noise, :cpu_temp_in_c]
 
     COMMANDS = ([:device_attributes, :polled_attributes]+DEVICE_ATTRIBUTES+POLLED_ATTRIBUTES).freeze
 
@@ -19,10 +19,14 @@ module Artoo::Drivers
 
     attr_accessor :network_send_rate, :network_recv_rate, :cpu_percent_user, 
       :cpu_percent_system, :cpu_percent_idle, :gc_rate, :process_percent_user,
-      :process_percent_system, :swap_in_rate, :swap_out_rate
+      :process_percent_system, :swap_in_rate, :swap_out_rate, :cpu_temp_in_c, 
+      :wifi_network, :wifi_noise, :wifi_signal
 
     OSX_SYSTEM_PROFILER = '/usr/sbin/system_profiler'
     OSX_AIRPORT = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
+
+    IWLIST = "/sbin/iwlist"
+    CPU_TEMP_PATHS = Dir.glob("/sys/devices/platform/coretemp.*/temp*_input").sort
 
     def initialize(params={})
       super params
@@ -100,8 +104,28 @@ module Artoo::Drivers
       # GC Stats
       @gc_rate = ( @gc_count.to_f - last_gc_count.to_f ) / poll_delta if last_gc_count
 
-      # This allows us to cache these commands for a second or so
-      @airport = nil
+      # CPU Temp:
+      @cpu_temp_in_c = File.read(CPU_TEMP_PATHS[0]).to_i / 1000 if CPU_TEMP_PATHS.length > 0
+
+      # Wifi stats:
+      if airport?
+        airport_out = `#{OSX_AIRPORT} -I`
+
+        @wifi_network = ('"%s" Ch. %s (%s)' % ['SSID','channel','link auth'].collect{|v| 
+          osx_command_parse airport_out, v })
+        @wifi_noise = osx_command_parse airport_out, 'agrCtlNoise'
+        @wifi_signal = osx_command_parse airport_out, 'agrCtlRSSI'
+      else
+        iwlist_out = `#{IWLIST} #{@primary_interface} scan`
+
+        ssid = (/ESSID:\"([^\"]+)/.match iwlist_out) ? $1 : nil
+        channel = (/Frequency:(.+)$/.match iwlist_out) ? $1 : nil
+
+        @wifi_network = '"%s" %s' % [ssid, channel]
+        @wifi_signal = (/Signal level=([^ ]+)/.match iwlist_out) ? $1 : nil
+        @wifi_noise = (/Quality=([^ ]+)/.match iwlist_out) ? $1 : nil
+      end
+
     end
 
     def serial_number
@@ -109,7 +133,9 @@ module Artoo::Drivers
       @serial_number ||= if system_profiler?
         system_profiler('Serial Number \(system\)')
       else
-        'TODO'
+        # The only way to get a good one seems to be via dmidecode, and I'd 
+        # rather not run as root here.
+        'N/A' 
       end
     end
 
@@ -118,7 +144,9 @@ module Artoo::Drivers
         '%s (%sx) %s %s' % ['Model Identifier', 'Total Number of Cores', 'Processor Name', 
           'Processor Speed'].collect{|for_value| system_profiler(for_value)}
       else
-        'TODO: Linux version' 
+        cpus = File.read('/proc/cpuinfo').scan(/(.+?)\n\n/m)
+
+        '(%sx) %s' % [cpus.length, /model name[^:]:[ ]*(.+)$/.match(cpus[0][0]) ? $1 : nil]
       end
     end
 
@@ -167,20 +195,6 @@ module Artoo::Drivers
       (@snapshot.at - @snapshot.boot_time).to_i
     end
 
-    def wifi_network
-      (airport?) ? 
-        ('"%s" Ch. %s (%s)' % ['SSID','channel','link auth'].collect{|v| airport(v)}) : 
-        'TODO'
-    end
-
-    def wifi_noise
-      (airport?) ? airport('agrCtlNoise') : 'TODO'
-    end
-
-    def wifi_signal
-      (airport?) ? airport('agrCtlRSSI') : 'TODO'
-    end
-
     private
 
     def primary_netif(for_snapshot = nil)
@@ -199,14 +213,7 @@ module Artoo::Drivers
     end
 
     def airport?
-      @has_airport = File.exists? OSX_AIRPORT
-    end
-
-    def airport(for_value = nil)
-      if airport?
-        @airport ||= `#{OSX_AIRPORT} -I`
-        osx_command_parse @airport, for_value
-      end
+      @has_airport ||= File.exists? OSX_AIRPORT
     end
 
     def osx_command_parse(output, for_value)

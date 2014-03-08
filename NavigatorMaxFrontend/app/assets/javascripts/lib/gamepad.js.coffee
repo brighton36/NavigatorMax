@@ -37,7 +37,7 @@ window.GamePad = class
     # Event handlers:
     @_on_button_down = []
 
-  is_controller_avalable?(controller_index) ->
+  is_controller_available: (controller_index) ->
     @gamepads[controller_index]?
 
   on_button_down: (controller_index, btn_index, fire) ->

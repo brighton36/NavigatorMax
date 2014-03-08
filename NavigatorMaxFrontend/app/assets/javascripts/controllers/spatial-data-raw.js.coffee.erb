@@ -48,13 +48,14 @@ window.SpatialDataRawController = class extends ThreedControllerHelpers
 
 
   set_metadata: (data) -> 
-    attribs = data.orientation
-    $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
+    if data.orientation?
+      attribs = data.orientation
+      $('#spatial-data-raw .title_annotation').html("#{attribs.name} (serial #{attribs.serial_number}) v.#{attribs.version}")
 
-    for sensor in ['acceleration', 'gyroscope', 'compass']
-      for ext in ['min', 'max']
-        @data_tables.extents.set "#{sensor}_#{ext}", attribs["#{sensor}_#{ext}"]
-    @data_tables.extents.render()
+      for sensor in ['acceleration', 'gyroscope', 'compass']
+        for ext in ['min', 'max']
+          @data_tables.extents.set "#{sensor}_#{ext}", attribs["#{sensor}_#{ext}"]
+      @data_tables.extents.render()
 
   tick: (data) ->
     orientation = data.orientation

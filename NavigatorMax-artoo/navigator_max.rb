@@ -45,6 +45,7 @@ class NavigatorMaxRobot < Artoo::Robot
   work do
     puts "Hello from the API running at #{api_host}:#{api_port}..."
 
+    throttle.min if throttle
   end
 
   def attributes
@@ -55,13 +56,12 @@ class NavigatorMaxRobot < Artoo::Robot
     Hash[*devices.collect{|key, device| [key, device.polled_attributes]}.flatten]
   end
 
-  def overide_controls(normalized_heading, acceleration_magnitude)
-    puts "HERE in override"
-    rudder.move(
-      rudder.center_position + normalized_heading.to_f * (rudder.position_range/2) )
+  # Heading is between -1 and 1
+  # Acceleration is between 0 and 1
+  def overide_controls(heading, acceleration)
+    rudder.move (heading.to_f + 1.0)/2.0 * rudder.position_range if rudder
 
-    throttle.min
-    #throttle.move( acceleration_magnitude.to_f * throttle.position_range  )
+    throttle.move acceleration.to_f * throttle.position_range if throttle
   end
 end
 

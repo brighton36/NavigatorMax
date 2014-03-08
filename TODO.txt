@@ -1,6 +1,4 @@
 Deployment test prereqs:
-  * Get the joystick working for accel and rudder
-  * Get the system cpu temp working
   * Maybe get a config file too?
 
 Mission Editor:
