@@ -14,8 +14,8 @@ window.COLORS = {
   acceleration: 0xcc00ff, compass: 0x20b2aa, gyroscope: 0xd2691e
   # Analog Sensors:
   temperatures_cabin: 0x9c1c6b, temperatures_engine: 0xca278c, 
-  temperatures_esc: 0xe47297, voltages_battery: 0x0099cc, voltages_esc: 0xccffcc, 
-  voltages_engine: 0x66ccff, voltages_computer: 0x003399, 
+  temperatures_cpu: 0xe47297, voltages_interfacekit: 0x0099cc, voltages_minnow: 0x003399, 
+  voltages_batteries: 0x66ccff, voltages_nicecolortodo: 0xccffcc,  # I Added that nicecolor for future use
   humidities_cabin: 0xff9900
 }
 
@@ -110,4 +110,4 @@ $(document).ready ->
         command_params = { commandid: 'overide_controls', command_params: [
           gamepads.axis(0, GamePad.AXIS_LEFT_X)[0], gamepads.right_trigger(0) ] }
         ws.send JSON.stringify($.extend({}, OVERIDE_CONTROLS_MSG, command_params))
-    , 1000/30
+    , 1000/8

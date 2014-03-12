@@ -19,7 +19,8 @@ module Artoo::Drivers
 
         @sensors = ifkit_params[:sensors] || []
         @sensors.each_with_index do |sensor, i|
-          
+          next unless sensor
+
           raise ArgumentError, "All sensors must specify a :type" unless sensor.has_key? :type
           raise ArgumentError, "All sensors must specify a :location" unless sensor.has_key? :location
 
@@ -95,12 +96,12 @@ module Artoo::Drivers
 
     def collect_type(type, &block)
       Hash[*@sensors.to_enum(:each_with_index).collect{|d,i| 
-        [d[:location], block.call(i, d)] if d[:type] == type 
+        [d[:location], block.call(i, d)] if d && d[:type] == type 
       }.compact.flatten]
     end
 
     def labels_for(type)
-      @sensors.collect{|d| d[:location] if d[:type] == type}.compact
+      @sensors.collect{|d| d[:location] if d && d[:type] == type}.compact
     end
 
   end

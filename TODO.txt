@@ -1,16 +1,17 @@
-Deployment test prereqs:
-  * Maybe get a config file too?
-
 Mission Editor:
-  * The persisted value shouldn't be set to 'New Misson' when a created mission has its title changed
-    * And just for testing the star and save/run, let's mark the model persisted during an on_save
-  * Throw the model and view into sub-dirs
   * Then the waypoints!
+    * There should be a coordinate picker feature in here somewhere for the gps
 
 * Sketch out a home screen that incorporates throttle and servo state
   * We might want to display SNR somewhere
   * signal and battery on the home page would be nice/needed...
   * 3d view with a model? maybe just rotate it via a constant for now
+
+Deployment test prereqs:
+  * Batteries Voltage is reading negative, seems like we effed up the polarity...
+  * Maybe get a config file too?
+  * Double check the wifi commands on the minnowboard, and try to get that noise reading
+  * Maybe get that minnowboard serial number?
 
 * True north vs mag north?
   * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib
