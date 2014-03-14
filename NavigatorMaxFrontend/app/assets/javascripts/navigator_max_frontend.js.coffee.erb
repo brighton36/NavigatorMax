@@ -83,7 +83,7 @@ $(document).ready ->
   requestAnimationFrame window.animate 
 
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
-  ws = new Socket "ws://localhost:8023/commands"
+  window.ws = new Socket "ws://localhost:8023/commands"
   ws.onmessage = (evt) ->
     data = $.parseJSON(evt.data)
 

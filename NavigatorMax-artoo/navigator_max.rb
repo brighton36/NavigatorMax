@@ -15,7 +15,7 @@ class NavigatorMaxRobot < Artoo::Robot
 
   device :system, :driver => :system, 
     :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
-
+=begin
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
   device :rudder, :driver => :phidgets_advanced_servo, :serial => 305160, 
@@ -43,11 +43,12 @@ class NavigatorMaxRobot < Artoo::Robot
     :compass_correction => [ 0.338590, 0.227589, 0.173635, -0.077661, 2.608094, 
       2.742003, 3.510178, -0.043266, -0.049816, -0.044693, 0.045490, -0.064236, 
       0.057208 ]
+=end
 
   work do
-    puts "Hello from the API running at #{api_host}:#{api_port}..."
+    puts "Hello from NavigatorMax running at #{api_host}:#{api_port}..."
 
-    throttle.min if throttle
+    throttle.min if respond_to? :throttle
   end
 
   def attributes
@@ -65,7 +66,11 @@ class NavigatorMaxRobot < Artoo::Robot
 
     throttle.move throttle.min_position + acceleration.to_f * throttle.position_range if throttle
   end
+
+  def save_mission(attribs)
+    puts "TODO!"+attribs.inspect
+  end
 end
 
-attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls]}
+attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls, :save_mission]}
 NavigatorMaxRobot.work! [ NavigatorMaxRobot.new(attribs) ]

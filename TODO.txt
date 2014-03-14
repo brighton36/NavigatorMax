@@ -1,4 +1,5 @@
 Mission Editor:
+  * Get the mission saving
   * Then the waypoints!
     * There should be a coordinate picker feature in here somewhere for the gps
 

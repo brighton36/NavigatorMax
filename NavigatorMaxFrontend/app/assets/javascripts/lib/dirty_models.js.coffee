@@ -58,17 +58,23 @@ window.Model = class
       @_attributes.push key
       @[key] = new ModelAttribute @, value, is_persisted 
     @constructor.add @
+    @_is_new = if is_persisted then false else true
   is_valid: ->
     @_are_all_attributes (lbl, attr) -> attr.is_valid()
   is_dirty: ->
     @_is_any_attribute (lbl, attr) -> attr.is_dirty()
+  is_new: -> @_is_new
   is_persisted: -> !@is_dirty()
-
+  to_json: ->
+    ret = {}
+    ret[key] = @[key].value() for key in @_attributes
+    ret
   save: ->
-    console.log("TODO: save")
+    @_is_new = false
+    # Note: at the moment, it's the inherited model's job to persist
     @each_attribute (key, attr) -> attr._mark_persisted()
   destroy: ->
-    console.log("TODO: destroy")
+    # Note: at the moment, it's the inherited model's job to destroy
     @constructor._models[@id()] = null
 
   is_attribute_valid: (attr) ->

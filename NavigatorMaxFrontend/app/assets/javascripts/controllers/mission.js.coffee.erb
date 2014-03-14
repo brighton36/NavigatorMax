@@ -25,10 +25,20 @@ window.MissionModel = class extends Model
       if VALID_GPSCOORD.exec(center_lon) then true else false
     @_validate 'is_looping', (is_looping) ->
       if (is_looping is true) or (is_looping is false) then true else false
+  save: ->
+    console.log "TODO: Inside here Save"
+    console.log @_save_command()
+    window.ws.send JSON.stringify(@_save_command())
+    super
+  destroy: ->
+    console.log "TODO: Inside here destroy"
+    super
 
   distance: -> 0
   run: ->
     console.log "TODO: Run!"
+  _save_command: ->
+    $.extend({}, window.ROBOT_MSG, {commandid: 'save_mission', command_params: [ @to_json() ]})
 
 window.MissionController = class
   constructor:  ->
@@ -40,6 +50,7 @@ window.MissionController = class
 
     @mission_edit = new MissionEditorView select_missions: $('#missions_dropdown'), \
       delete_mission: $('#delete_mission'), \
+      save_mission: $('#save_mission'), \
       run_mission: $('#run_mission'), \
       form_container: $('#mission_properties')
     @waypoint_edit = new WaypointEditorView mission_view: @mission_edit, \

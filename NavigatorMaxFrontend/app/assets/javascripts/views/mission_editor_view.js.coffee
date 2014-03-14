@@ -119,7 +119,6 @@ window.MissionEditorView = class
     else 
       mission = MissionModel.find_by_id(mission_anc.attr('data-mission-id'))
       @select_mission mission if mission? 
-    
     @_fire_event_chain(@_on_select)
 
   _on_form_save: (e) =>
