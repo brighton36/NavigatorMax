@@ -68,9 +68,15 @@ class NavigatorMaxRobot < Artoo::Robot
   end
 
   def save_mission(attribs)
-    puts "TODO!"+attribs.inspect
+    puts "Saving: "+attribs.inspect
+    @models ||= {}
+    @models[ attribs[:id] ] = attribs
+  end
+
+  def missions
+    puts "TODO: Send 'em a hash!"
   end
 end
 
-attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls, :save_mission]}
+attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls, :save_mission, :missions]}
 NavigatorMaxRobot.work! [ NavigatorMaxRobot.new(attribs) ]

@@ -26,8 +26,6 @@ window.MissionModel = class extends Model
     @_validate 'is_looping', (is_looping) ->
       if (is_looping is true) or (is_looping is false) then true else false
   save: ->
-    console.log "TODO: Inside here Save"
-    console.log @_save_command()
     window.ws.send JSON.stringify(@_save_command())
     super
   destroy: ->
@@ -35,12 +33,16 @@ window.MissionModel = class extends Model
     super
 
   distance: -> 0
+
   run: ->
     console.log "TODO: Run!"
+
   _save_command: ->
     $.extend({}, window.ROBOT_MSG, {commandid: 'save_mission', command_params: [ @to_json() ]})
 
 window.MissionController = class
+  WSCMD_LOAD_MISSIONS = JSON.stringify $.extend({}, window.ROBOT_MSG, {commandid: 'missions'})
+
   constructor:  ->
     default_attrs = MissionModel::DEFAULT_ATTRIBUTES
 
@@ -59,6 +61,15 @@ window.MissionController = class
       form_container: $('#waypoint_properties')
 
     @dash_offset = 0;
+
+    # Socket Init and Mission load:
+    console.log window.socket_commands
+    window.socket_commands['save_mission'] = (data) ->
+      console.log "Save Completed. TODO: Fire the @mission_edit->save_complete?"
+    window.socket_commands['missions'] = (data) ->
+      console.log "TODO: Mission load time!"
+
+    window.ws.send WSCMD_LOAD_MISSIONS if window.connection_status.is_connected()
 
   set_metadata: (data) -> 
 

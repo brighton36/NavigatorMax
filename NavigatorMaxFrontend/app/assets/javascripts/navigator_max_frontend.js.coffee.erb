@@ -82,16 +82,24 @@ $(document).ready ->
 
   requestAnimationFrame window.animate 
 
+  window.socket_commands = {
+    'state' : (data) -> 
+      controller.tick data.result for label, controller of window.controllers
+    'attributes' : (data) ->
+      controller.set_metadata data.result for label, controller of window.controllers
+  }
+
   Socket = if ("MozWebSocket" in window) then MozWebSocket else WebSocket
   window.ws = new Socket "ws://localhost:8023/commands"
   ws.onmessage = (evt) ->
     data = $.parseJSON(evt.data)
 
     if data.request.requestid == 'robot_command'
-      if data.request.commandid == 'state'
-        controller.tick data.result for label, controller of window.controllers
-      else if data.request.commandid == 'attributes'
-        controller.set_metadata data.result for label, controller of window.controllers
+      if socket_commands.hasOwnProperty(data.request.commandid)
+        socket_commands[data.request.commandid](data)
+      else
+        console.log "Unhandled WS Request:"
+        console.log data.request
         
   ws.onclose = -> 
     connection_status.is_connected false

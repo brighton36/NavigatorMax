@@ -66,7 +66,7 @@ window.Model = class
   is_new: -> @_is_new
   is_persisted: -> !@is_dirty()
   to_json: ->
-    ret = {}
+    ret = { id: @id() }
     ret[key] = @[key].value() for key in @_attributes
     ret
   save: ->
