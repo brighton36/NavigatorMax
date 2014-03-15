@@ -1,4 +1,4 @@
-window.ThreedControllerHelpers = class
+window.ThreedControllerHelpers = class extends Controller
   debug_axis: (scene, position, axisLength) ->
     @add_axis(scene, position, v(axisLength, 0, 0), v(1,1,0), COLORS.x_axis)
     @add_axis(scene, position, v(0, axisLength, 0), v(0,1,0), COLORS.y_axis)

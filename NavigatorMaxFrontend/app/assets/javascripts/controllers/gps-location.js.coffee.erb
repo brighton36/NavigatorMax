@@ -1,7 +1,8 @@
-window.GpsLocationController = class
+window.GpsLocationController = class extends Controller
   MAX_PATH_LENGTH = 60
 
   constructor:  ->
+    super
     @gps_table = new DataTableView '#gps_sensor'
 
     @orientation = new VectorPlot2D $("#heading_gps_vector")[0], 

@@ -1,5 +1,6 @@
-window.SystemController = class
-  constructor: () ->
+window.SystemController = class extends Controller
+  constructor: ->
+    super
     @last_snapshot_at = null
 
     # Load the Colors

@@ -1,6 +1,6 @@
 window.WaypointEditorView = class
   constructor: (attributes) ->
-    console.log "TODO"
+    console.log "TODO: init waypoints"
     # TODO: Register changes with the mission control
     # Also - use the mission control's selected mission for our state persistence
 
@@ -40,10 +40,11 @@ window.MissionModel = class extends Model
   _save_command: ->
     $.extend({}, window.ROBOT_MSG, {commandid: 'save_mission', command_params: [ @to_json() ]})
 
-window.MissionController = class
+window.MissionController = class extends Controller
   WSCMD_LOAD_MISSIONS = JSON.stringify $.extend({}, window.ROBOT_MSG, {commandid: 'missions'})
 
   constructor:  ->
+    super
     default_attrs = MissionModel::DEFAULT_ATTRIBUTES
 
     @map = new GpsMapView $('#mission_map')[0], default_attrs.center_lat, 
@@ -63,17 +64,16 @@ window.MissionController = class
     @dash_offset = 0;
 
     # Socket Init and Mission load:
-    console.log window.socket_commands
-    window.socket_commands['save_mission'] = (data) ->
-      console.log "Save Completed. TODO: Fire the @mission_edit->save_complete?"
-    window.socket_commands['missions'] = (data) ->
-      console.log "TODO: Mission load time!"
+    # TODO : window.ws.send WSCMD_LOAD_MISSIONS if window.connection_status.is_connected()
 
-    window.ws.send WSCMD_LOAD_MISSIONS if window.connection_status.is_connected()
+  on_socket: (data) ->
+    # We Handle this ourselves
+    switch data.request.commandid
+      when 'save_mission'
+        console.log "Save Completed. TODO: Fire the @mission_edit->save_complete?"
+      when 'missions'
+        console.log "TODO: Mission load time!"
 
-  set_metadata: (data) -> 
-
-  tick: (data) ->
 
   render: ->
     @map.render()

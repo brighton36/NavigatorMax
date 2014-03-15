@@ -1,5 +1,6 @@
 window.HomeController = class extends ThreedControllerHelpers
   constructor: ->
+    super
     @gps_map = new GpsMapView $('#gps_zoomed_out')[0], 40.6892, -74.0447, { 
       zoom: 19,
       tile_source: (zoom, tx, ty) -> "/images/gmap-tiles-512/#{zoom}/#{tx}-#{ty}.png" }

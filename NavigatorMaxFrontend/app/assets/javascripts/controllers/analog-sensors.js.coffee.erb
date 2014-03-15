@@ -1,4 +1,4 @@
-window.AnalogSensorsController = class
+window.AnalogSensorsController = class extends Controller
   SENSORS = [ 'humidities', 'temperatures', 'voltages']
   DATA_POINTS = 300
   PLOT_OPTIONS = {
@@ -23,7 +23,8 @@ window.AnalogSensorsController = class
     temperatures: {min: 20, max: 60 },
     voltages: {min: 3, max: 9 } }
 
-  constructor: () ->
+  constructor: ->
+    super
     @tables = {ifkit_stats: new DataTableView('#interface_kit_stats')}
     @series_data = {}
     @graphs = {}

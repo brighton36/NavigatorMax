@@ -1,5 +1,6 @@
 window.SpatialDataRawController = class extends ThreedControllerHelpers
-  constructor: () ->
+  constructor: ->
+    super
     @spatial_cxt = $('#spatial_vectors_threed')[0].getContext( '2d' )
 
     @camera = new THREE.PerspectiveCamera( 30, @spatial_cxt.canvas.width / @spatial_cxt.canvas.height , 1, 10000 )

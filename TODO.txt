@@ -1,4 +1,5 @@
 Mission Editor:
+  * I think we need to fire an on_connect in the controllers, so that the mission editor can perform a load
   * Get the mission saving
     * We need a spinner?
   * Get the mission loading
