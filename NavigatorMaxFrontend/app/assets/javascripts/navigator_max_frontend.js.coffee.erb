@@ -88,13 +88,14 @@ $(document).ready ->
     data = $.parseJSON(evt.data)
 
     if data.request.requestid == 'robot_command'
-      controller.on_socket data for label, controller of window.controllers
-        
+      controller.on_message data for label, controller of window.controllers
   ws.onclose = -> 
     connection_status.is_connected false
+    controller.on_disconnect() for label, controller of window.controllers
   ws.onopen = ->
     connection_status.is_connected true
     ws.send WSCMD_GET_ATTRIBS
+    controller.on_connect ws for label, controller of window.controllers
 
     # State Polling:
     setInterval ( -> ws.send WSCMD_GET_STATE if connection_status.is_connected()), 1000/30

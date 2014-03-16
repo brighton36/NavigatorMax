@@ -1,11 +1,7 @@
 Mission Editor:
-  * I think we need to fire an on_connect in the controllers, so that the mission editor can perform a load
-  * Get the mission saving
-    * We need a spinner?
-  * Get the mission loading
-    * Preserve id!
   * Then the waypoints!
-    * There should be a coordinate picker feature in here somewhere for the gps
+    * There should be a coordinate picker feature in here somewhere for the gps only on waypoints
+* The created at time doesn't show two digits for the minute if it's a single digit minute
 
 * Sketch out a home screen that incorporates throttle and servo state
   * We might want to display SNR somewhere

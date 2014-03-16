@@ -1,8 +1,37 @@
 window.WaypointEditorView = class
-  constructor: (attributes) ->
-    console.log "TODO: init waypoints"
-    # TODO: Register changes with the mission control
-    # Also - use the mission control's selected mission for our state persistence
+  constructor: (options) ->
+    @mission_view = options.mission_view
+    @form_container = options.form_container
+    @select_waypoints_el = options.select_waypoints
+    @select_waypoints_el.find('li>a').click @_on_form_waypoint_select if @select_waypoints_el.find('li>a')
+    
+    @delete_waypoint_el = options.delete_waypoint
+
+    @delete_waypoint_el.click @_on_form_delete if @delete_waypoint_el?
+
+    @mission_view.on_select =>
+      if @mission_view.selected_mission?
+        @select_waypoints_el.find('a.btn').removeClass('disabled')
+        # TODO
+    @mission_view.on_delete =>
+      @form_container.find('td').html('<span class="muted">(None)</span>')
+      for el in [@delete_waypoint_el, @select_waypoints_el.find('a.btn')]
+        el.addClass('disabled')
+
+  _on_form_waypoint_select: (e) =>
+    e.preventDefault()
+    waypoint_anc = $(e.target)
+    if waypoint_anc.html() is 'Create New'
+      console.log "Create a waypoint"
+      #@select_waypoint new_mission
+    else 
+      #@select_mission mission if mission? 
+
+  _on_form_delete: (e) =>
+    e.preventDefault()
+    unless $(e.target).hasClass('disabled')
+      console.log "TODO: delete the waypoint"
+
 
 window.MissionModel = class extends Model
   DEFAULT_ATTRIBUTES: {center_lat: 26.214726, center_lon: -80.168894, \
@@ -11,9 +40,14 @@ window.MissionModel = class extends Model
   VALID_ZOOM = /^([0-9]|1[0-9]|2[01])$/
   VALID_GPSCOORD = /^[\-]?[0-9]{1,3}\.[0-9]+$/
 
-  constructor: (attributes) -> 
-    super($.extend( {}, MissionModel::DEFAULT_ATTRIBUTES, \
-      {created_at: new Date()}, attributes))
+  constructor: (attributes = {}, is_persisted = false) -> 
+    if attributes.hasOwnProperty 'created_at'
+      attributes.created_at = new Date attributes.created_at
+    else
+      attributes.created_at = new Date()
+
+    super $.extend( {}, MissionModel::DEFAULT_ATTRIBUTES, attributes), is_persisted
+
     @_validate 'title', (title) ->
       if ( MissionModel.find(title: title).length is 1 ) \
         and VALID_TITLE.exec(title) then true else false
@@ -25,23 +59,24 @@ window.MissionModel = class extends Model
       if VALID_GPSCOORD.exec(center_lon) then true else false
     @_validate 'is_looping', (is_looping) ->
       if (is_looping is true) or (is_looping is false) then true else false
-  save: ->
-    window.ws.send JSON.stringify(@_save_command())
-    super
-  destroy: ->
-    console.log "TODO: Inside here destroy"
-    super
 
   distance: -> 0
 
   run: ->
     console.log "TODO: Run!"
 
-  _save_command: ->
-    $.extend({}, window.ROBOT_MSG, {commandid: 'save_mission', command_params: [ @to_json() ]})
+  save: ->
+    @_send_command 'save_mission', @to_json()
+    super
+  destroy: ->
+    @_send_command 'destroy_mission', @id()
+    super
+  _send_command: (command, params...) ->
+    window.ws.send JSON.stringify( $.extend({}, window.ROBOT_MSG, \ 
+      {commandid: command, command_params: params }) )
 
 window.MissionController = class extends Controller
-  WSCMD_LOAD_MISSIONS = JSON.stringify $.extend({}, window.ROBOT_MSG, {commandid: 'missions'})
+  MISSIONS_MSG = {requestid: 'robot_command', robotid: 'NavigatorMax', commandid: 'missions'}
 
   constructor:  ->
     super
@@ -57,23 +92,24 @@ window.MissionController = class extends Controller
       run_mission: $('#run_mission'), \
       form_container: $('#mission_properties')
     @waypoint_edit = new WaypointEditorView mission_view: @mission_edit, \
-      select_waypoints: $('#waypoints_dropdown li>a'), \
+      select_waypoints: $('#waypoints_dropdown'), \
       delete_waypoint: $('#delete_waypoint'), \
       form_container: $('#waypoint_properties')
 
     @dash_offset = 0;
 
-    # Socket Init and Mission load:
-    # TODO : window.ws.send WSCMD_LOAD_MISSIONS if window.connection_status.is_connected()
+  on_connect: (ws) -> ws.send JSON.stringify MISSIONS_MSG
 
-  on_socket: (data) ->
+  on_message: (data) ->
     # We Handle this ourselves
     switch data.request.commandid
       when 'save_mission'
-        console.log "Save Completed. TODO: Fire the @mission_edit->save_complete?"
+        @mission_edit.save_complete()
+      when 'destroy_mission'
+        @mission_edit.destroy_complete()
       when 'missions'
-        console.log "TODO: Mission load time!"
-
+        new MissionModel attributes, true for id, attributes of data.result
+        @mission_edit.missions_updated()
 
   render: ->
     @map.render()

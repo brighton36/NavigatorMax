@@ -31,34 +31,57 @@ window.Model = class
     @_models.push model
   @find: (attrs) ->
     found = []
-    for m in @_models
-      if m?
+    if @_models?
+      for m in @_models
         found.push m if @_all(attrs, (key, value) -> m[key].value() is value)
     found
   @find_first: (attrs) ->
-    for m in @_models
-      if m?
+    if @_models?
+      for m in @_models
         return m if @_all(attrs, (key, value) -> m[key].value() is value)
     return nil
-  @find_by_id: (id) -> @_models[parseInt(id)]
+  @find_by_id: (id) -> 
+    if @_models?
+      for m in @_models
+        return m if m.id() is parseInt(id) 
+    return nil
   @_all: (pairs, is_truth) ->
+    return false unless pairs?
     for own key, value of pairs
       return false unless is_truth(key, value)
     return true
-  id: ->
-    i = 0
-    for model in @constructor._models
-      return i if model is @
-      i++
-    return null
+  @_generate_id: -> 
+    @_id_incrementer ?= 0
+    @_id_incrementer++
+  @_register_id: (persisted_id) -> 
+    @_id_incrementer ?= 0
+    @_id_incrementer = persisted_id + 1 if persisted_id >= @_id_incrementer
+  @_destroy: (id) ->
+    ret = false
+    for m, i in @_models
+      if m.id() is parseInt(id) 
+        @_models.splice(i,1) 
+        ret = true
+        break
+    return ret
 
   constructor: (attributes, is_persisted = false) ->
+    # First take care of the id assignments:
+    if attributes.hasOwnProperty('id') and attributes['id'] isnt NaN
+      @_id = parseInt attributes['id']
+      @constructor._register_id @_id
+      delete attributes['id']
+    else
+      @_id = @constructor._generate_id()
+
+    # Now take care of the attributes:
     @_attributes = []
     for own key, value of attributes
       @_attributes.push key
       @[key] = new ModelAttribute @, value, is_persisted 
     @constructor.add @
     @_is_new = if is_persisted then false else true
+  id: -> @_id
   is_valid: ->
     @_are_all_attributes (lbl, attr) -> attr.is_valid()
   is_dirty: ->
@@ -75,7 +98,7 @@ window.Model = class
     @each_attribute (key, attr) -> attr._mark_persisted()
   destroy: ->
     # Note: at the moment, it's the inherited model's job to destroy
-    @constructor._models[@id()] = null
+    @constructor._destroy(@id())
 
   is_attribute_valid: (attr) ->
     if @_validations? and @_validations[attr]

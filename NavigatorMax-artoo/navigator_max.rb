@@ -11,6 +11,9 @@ require 'artoo-phidgets'
 require 'core_overides'
 
 class NavigatorMaxRobot < Artoo::Robot
+  API_COMMANDS = %w(attributes state overide_controls save_mission missions 
+    destroy_mission).collect(&:to_sym)
+
   api :host => "0.0.0.0", :port => '8023'
 
   device :system, :driver => :system, 
@@ -51,6 +54,10 @@ class NavigatorMaxRobot < Artoo::Robot
     throttle.min if respond_to? :throttle
   end
 
+  def initialize(attribs = {})
+    super({:commands => API_COMMANDS}.merge(attribs))
+  end
+
   def attributes
     Hash[*devices.collect{|key, device| [key, device.device_attributes]}.flatten]
   end
@@ -68,15 +75,19 @@ class NavigatorMaxRobot < Artoo::Robot
   end
 
   def save_mission(attribs)
-    puts "Saving: "+attribs.inspect
-    @models ||= {}
-    @models[ attribs[:id] ] = attribs
+    @missions ||= {}
+    @missions[ attribs[:id] ] = attribs
+    true
   end
 
   def missions
-    puts "TODO: Send 'em a hash!"
+    @missions || {}
+  end
+
+  def destroy_mission(id)
+    @missions.delete id
+    true
   end
 end
 
-attribs = {:name => "NavigatorMax", :commands => [:attributes, :state, :overide_controls, :save_mission, :missions]}
-NavigatorMaxRobot.work! [ NavigatorMaxRobot.new(attribs) ]
+NavigatorMaxRobot.work! [ NavigatorMaxRobot.new(:name => "NavigatorMax") ]

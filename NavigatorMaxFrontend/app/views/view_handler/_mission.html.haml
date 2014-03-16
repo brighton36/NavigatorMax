@@ -44,22 +44,26 @@
           %td.distance.control-group
             %span.muted (None)
 
-    %button#save_mission.btn.btn-mini.disabled.btn-primary(type='button') Save
-    %button#delete_mission.btn.btn-mini.disabled.btn-danger(type='button') Delete
-    %button#run_mission.btn.btn-mini.disabled.btn-success(type='button') Run
+    %button#save_mission.btn.btn-mini.disabled.btn-primary.has-spinner(type='button') 
+      Save
+      %span.spinner
+        %i.icon-spin.icon-refresh
+    %button#delete_mission.btn.btn-mini.disabled.btn-danger.has-spinner(type='button')
+      Delete
+      %span.spinner
+        %i.icon-spin.icon-refresh
+    %button#run_mission.btn.btn-mini.disabled.btn-success.has-spinner(type='button') 
+      Run
+      %span.spinner
+        %i.icon-spin.icon-refresh
+
     .mission_rightpane_label.voffset1
       %h3 Waypoint Properties
-      .btn-group
+      .btn-group#waypoints_dropdown
         %a.btn.btn-mini.disabled.dropdown-toggle(data-toggle="dropdown" href="#")
           Waypoints
           %span.caret
         %ul.dropdown-menu(role="menu" aria-labelledby="dropdownMenu")
-          %li
-            %a(tabindex="-1" href="#") 1st Waypoint
-          %li
-            %a(tabindex="-1" href="#") 2nd Waypoint
-          %li
-            %a(tabindex="-1" href="#") 3rd Waypoint
           %li.divider
           %li
             %a(tabindex="-1" href="#") Create New

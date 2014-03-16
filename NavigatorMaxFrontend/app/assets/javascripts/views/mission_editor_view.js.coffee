@@ -29,16 +29,20 @@ window.MissionEditorView = class
 
     @on_create =>
       # Register the Mission in the option drop-down:
-      new_option_html = @_select_option @selected_mission.title.value(), @selected_mission.id()
-      new_option = $(new_option_html).insertBefore @select_missions_el.find('ul li.divider')
-      $(new_option).find('a').append @_option_asterisk()
-      $(new_option).click @_on_form_mission_select
+      opt = @_append_mission_option @selected_mission.title.value(), @selected_mission.id()
+      $(opt).find('a').append @_option_asterisk()
 
     @on_change_attr 'title', (old_title, new_title) =>
       # This will adjust the title in the drop-down select:
       mission_anc = @_find_mission_select_option(@selected_mission.id())
       $(mission_anc).html(new_title) if mission_anc?
       @_update_selected_mission_option()
+
+  _append_mission_option: (label, id) ->
+    new_option_html = @_select_option label, id
+    new_option = $(new_option_html).insertBefore @select_missions_el.find('ul li.divider')
+    $(new_option).click @_on_form_mission_select
+    return new_option
 
   # This handles the star/unstarring of the mission in the select option, to indicate
   # persistance state
@@ -66,6 +70,11 @@ window.MissionEditorView = class
       else
         @run_mission_el.addClass('disabled')
 
+  # This is intended to be a trigger for the load event having been executed:
+  missions_updated: ->
+    for mission in MissionModel.find({}) 
+      @_append_mission_option mission.title.value(), mission.id() 
+
   select_mission: (mission) ->
     @selected_mission = mission
 
@@ -91,6 +100,9 @@ window.MissionEditorView = class
     # And focus to the first element:
     @form_container.find('input:first').focus() 
 
+  save_complete: -> @save_mission_el.removeClass('active')
+  destroy_complete: -> @delete_mission_el.removeClass('active')
+
   on_change_attr: (attr, fire) ->
     @_on_change_attr ?= {}
     @_on_change_attr[attr] ?= []
@@ -107,6 +119,9 @@ window.MissionEditorView = class
   on_change: (fire) ->
     @_on_change ?= []
     @_on_change.push fire
+  on_delete: (fire) ->
+    @_on_delete ?= []
+    @_on_delete.push fire
 
   _on_form_mission_select: (e) =>
     e.preventDefault()
@@ -124,6 +139,7 @@ window.MissionEditorView = class
   _on_form_save: (e) =>
     e.preventDefault()
     unless $(e.target).hasClass('disabled')
+      $(e.target).addClass('active')
       @selected_mission.save()
       @save_mission_el.addClass('disabled') if @save_mission_el
       @_update_selected_mission_option()
@@ -131,6 +147,7 @@ window.MissionEditorView = class
   _on_form_run: (e) =>
     e.preventDefault()
     unless $(e.target).hasClass('disabled')
+      $(e.target).addClass('active')
       # TODO: What the hell do we do in the gui?
       @selected_mission.run()
   _on_form_delete: (e) =>
@@ -138,6 +155,7 @@ window.MissionEditorView = class
     unless $(e.target).hasClass('disabled')
       mission_title = @selected_mission.title.value()
       if confirm("Are you sure you wish to delete \"#{mission_title}\"")
+        $(e.target).addClass('active')
         mission_id = @selected_mission.id()
         @selected_mission.destroy()
         @selected_mission = null
@@ -151,6 +169,7 @@ window.MissionEditorView = class
         @form_container.find('td').html('<span class="muted">(None)</span>')
         for el in [@save_mission_el, @delete_mission_el, @run_mission_el]
           el.addClass('disabled')
+        @_fire_event_chain(@_on_delete)
   _on_form_input_change: (e) =>
     e.preventDefault()
     name_parts = /^[^\[]+\[(.*)\]$/.exec($(e.target).attr('name'))
