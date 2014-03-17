@@ -1,5 +1,9 @@
 window.WaypointEditorView = class
+  EMPTY_WAYPOINT = {lat: null, lon: null}
+
   constructor: (options) ->
+    @selected_index = null
+
     @mission_view = options.mission_view
     @form_container = options.form_container
     @select_waypoints_el = options.select_waypoints
@@ -14,28 +18,53 @@ window.WaypointEditorView = class
         @select_waypoints_el.find('a.btn').removeClass('disabled')
         # TODO
     @mission_view.on_delete =>
-      @form_container.find('td').html('<span class="muted">(None)</span>')
-      for el in [@delete_waypoint_el, @select_waypoints_el.find('a.btn')]
-        el.addClass('disabled')
+      @selected_index = null
+      @_update_form_state()
 
   _on_form_waypoint_select: (e) =>
     e.preventDefault()
     waypoint_anc = $(e.target)
     if waypoint_anc.html() is 'Create New'
-      console.log "Create a waypoint"
-      #@select_waypoint new_mission
+      waypoints = @mission_view.selected_mission.waypoints.value()
+      waypoints.push EMPTY_WAYPOINT 
+      @mission_view.selected_mission.waypoints.set(waypoints)
+      @selected_index = waypoints.length - 1
+      @_append_waypoint_option "Waypoint #{@selected_index + 1}", @selected_index
+      @_update_form_state()
     else 
-      #@select_mission mission if mission? 
+      console.log "Selection made"
+      console.log waypoint_anc
+
+  _update_form_state: ->
+    if @selected_index?
+      console.log "Hmm"
+      @_form_value 'offset', @selected_index
+      @_form_value 'location', 'todo'
+      @_form_value 'length', 'todo'
+      @delete_waypoint_el.removeClass 'disabled'
+    else
+      @form_container.find('td').html('<span class="muted">(None)</span>')
+      for el in [@delete_waypoint_el, @select_waypoints_el.find('a.btn')]
+        el.addClass('disabled')
 
   _on_form_delete: (e) =>
     e.preventDefault()
     unless $(e.target).hasClass('disabled')
       console.log "TODO: delete the waypoint"
+  _append_waypoint_option: (label, id) ->
+    new_option_html = @_select_option label, id
+    new_option = $(new_option_html).insertBefore @select_waypoints_el.find('ul li.divider')
+    $(new_option).click @_on_form_waypoint_select
+    return new_option
+  _form_value: (attr, value) ->
+    @form_container.find(".#{attr}").html(value)
+  _select_option: (label, index) ->
+    "<li><a href=\"#\" tabindex=\"-1\" data-waypoint-id=\"#{index}\">#{label}</a></li>"
 
 
 window.MissionModel = class extends Model
   DEFAULT_ATTRIBUTES: {center_lat: 26.214726, center_lon: -80.168894, \
-    title: "New Mission", zoom: 18, is_looping: false}
+    title: "New Mission", zoom: 18, is_looping: false, waypoints: []}
   VALID_TITLE = /^[a-z0-9\!\@\#\$\%\^\&\(\)\\\/\|\_\-\<\>\. ]+$/i
   VALID_ZOOM = /^([0-9]|1[0-9]|2[01])$/
   VALID_GPSCOORD = /^[\-]?[0-9]{1,3}\.[0-9]+$/

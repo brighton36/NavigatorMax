@@ -1,5 +1,8 @@
 Mission Editor:
   * Then the waypoints!
+    * Get the selection working
+    * Get the delete working, test persistance
+    * Spruce up the form a bit add lat/lon readonlys
     * There should be a coordinate picker feature in here somewhere for the gps only on waypoints
 * The created at time doesn't show two digits for the minute if it's a single digit minute
 
