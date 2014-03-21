@@ -22,13 +22,16 @@ window.WaypointEditorView = class
       if @mission_view.selected_mission?
         @select_waypoints_el.find('a.btn').removeClass('disabled')
         # Now populate the waypoints:
-        waypoints = @mission_view.selected_mission.waypoints.value()
-        @_append_waypoint i for waypoint, i in waypoints
+        @_repopulate_waypoints_from_selected_mission()
 
     @mission_view.on_delete =>
       @selected_index = null
       @_clear_waypoints_select()
       @_update_form_state()
+
+  _repopulate_waypoints_from_selected_mission: ->
+    waypoints = @mission_view.selected_mission.waypoints.value()
+    @_append_waypoint i for waypoint, i in waypoints
 
   _clear_waypoints_select: ->
     # Remove the waypoints from the option group:
@@ -44,6 +47,7 @@ window.WaypointEditorView = class
       @selected_index = waypoints.length - 1
       @_append_waypoint @selected_index
       @_update_form_state()
+      @mission_view.fire_on_change()
     else 
       @selected_index = parseInt(waypoint_anc.attr('data-waypoint-id'))
       @_update_form_state()
@@ -56,13 +60,24 @@ window.WaypointEditorView = class
       @delete_waypoint_el.removeClass 'disabled'
     else
       @form_container.find('td').html('<span class="muted">(None)</span>')
-      for el in [@delete_waypoint_el, @select_waypoints_el.find('a.btn')]
-        el.addClass('disabled')
+      @delete_waypoint_el.addClass('disabled')
+      if @mission_view.selected_mission?
+        @select_waypoints_el.find('a.btn').removeClass('disabled')
+      else
+        @select_waypoints_el.find('a.btn').addClass('disabled')
 
   _on_form_delete: (e) =>
     e.preventDefault()
     unless $(e.target).hasClass('disabled')
-      console.log "TODO: delete the waypoint"
+      if @selected_index?
+        waypoints = @mission_view.selected_mission.waypoints.value()
+        waypoints.splice(@selected_index, 1)
+        @mission_view.selected_mission.waypoints.set(waypoints)
+        @selected_index = null
+        @_clear_waypoints_select()
+        @_repopulate_waypoints_from_selected_mission()
+        @_update_form_state()
+
   _append_waypoint: (i) ->
     @_append_waypoint_option "Waypoint #{i + 1}", i
 

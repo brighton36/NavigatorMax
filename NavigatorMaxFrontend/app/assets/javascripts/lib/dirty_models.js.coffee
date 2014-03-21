@@ -8,7 +8,12 @@ window.ModelAttribute = class
     if value isnt @_value
       @_is_persisted = false
       @_value = value
-  value: -> @_value
+  value: -> 
+    if @_value_is_array()
+      # We need/want to return a copy:
+      @_value.slice(0)
+    else
+      @_value
   persisted_value: -> @_persisted_value
   is_persisted: -> @_is_persisted
   is_dirty: -> !@is_persisted()
@@ -24,6 +29,11 @@ window.ModelAttribute = class
     unless @_is_persisted
       @_is_persisted = true
       @_persisted_value = @_value
+  _value_is_array: ->
+    if Array.isArray
+      Array.isArray(@_value)
+    else
+      {}.toString.call( @_value ) is '[object Array]'
 
 window.Model = class
   @add: (model) ->

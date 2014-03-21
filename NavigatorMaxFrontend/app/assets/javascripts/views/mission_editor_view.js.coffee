@@ -196,10 +196,14 @@ window.MissionEditorView = class
         el_parent.addClass('error')
       
       if old_value isnt new_value
-        @_fire_event_chain @_on_change
+        @fire_on_change()
         @_fire_on_change_attr changed_attr, old_value, new_value
 
       @_fire_event_chain @_on_dirty if !record_was_dirty and @selected_mission[changed_attr].is_dirty()
+
+  fire_on_change: ->
+    @_fire_event_chain @_on_change
+
   _find_mission_select_option: (mission_id) ->
     els = $("a[data-mission-id=\"#{mission_id}\"]") 
     if els.length is 1 then els[0] else null
