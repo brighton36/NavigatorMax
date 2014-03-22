@@ -14,6 +14,7 @@ window.GpsMapView = class
   BACKGROUND_GRID_SIZE = 16
 
   constructor: (dom_id, lat, lon, options = {}) ->
+    @_dom_id = dom_id
     @options = options
     @options.zoom ?= 21
     @options.debug_rendering ?= false
@@ -26,7 +27,7 @@ window.GpsMapView = class
     @turtle_angle = null
     @draw_path = null
 
-    @ctx = dom_id.getContext("2d")
+    @ctx = @_dom_id.getContext("2d")
     @canvas_center = [Math.floor(@ctx.canvas.width/2), Math.floor(@ctx.canvas.height/2)]
 
     @focus(lat, lon)
@@ -43,6 +44,7 @@ window.GpsMapView = class
           # Down:
           when 40 then @focus(@focus_latlon[0]-0.00001, @focus_latlon[1])
 
+  dom_id:() -> @_dom_id
 
   render: () -> 
     @ctx.clear()
