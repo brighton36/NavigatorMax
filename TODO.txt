@@ -1,22 +1,37 @@
+This weekend:
+  * Saturday:
+    * Test the new battery sensors
+    * DDWRT the 
+  * Sunday:
+    * move the battery one away from 0
+    * Test run the minnow
+    * Double check the wifi commands on the minnowboard, and try to get that noise reading
+    * Maybe get that minnowboard serial number?
+
+Deployment test prereqs:
+  * We need a little more velcro for the new battery sensors
+  * Solder/test the wifi ubec?
+  * Get an artoo yaml config file too?
+  * Add an alert for the battery voltages:
+    * Charged:  is around 4.2/4.18 per cell
+    * New: is around 3.85/3.86 per cell (50%)
+    * Stop: An 80% discharged LiPo cell, will give an approximate open circuit voltage of about 3.72 to 3.74 volts 
+  * True north vs mag north?
+    * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib
+    http://www.ngdc.noaa.gov/geomag/declination.shtml
+  * Glue the marg? waterproof the minnow?
+
 Mission Editor:
   * Spruce up the form a bit add lat/lon readonlys
   * There should be a coordinate picker feature in here somewhere for the gps only on waypoints
-* The created at time doesn't show two digits for the minute if it's a single digit minute
+  * The created at time doesn't show two digits for the minute if it's a single digit minute
 
 * Sketch out a home screen that incorporates throttle and servo state
+  * We may need to add a navigation pane to deal with the nav status stuff
   * We might want to display SNR somewhere
   * signal and battery on the home page would be nice/needed...
   * 3d view with a model? maybe just rotate it via a constant for now
 
-Deployment test prereqs:
-  * Batteries Voltage is reading negative, seems like we effed up the polarity...
-  * Maybe get a config file too?
-  * Double check the wifi commands on the minnowboard, and try to get that noise reading
-  * Maybe get that minnowboard serial number?
-
-* True north vs mag north?
-  * We should depict this somewhere, and it should be a feature of the artoo orientation, not the phidget lib
-  http://www.ngdc.noaa.gov/geomag/declination.shtml
 
 ---------------------------------------
 -- Test run! Checklist:

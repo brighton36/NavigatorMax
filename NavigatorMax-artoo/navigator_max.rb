@@ -18,7 +18,7 @@ class NavigatorMaxRobot < Artoo::Robot
 
   device :system, :driver => :system, 
     :primary_interface => (/linux/.match RUBY_PLATFORM) ? 'eth0' : 'en0'
-=begin
+#=begin
   # Note that we could make the max a bit higher, but not the min. And, I want 
   # them equidistant, to make the calculations easier:
   device :rudder, :driver => :phidgets_advanced_servo, :serial => 305160, 
@@ -35,18 +35,18 @@ class NavigatorMaxRobot < Artoo::Robot
     :sensors => [ {:type => :humidity, :location => "Cabin"},
       {:type => :temperature, :location => "Engine"}, 
       {:type => :temperature, :location => "Cabin"}, 
+      {:type => :voltage, :location => "Battery 1"},
       nil, 
-      nil, 
+      {:type => :voltage, :location => "Battery 2"},
       {:type => :voltage, :location => 'InterfaceKit'},
-      {:type => :voltage, :location => "MinnowBoard"},
-      {:type => :voltage, :location => "Batteries"} ]
+      {:type => :voltage, :location => "MinnowBoard"} ]
 
   device :gps, :driver => :phidgets_gps, :serial => 284771 
   device :orientation, :driver => :phidgets_spatial, :serial => 302012, 
     :compass_correction => [ 0.338590, 0.227589, 0.173635, -0.077661, 2.608094, 
       2.742003, 3.510178, -0.043266, -0.049816, -0.044693, 0.045490, -0.064236, 
       0.057208 ]
-=end
+#=end
 
   work do
     puts "Hello from NavigatorMax running at #{api_host}:#{api_port}..."
