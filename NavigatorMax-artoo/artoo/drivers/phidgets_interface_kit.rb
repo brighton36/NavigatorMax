@@ -24,7 +24,7 @@ module Artoo::Drivers
           raise ArgumentError, "All sensors must specify a :type" unless sensor.has_key? :type
           raise ArgumentError, "All sensors must specify a :location" unless sensor.has_key? :location
 
-          case sensor[:type]
+          case sensor[:type].to_sym
             when :temperature
               @phidget.ratiometric i, true
               sensor[:transform] ||= lambda {|val|
@@ -96,12 +96,12 @@ module Artoo::Drivers
 
     def collect_type(type, &block)
       Hash[*@sensors.to_enum(:each_with_index).collect{|d,i| 
-        [d[:location], block.call(i, d)] if d && d[:type] == type 
+        [d[:location], block.call(i, d)] if d && d[:type].to_sym == type 
       }.compact.flatten]
     end
 
     def labels_for(type)
-      @sensors.collect{|d| d[:location] if d && d[:type] == type}.compact
+      @sensors.collect{|d| d[:location] if d && d[:type].to_sym == type}.compact
     end
 
   end

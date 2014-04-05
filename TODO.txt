@@ -1,11 +1,12 @@
 This weekend:
-  * Saturday:
-    * Test the new battery sensors
-    * DDWRT the 
   * Sunday:
-    * move the battery one away from 0
     * Test run the minnow
+    * Make the bundle Gemfile a bit more dynamic:
+      gem 'artoo', :path => "/opt/artoo"                    
+      gem 'phidgets_native', :path => "/opt/phidgets_native"
     * Double check the wifi commands on the minnowboard, and try to get that noise reading
+      * iwlist doesn't exist
+    * Coretemp is at 49-52 deg celcius on the minnow
     * Maybe get that minnowboard serial number?
 
 Deployment test prereqs:
@@ -35,6 +36,7 @@ Mission Editor:
 
 ---------------------------------------
 -- Test run! Checklist:
+  * Add the ip to the eth: ifconfig wlan0 192.168.1.128 netmask 255.255.255.0 broadcast 192.168.1.255
   * Compass Calibrate
   * Check for spinning Gyro
   * Wait a minute for the filter to stabilize orientation
