@@ -6,5 +6,7 @@ gem 'em-websocket'
 gem 'vmstat'
 gem 'rusage'
 
-gem 'artoo', :path => "/home/cderose/Documents/development/artoo"
+gem 'http', '=0.5'
+gem 'artoo', '=1.5.0', :path => "/home/cderose/Documents/development/artoo"
+gem 'websocket_parser', '=0.1.4'
 gem 'phidgets_native', :path => "/home/cderose/Documents/development/phidgets_native"

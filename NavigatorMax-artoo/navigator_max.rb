@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-#$: << "/home/cderose/Documents/development/artoo/lib"
-
 NAVIGATOR_CONFIG = [File.dirname(__FILE__),'config.yaml'].join('/')
 
 $: << File.dirname(__FILE__)

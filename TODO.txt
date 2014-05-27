@@ -1,11 +1,17 @@
 This weekend:
   * Sunday:
     * Test run the minnow
+    * Let's incorporate our command client for artoo as a patch in the local base
     * Make the bundle Gemfile a bit more dynamic:
       gem 'artoo', :path => "/opt/artoo"                    
       gem 'phidgets_native', :path => "/opt/phidgets_native"
     * Double check the wifi commands on the minnowboard, and try to get that noise reading
       * iwlist doesn't exist
+      cderose@minnow:~$ cat /proc/net/wireless 
+      Inter-| sta-|   Quality        |   Discarded packets               | Missed | WE
+       face | tus | link level noise |  nwid  crypt   frag  retry   misc | beacon | 22
+       wlan0: 0000   68.  -42.  -256        0      0      0      0     38        0
+    * Why does the new battery not drain at all, and the old one drains quick? Switch them around and see if placement matters
     * Coretemp is at 49-52 deg celcius on the minnow
     * Maybe get that minnowboard serial number?
 
