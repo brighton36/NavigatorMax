@@ -230,3 +230,144 @@ window.MissionEditorView = class
     if chain?
       fire() for fire in chain
 
+window.WaypointEditorView = class
+  EMPTY_WAYPOINT = {lat: null, lon: null}
+
+  constructor: (options) ->
+    @selected_index = null
+
+    @mission_view = options.mission_view
+    @map_view = options.map_view
+    @form_container = options.form_container
+    @select_waypoints_el = options.select_waypoints
+    if @select_waypoints_el
+      @select_waypoints_el.click (e) -> e.preventDefault()
+      @select_waypoints_el.find('li>a').click @_on_form_waypoint_select if @select_waypoints_el.find('li>a')
+    
+    @delete_waypoint_el = options.delete_waypoint
+
+    @delete_waypoint_el.click @_on_form_delete if @delete_waypoint_el?
+
+    @mission_view.on_select =>
+      @_update_form_state()
+      @_clear_waypoints_select()
+      # Ensure our option list is enabled:
+      if @mission_view.selected_mission?
+        @select_waypoints_el.find('a.btn').removeClass('disabled')
+        # Now populate the waypoints:
+        @_repopulate_waypoints_from_selected_mission()
+
+    @mission_view.on_delete =>
+      @selected_index = null
+      @_clear_waypoints_select()
+      @_update_form_state()
+
+  _repopulate_waypoints_from_selected_mission: ->
+    waypoints = @mission_view.selected_mission.waypoints.value()
+    @_append_waypoint i for waypoint, i in waypoints
+
+  _clear_waypoints_select: ->
+    # Remove the waypoints from the option group:
+    @select_waypoints_el.find('li.divider').prevAll().remove()
+
+  _on_form_waypoint_select: (e) =>
+    e.preventDefault()
+    waypoint_anc = $(e.target)
+    if waypoint_anc.html() is 'Create New'
+      waypoints = @mission_view.selected_mission.waypoints.value()
+      waypoints.push $.extend({}, EMPTY_WAYPOINT )
+      @mission_view.selected_mission.waypoints.set(waypoints)
+      @selected_index = waypoints.length - 1
+      @_append_waypoint @selected_index
+      @_update_form_state()
+      @mission_view.fire_on_change()
+    else 
+      @selected_index = parseInt(waypoint_anc.attr('data-waypoint-id'))
+      @_update_form_state()
+
+  _update_form_state: ->
+    if @selected_index?
+      console.log "Index: "+@selected_index
+      waypoints = @mission_view.selected_mission.waypoints.value()
+      waypoint = waypoints[@selected_index]
+      prior_waypoint = waypoints[@selected_index-1]
+
+      distance_in_m = null
+      if prior_waypoint? && prior_waypoint.lat? && prior_waypoint.lon? && waypoint.lat? && waypoint.lon?
+        distance_in_m = parseInt( @latlon_distance_in_km(prior_waypoint.lat, 
+          prior_waypoint.lon, waypoint.lat, waypoint.lon) * 1000)
+
+      @_form_value 'offset', @selected_index
+      @_form_value 'lat', waypoint.lat
+      @_form_value 'lon', waypoint.lon
+      @_form_value 'choose_location', \
+        "<button class=\"btn btn-mini\" type=\"button\">Select</button>"
+      @_form_value 'length', (if distance_in_m then "#{distance_in_m} m" else "N/A")
+      @delete_waypoint_el.removeClass 'disabled'
+
+      @form_container.find('.choose_location button').click @_on_select_location
+      @form_container.find('.choose_location button').removeClass('disabled');
+    else
+      @form_container.find('td').html('<span class="muted">(None)</span>')
+      @delete_waypoint_el.addClass('disabled')
+      if @mission_view.selected_mission?
+        @select_waypoints_el.find('a.btn').removeClass('disabled')
+      else
+        @select_waypoints_el.find('a.btn').addClass('disabled')
+
+  _on_select_location: (e) =>
+    $('html').css 'cursor', 'pointer'
+    $(e.target).addClass('disabled');
+
+    $(@map_view.dom_id()).bind 'click.waypoint_select', @_on_pick_location
+
+  _on_pick_location: (e) =>
+    $(@map_view.dom_id()).unbind 'click.waypoint_select'
+    [lat, lon] = @map_view.canvas_to_latlon(e.offsetX, e.offsetY)
+    waypoints = @mission_view.selected_mission.waypoints.value()
+    waypoint = waypoints[@selected_index]
+    waypoint.lat = lat
+    waypoint.lon = lon
+
+    $('html').css 'cursor', 'auto'
+    @_update_form_state()
+
+  _on_form_delete: (e) =>
+    e.preventDefault()
+    unless $(e.target).hasClass('disabled')
+      if @selected_index?
+        waypoints = @mission_view.selected_mission.waypoints.value()
+        waypoints.splice(@selected_index, 1)
+        @mission_view.selected_mission.waypoints.set(waypoints)
+        @selected_index = null
+        @_clear_waypoints_select()
+        @_repopulate_waypoints_from_selected_mission()
+        @_update_form_state()
+
+  _append_waypoint: (i) ->
+    @_append_waypoint_option "Waypoint #{i + 1}", i
+
+  # NOTE: I grabbed this from: http://www.movable-type.co.uk/scripts/latlong.html
+  latlon_distance_in_km: (lat1, lon1, lat2, lon2) ->
+    R = 6371 # Note: This is in km
+    
+    φ1 = lat1 * Math.PI / 180
+    φ2 = lat2 * Math.PI / 180
+    Δφ = (lat2-lat1) * Math.PI / 180
+    Δλ = (lon2-lon1) * Math.PI / 180
+
+    a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2)
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    R * c
+
+  _append_waypoint_option: (label, id) ->
+    new_option_html = @_select_option label, id
+    new_option = $(new_option_html).insertBefore @select_waypoints_el.find('ul li.divider')
+    $(new_option).click @_on_form_waypoint_select
+    return new_option
+  _form_value: (attr, value) ->
+    @form_container.find(".#{attr}").html(value)
+  _select_option: (label, index) ->
+    "<li><a href=\"#\" tabindex=\"-1\" data-waypoint-id=\"#{index}\">#{label}</a></li>"
+
+

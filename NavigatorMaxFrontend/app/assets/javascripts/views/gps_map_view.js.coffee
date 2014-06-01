@@ -98,7 +98,10 @@ window.GpsMapView = class
     # Draw the turtle:
     @_turtle focal_x, focal_y, @turtle_angle if @turtle_angle?
 
-
+  canvas_to_latlon: (canvas_x, canvas_y) ->
+    [view_top, view_right, view_bot, view_left] = @_viewport_in_pixels()
+    @pixels_to_latlon view_left+canvas_x, view_top-canvas_y
+  
   _latlon_to_canvas: (lat, lon) ->
     viewport_pixels = @_viewport_in_pixels()
     pixels = @latlon_to_pixels lat, lon

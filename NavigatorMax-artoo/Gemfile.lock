@@ -13,7 +13,7 @@ PATH
 PATH
   remote: /home/cderose/Documents/development/phidgets_native
   specs:
-    phidgets_native (0.2.3)
+    phidgets_native (0.2.5)
 
 GEM
   remote: https://rubygems.org/
