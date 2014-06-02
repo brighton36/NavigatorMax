@@ -77,20 +77,77 @@ window.MissionController = class extends Controller
         new MissionModel attributes, true for id, attributes of data.result
         @mission_edit.missions_updated()
 
+  _dotted_line: (ctx, color, offset, segments) ->
+    dashList = [12, 6]
+    ctx.save()
+    ctx.beginPath()
+    ctx.setLineDash(dashList)
+    ctx.lineDashOffset = offset
+    ctx.lineWidth = 2.0
+    ctx.strokeStyle = color
+    ctx.moveTo(segments[0]...)
+    for coords,i in segments
+      ctx.lineTo(coords...) if i > 0
+    ctx.stroke()
+    ctx.restore()
+    
   render: ->
     @map.render()
 
-    dashList = [12, 6]
+    mission = @mission_edit.selected_mission
+    waypoint_index = @waypoint_edit.selected_index
 
-    @dash_offset += 1
+    if mission?
+      # Let's translate the latlons into canvas coords:
+      wp_coords = []
+      for wp in mission.waypoints.value()
+        wp_coords.push @map.latlon_to_canvas(wp.lat, wp.lon) if wp.lat? and wp.lon?
 
-    @map.ctx.save()
-    @map.ctx.beginPath()
-    @map.ctx.setLineDash(dashList)
-    @map.ctx.lineDashOffset = @dash_offset
-    @map.ctx.moveTo(0,0)
-    @map.ctx.lineTo(@map.ctx.canvas.width,@map.ctx.canvas.height)
-    @map.ctx.lineWidth = 2.0
-    @map.ctx.strokeStyle = 'ffffff'
-    @map.ctx.stroke()
-    @map.ctx.restore()
+      # Connect a line between each waypoint:
+      if wp_coords.length > 1
+        @dash_offset -= 0.5
+
+        is_drawing_loop = (wp_coords.length > 2 and mission.is_looping.value())
+
+        if waypoint_index?
+          segments_prior = []
+          segment_selected = null
+          segments_after = null
+          if waypoint_index is 0 and wp_coords[waypoint_index].lat? and wp_coords[waypoint_index].lon?
+            for i in [0..wp_coords.length-1] by 1
+              segments_prior.push wp_coords[i]
+
+            if is_drawing_loop
+              segment_selected = [ wp_coords[wp_coords.length-1], wp_coords[0] ]
+          else
+            segments_after = []
+            for i in [0..waypoint_index-1] by 1
+              segments_prior.push wp_coords[i]
+
+            for i in [waypoint_index..wp_coords.length-1] by 1
+              segments_after.push wp_coords[i] 
+            segments_after.push wp_coords[0] if is_drawing_loop
+            segment_selected = [wp_coords[waypoint_index-1], wp_coords[waypoint_index]]
+
+          if segments_after?
+            @_dotted_line @map.ctx, 'white', @dash_offset, segments_after
+          if segment_selected?
+            @_dotted_line @map.ctx, 'deeppink', @dash_offset, segment_selected 
+          @_dotted_line @map.ctx, 'white', @dash_offset, segments_prior
+        else
+          segments = wp_coords.slice(0)
+          segments.push wp_coords[0] if is_drawing_loop
+          @_dotted_line @map.ctx, 'white', @dash_offset, segments
+
+        # TODO: index 0 should calculate the length of the loop segment
+
+      # Now circle the points:
+      for coord,j in wp_coords
+        color = (if j is waypoint_index then 'deeppink' else 'white')
+        @map._circle(5, color, coord...)
+        @map.ctx.save()
+        @map.ctx.fillStyle = color
+        @map.ctx.font = "bold 16px Arial"
+        @map.ctx.fillText(j, coord[0]+10, coord[1]-5)
+        @map.ctx.restore()
+

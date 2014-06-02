@@ -83,8 +83,9 @@ window.MissionEditorView = class
     @_form_input 'center_lon', mission.center_lon.value(), class: 'input-mini'
     @_form_input 'zoom', mission.zoom.value(), class: 'input-mini', \
       type: 'number', min: 0, max: 21
-    @_form_input 'is_looping', 1, type: 'checkbox', \
-      checked: if (mission.is_looping.value()) then 'checked' else ''
+    loop_options = {type: 'checkbox'}
+    loop_options.checked = true if mission.is_looping.value()
+    @_form_input 'is_looping', 1, loop_options
 
     @_form_value 'created_at', @_date_to_s(mission.created_at.value())
     @_form_value 'distance', "#{mission.distance()} Miles"
@@ -287,7 +288,6 @@ window.WaypointEditorView = class
 
   _update_form_state: ->
     if @selected_index?
-      console.log "Index: "+@selected_index
       waypoints = @mission_view.selected_mission.waypoints.value()
       waypoint = waypoints[@selected_index]
       prior_waypoint = waypoints[@selected_index-1]

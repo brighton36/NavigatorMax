@@ -79,7 +79,7 @@ window.GpsMapView = class
         # Bottom Left:
         @_circle 6, 'black', tile.dest_x, tile.dest_y+tile.copy_height
 
-    [focal_x, focal_y] = @_latlon_to_canvas( @focus_latlon... )
+    [focal_x, focal_y] = @latlon_to_canvas( @focus_latlon... )
 
     # Draw the path of motion:
     if @draw_path?
@@ -88,12 +88,12 @@ window.GpsMapView = class
       @ctx.beginPath()
       @ctx.moveTo focal_x, focal_y
       for stop_latlon in @draw_path
-        @ctx.lineTo @_latlon_to_canvas(stop_latlon...)...
+        @ctx.lineTo @latlon_to_canvas(stop_latlon...)...
       @ctx.stroke()
       @ctx.closePath()
 
     # For reference:
-    @_circle 6, 'blue', @_latlon_to_canvas(@focus_latlon...)... if @options.is_drawing_center
+    @_circle 6, 'blue', @latlon_to_canvas(@focus_latlon...)... if @options.is_drawing_center
 
     # Draw the turtle:
     @_turtle focal_x, focal_y, @turtle_angle if @turtle_angle?
@@ -102,7 +102,7 @@ window.GpsMapView = class
     [view_top, view_right, view_bot, view_left] = @_viewport_in_pixels()
     @pixels_to_latlon view_left+canvas_x, view_top-canvas_y
   
-  _latlon_to_canvas: (lat, lon) ->
+  latlon_to_canvas: (lat, lon) ->
     viewport_pixels = @_viewport_in_pixels()
     pixels = @latlon_to_pixels lat, lon
     [ pixels[0]-viewport_pixels[3], @ctx.canvas.height - pixels[1]+viewport_pixels[2] ]
